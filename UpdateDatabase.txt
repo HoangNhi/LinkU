@@ -1,0 +1,1 @@
+Scaffold-DbContext -UseDatabaseNames "Data Source=localhost;Initial Catalog=LINKU;User ID=sa;Password=123456; TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir DbContent -Force -NoOnConfiguring

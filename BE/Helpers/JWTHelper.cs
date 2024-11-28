@@ -17,7 +17,7 @@ namespace BE.Helpers
 
             var claims = new[] {
                 new Claim(JwtRegisteredClaimNames.Name, User.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.UniqueName, User.Email),
+                new Claim(JwtRegisteredClaimNames.UniqueName, User.Username),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 

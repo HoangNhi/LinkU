@@ -17,14 +17,16 @@ namespace BE.Services.User
         private readonly LINKUContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IWebHostEnvironment _webHostEnvironment; 
+        private readonly IConfiguration _config;
 
-        public USERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IWebHostEnvironment webHostEnvironment)
+        public USERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IWebHostEnvironment webHostEnvironment, IConfiguration config)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
             _webHostEnvironment = webHostEnvironment;
+            _config = config;
         }
 
         public async Task<BaseResponse<GetListPagingResponse>> GetListPaging(GetListPagingRequest request)
@@ -43,7 +45,7 @@ namespace BE.Services.User
                 var parameters = new[]
                 {
                     new SqlParameter("@iTextSearch", request.TextSearch),
-                    new SqlParameter("@iPageIndex", request.PageIndex),
+                    new SqlParameter("@iPageIndex", request.PageIndex - 1),
                     new SqlParameter("@iRowsPerPage", request.RowPerPage),
                     iTotalRow
                 };
@@ -117,6 +119,12 @@ namespace BE.Services.User
             var response = new BaseResponse<MODELUser>();
             try
             {
+                var checkUsernameExist = _context.Users.Where(x => x.Username == request.Username);
+                if (checkUsernameExist.Any())
+                {
+                    throw new Exception("Tên tài khoản đã tồn tại");
+                }
+
                 var checkEmailExist = _context.Users.Where(x => x.Email == request.Email);
                 if (checkEmailExist.Any())
                 {
@@ -166,6 +174,12 @@ namespace BE.Services.User
             var response = new BaseResponse<MODELUser>();
             try
             {
+                var checkUsernameExist = _context.Users.Where(x => x.Username == request.Username);
+                if (checkUsernameExist.Any())
+                {
+                    throw new Exception("Tên tài khoản đã tồn tại");
+                }
+
                 var checkEmailExist = _context.Users.Where(x => x.Email == request.Email);
                 if (checkEmailExist.Any())
                 {
@@ -248,7 +262,6 @@ namespace BE.Services.User
             return response;
         }
 
-        // Login by Email and Password
         public async Task<BaseResponse<MODELUser>> Login(LoginRequest request)
         {
             var response = new BaseResponse<MODELUser>();
@@ -273,7 +286,84 @@ namespace BE.Services.User
                         throw new Exception("Tài khoản hoặc mật khẩu không đúng");
                     }
 
+                    data = _mapper.Map<MODELUser>(user);
+                    var token = JWTHelper.GenerateJwtToken(data, _config);
+                    // Generate Refresh Token
+                    var refreshToken = new RefreshToken()
+                    {
+                        UserId = user.Id,
+                        RefreshToken1 = Guid.NewGuid(),
+                        ExpiryDate = DateTime.Now.AddHours(CommonConst.ExpireRefreshToken),
+                        ExpiryDateAccessTokenRecent = DateTime.Now.AddHours(CommonConst.ExpireAccessToken),
+                        IsActived = true,
+                        IsDeleted = false,
+                    };
+
+                    // Save Refresh Token
+                    _context.RefreshTokens.Add(refreshToken);
+                    _context.SaveChanges();
+
+                    data.RefreshToken = refreshToken.RefreshToken1.ToString();
+                    data.AccessToken = token;
+
+                    response.Data = data;
                 }
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<MODELUser>> Register(RegisterRequest request)
+        {
+            var response = new BaseResponse<MODELUser>();
+            try
+            {
+                if (!CommonFunc.IsValidEmail(request.Username) && !CommonFunc.IsValidPhone(request.Username))
+                {
+                    throw new Exception("Email hoặc số điện thoại chưa đúng định dạng");
+                }
+
+                var checkUsername = _context.Users.Where(x => x.Username.Equals(request.Username));
+                if (checkUsername.Any())
+                {
+                    throw new Exception("Email hoặc số điện thoại đã được sử dụng");
+                }
+
+                if (request.Password != request.ConfirmPassword)
+                    throw new Exception("Mật khẩu không khớp");
+
+                var add = _mapper.Map<ENTITIES.DbContent.User>(request);
+                add.Id = Guid.NewGuid();
+                add.PasswordSalt = Encrypt_DecryptHelper.GenerateSalt();
+                add.Password = Encrypt_DecryptHelper.EncodePassword(request.Password, add.PasswordSalt);
+                // Vai trò
+                add.RoleId = Guid.Parse("EFF9DA3C-EF59-4131-B427-2D83518C950D");
+                add.IsActived = true;
+
+                if (CommonFunc.IsValidEmail(request.Username))
+                {
+                    add.Email = request.Username;
+                }
+                else
+                {
+                    add.SoDienThoai = request.Username;
+                }
+
+                add.NguoiTao = "admin";
+                add.NgayTao = DateTime.Now;
+                add.NguoiSua = "admin";
+                add.NgaySua = DateTime.Now;
+
+                // Lưu dữ liệu
+                _context.Users.Add(add);
+                _context.SaveChanges();
+
+                response.Data = _mapper.Map<MODELUser>(add);
+
             }
             catch (Exception ex)
             {
@@ -297,6 +387,7 @@ namespace BE.Services.User
             }
             return response;
         }
+        
         public async Task<BaseResponse<MODELUser>> Logout(PostLogoutRequest request)
         {
             var response = new BaseResponse<MODELUser>();

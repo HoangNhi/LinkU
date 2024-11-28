@@ -9,7 +9,9 @@ public partial class User
 
     public string Username { get; set; } = null!;
 
-    public string HoVaTen { get; set; } = null!;
+    public string HoLot { get; set; } = null!;
+
+    public string Ten { get; set; } = null!;
 
     public string? Email { get; set; }
 
@@ -18,6 +20,8 @@ public partial class User
     public string Password { get; set; } = null!;
 
     public string PasswordSalt { get; set; } = null!;
+
+    public Guid RoleId { get; set; }
 
     public DateTime DateOfBirth { get; set; }
 
@@ -58,4 +62,6 @@ public partial class User
     public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
 
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
+    public virtual Role Role { get; set; } = null!;
 }

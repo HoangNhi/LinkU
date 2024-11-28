@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using BE.AutoMapper;
+using BE.Services.User;
 using ENTITIES.DbContent;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using MODELS.USER.Requests;
 
 namespace BE.Configure
@@ -12,13 +14,10 @@ namespace BE.Configure
     {
         public static void Config(this WebApplicationBuilder builder)
         {
-            SystemSetting(builder);
+            // SYSTEM
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-
-        }
-
-        public static void SystemSetting(WebApplicationBuilder builder)
-        {
             // Cấu hình DbContext
             builder.Services.AddDbContext<LINKUContext>(options =>
             {
@@ -41,7 +40,7 @@ namespace BE.Configure
             });
 
             // Thêm Fluent Validation
-            builder.Services.AddMvc(config => {  })
+            builder.Services.AddMvc(config => { })
                 .AddFluentValidation(config =>
                 {
                     config.ImplicitlyValidateChildProperties = true;
@@ -49,6 +48,62 @@ namespace BE.Configure
                     config.RegisterValidatorsFromAssemblyContaining<LoginRequestValidator>();
                 })
                 .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+
+            //
+            builder.Services.AddSwaggerGen(opt =>
+            {
+                opt.SwaggerDoc("v1", new OpenApiInfo { Title = "LinkU", Version = "v1" });
+                opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Nhập Token của bạn ở đây",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "bearer"
+                });
+
+                opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type=ReferenceType.SecurityScheme,
+                                Id="Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
+                });
+            });
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin",
+                    builder =>
+                    {
+                        builder
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials().SetIsOriginAllowed((hosts) => true);
+                    });
+            });
+
+            // Appsetting
+            builder.Configuration
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables();
+
+            // Register service
+            RegisterService(builder);
+        }
+
+        public static void RegisterService(WebApplicationBuilder builder)
+        {
+           builder.Services.AddTransient<IUSERService, USERService>();
         }
     }
 }

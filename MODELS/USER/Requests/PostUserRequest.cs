@@ -17,8 +17,11 @@ namespace MODELS.USER.Requests
         [Required(AllowEmptyStrings = false, ErrorMessage = "Tên đăng nhặp không được để trống")]
         public string Username { get; set; } = null!;
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Họ và tên không được để trống")]
-        public string HoVaTen { get; set; } = null!;
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Họ lót không được để trống")]
+        public string HoLot { get; set; } = null!;
+
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Tên không được để trống")]
+        public string Ten { get; set; } = null!;
 
         public string? Email { get; set; }
 
@@ -31,6 +34,8 @@ namespace MODELS.USER.Requests
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Ngày sinh không được để trống")]
         public DateTime DateOfBirth { get; set; }
+
+        public Guid RoleId { get; set; }
 
         public string? Bio { get; set; }
 
@@ -46,7 +51,8 @@ namespace MODELS.USER.Requests
         public PostUserRequestValidator()
         {
             RuleFor(x => x.Username).NotEmpty().WithMessage("Tên đăng nhập không được để trống");
-            RuleFor(x => x.HoVaTen).NotEmpty().WithMessage("Họ và tên không được để trống");
+            RuleFor(x => x.HoLot).NotEmpty().WithMessage("Họ lót không được để trống");
+            RuleFor(x => x.Ten).NotEmpty().WithMessage("Tên không được để trống");
             RuleFor(x => x.Password).NotEmpty().WithMessage("Mật khẩu không được để trống");
             RuleFor(x => x.DateOfBirth).NotEmpty().WithMessage("Ngày sinh không được để trống");
             RuleFor(x => x.Email).EmailAddress().WithMessage("Email không hợp lệ");

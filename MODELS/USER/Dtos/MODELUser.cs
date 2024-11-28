@@ -13,7 +13,11 @@ namespace MODELS.USER.Dtos
 
         public string Username { get; set; } = null!;
 
-        public string HoVaTen { get; set; } = null!;
+        public string HoLot { get; set; } = null!;
+
+        public string Ten { get; set; } = null!;
+
+        public string HoVaTen => $"{HoLot} {Ten}";
 
         public string? Email { get; set; }
 
@@ -22,6 +26,8 @@ namespace MODELS.USER.Dtos
         public string Password { get; set; } = null!;
 
         public string PasswordSalt { get; set; } = null!;
+
+        public Guid RoleId { get; set; }
 
         public DateTime DateOfBirth { get; set; }
 

@@ -17,6 +17,7 @@ namespace BE.Services.User
 
         // Login by UserName and Password
         Task<BaseResponse<MODELUser>> Login(LoginRequest request);
+        Task<BaseResponse<MODELUser>> Register(RegisterRequest request);
         Task<BaseResponse<MODELRefreshToken>> RefreshToken(PostRefreshTokenRequest request);
         Task<BaseResponse<MODELUser>> Logout(PostLogoutRequest request);
     }

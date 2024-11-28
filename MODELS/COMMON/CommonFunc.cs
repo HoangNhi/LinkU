@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace MODELS.COMMON
 {
@@ -30,7 +26,6 @@ namespace MODELS.COMMON
             }
         }
 
-
         public static bool IsValidPhone(string phoneNo)
         {
             var phoneNumber = phoneNo.Trim()
@@ -39,6 +34,15 @@ namespace MODELS.COMMON
                 .Replace("(", "")
                 .Replace(")", "");
             return Regex.Match(phoneNumber, @"^\d{5,15}$").Success;
+        }
+
+        public static string GetModelStateAPI(ModelStateDictionary modelState)
+        {
+            var errorList = (from item in modelState.Values
+                             from error in item.Errors
+                             select error.ErrorMessage).ToList();
+
+            return errorList[0];
         }
     }
 }

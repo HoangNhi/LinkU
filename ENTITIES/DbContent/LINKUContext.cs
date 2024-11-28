@@ -23,6 +23,8 @@ public partial class LINKUContext : DbContext
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public virtual DbSet<Role> Roles { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -198,13 +200,11 @@ public partial class LINKUContext : DbContext
                 .HasConstraintName("FK_RefreshToken_User");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<Role>(entity =>
         {
-            entity.ToTable("User");
+            entity.ToTable("Role");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CoverPicture).HasMaxLength(200);
-            entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
             entity.Property(e => e.NgayTao).HasColumnType("datetime");
             entity.Property(e => e.NgayXoa).HasColumnType("datetime");
@@ -217,13 +217,51 @@ public partial class LINKUContext : DbContext
             entity.Property(e => e.NguoiXoa)
                 .HasMaxLength(256)
                 .IsUnicode(false);
+            entity.Property(e => e.TenGoi).HasMaxLength(256);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("User");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CoverPicture).HasMaxLength(200);
+            entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
+            entity.Property(e => e.Email)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.HoLot).HasMaxLength(256);
+            entity.Property(e => e.NgaySua).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayXoa).HasColumnType("datetime");
+            entity.Property(e => e.NguoiSua)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiTao)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiXoa)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.Password)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.PasswordSalt)
+                .HasMaxLength(256)
+                .IsUnicode(false);
             entity.Property(e => e.ProfilePicture).HasMaxLength(200);
             entity.Property(e => e.SoDienThoai)
                 .HasMaxLength(15)
                 .IsUnicode(false);
+            entity.Property(e => e.Ten).HasMaxLength(256);
             entity.Property(e => e.Username)
                 .HasMaxLength(256)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.Role).WithMany(p => p.Users)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_User_Role");
         });
 
         OnModelCreatingPartial(modelBuilder);

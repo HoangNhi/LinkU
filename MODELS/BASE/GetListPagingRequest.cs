@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentValidation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,5 +14,14 @@ namespace MODELS.BASE
         public DateTime? DenNgay { get; set; }
         public int PageIndex { get; set; }
         public int RowPerPage { get; set; } = 10;
+    }
+
+    public class GetListPagingRequestValidator : AbstractValidator<GetListPagingRequest>
+    {
+        public GetListPagingRequestValidator() 
+        {
+            RuleFor(x => x.PageIndex).GreaterThanOrEqualTo(1).WithMessage("Số trang phải lớn hơn 0");
+            RuleFor(x => x.RowPerPage).GreaterThanOrEqualTo(1).WithMessage("Số bản ghi trên trang phải lớn hơn 0");
+        }
     }
 }

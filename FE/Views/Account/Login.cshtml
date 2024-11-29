@@ -1,3 +1,41 @@
-﻿@{ 
+﻿@model MODELS.USER.Requests.LoginRequest;
+@{ 
     Layout = "~/Views/Shared/_LayoutAccount.cshtml";
 }
+
+<div class="d-flex justify-content-center align-items-center" style="height: 100vh">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-12">
+                    <span style=" font-size: 52px; font-weight: bold; color: #473c38;">LinkU</span>
+                </div>
+                <div class="col-md-12">
+                    <span style="font-size: 24px">Nơi kết nối và chia sẻ cùng những người quan trọng trong cuộc sống của bạn.</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmLogin" }))
+            {
+                @Html.AntiForgeryToken()
+                <div>
+                    <div class="form-outline" data-mdb-input-init>
+                        <input type="text" asp-for="Username" class="form-control" />
+                        <label class="form-label" for="Username">Email hoặc số điện thoại</label>
+                        @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-outline" data-mdb-input-init>
+                        <input type="password" asp-for="Password" class="form-control" />
+                        <label class="form-label" for="Password">Mật khẩu</label>
+                        @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+                    </div>
+                    <button type="submit" class="btn btn-primary" data-mdb-ripple-init>Đăng nhập</button>
+                    <a>Quên mật khẩu?</a>
+                    <hr class="hr" />
+                    <button type="button" class="btn btn-success" data-mdb-ripple-init>Tạo tài khoản mới</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -22,7 +22,7 @@ namespace FE.Controllers
         [AllowAnonymous]
         public IActionResult Login()
         {
-            return View("~/Views/Account/Login.cshtml", new LoginRequest());
+            return View("~/Views/Account/Login.cshtml", new UsernameRequest());
         }
 
         [AllowAnonymous]

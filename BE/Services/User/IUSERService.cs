@@ -8,17 +8,18 @@ namespace BE.Services.User
 {
     public interface IUSERService
     {
-        Task<BaseResponse<GetListPagingResponse>> GetListPaging(GetListPagingRequest request);
-        Task<BaseResponse<MODELUser>> GetById(GetByIdRequest request);
-        Task<BaseResponse<PostUserRequest>> GetByPost(GetByIdRequest request);
-        Task<BaseResponse<MODELUser>> Insert(PostUserRequest request);
-        Task<BaseResponse<MODELUser>> Update(PostUserRequest request);
-        Task<BaseResponse<string>> DeleteList(DeleteListRequest request);
+        BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request);
+        BaseResponse<MODELUser> GetById(GetByIdRequest request);
+        BaseResponse<PostUserRequest> GetByPost(GetByIdRequest request);
+        BaseResponse<MODELUser> Insert(PostUserRequest request);
+        BaseResponse<MODELUser> Update(PostUserRequest request);
+        BaseResponse<string> DeleteList(DeleteListRequest request);
 
         // Login by UserName and Password
-        Task<BaseResponse<MODELUser>> Login(LoginRequest request);
-        Task<BaseResponse<MODELUser>> Register(RegisterRequest request);
-        Task<BaseResponse<MODELRefreshToken>> RefreshToken(PostRefreshTokenRequest request);
-        Task<BaseResponse<MODELUser>> Logout(PostLogoutRequest request);
+        BaseResponse<MODELUser> Login(LoginRequest request);
+        BaseResponse<MODELUser> Register(RegisterRequest request);
+        BaseResponse<MODELRefreshToken> RefreshToken(PostRefreshTokenRequest request);
+        BaseResponse<MODELUser> Logout(PostLogoutRequest request);
+        BaseResponse<LoginRequest> CheckUsernameExist(UsernameRequest request);
     }
 }

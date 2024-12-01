@@ -31,10 +31,10 @@ function ShowThongBaoThanhCong(Message) {
 
     thongBaoContainer.appendChild(toast);
 
-    // Tự động đóng sau 10 giây
+    // Tự động đóng sau 4 giây
     setTimeout(() => {
         toast.remove();
-    }, 10000);
+    }, 2000);
 }
 
 function ShowThongBaoThatBai(Message) {
@@ -60,10 +60,10 @@ function ShowThongBaoThatBai(Message) {
 
     thongBaoContainer.appendChild(toast);
 
-    // Tự động đóng sau 10 giây
+    // Tự động đóng sau 4 giây
     setTimeout(() => {
         toast.remove();
-    }, 10000);
+    }, 2000);
 }
 
 // Loading
@@ -72,7 +72,7 @@ function showLoading(value) {
         $.blockUI({
             message:
                 '<div class="loader-demo-box">' +
-                '<img style="width: 120px;" src="/image/DungChung/Loading.gif" />' +
+                '<img style="width: 120px;" src="/asset/Loading.gif" />' +
                 '<div class="bar-loader">' +
                 '<span></span>' +
                 '<span></span>' +
@@ -92,7 +92,7 @@ function showLoadingElement(value, id) {
         $('#' + id).block({
             message:
                 '<div class="loader-demo-box">' +
-                '<img style="width: 120px;" src="/image/DungChung/Loading.gif" />' +
+                '<img style="width: 120px;" src="/asset/Loading.gif" />' +
                 '<div class="bar-loader">' +
                 '<span></span>' +
                 '<span></span>' +

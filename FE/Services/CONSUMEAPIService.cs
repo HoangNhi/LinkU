@@ -143,6 +143,7 @@ namespace FE.Services
                     }
                     else
                     {
+                        response.Success = true;
                         response.Data = resultData.Data;
                     }
                 }
@@ -152,9 +153,7 @@ namespace FE.Services
                 response.Success = false;
                 response.Message = "Lỗi hệ thống";
             }
-
             return response;
-
         }
     }
 }

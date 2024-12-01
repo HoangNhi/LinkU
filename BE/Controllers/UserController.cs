@@ -9,7 +9,7 @@ using MODELS.USER.Requests;
 
 namespace BE.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]/[action]")]
     [ApiController]
     public class UserController : BaseController<UserController>
     {
@@ -20,14 +20,14 @@ namespace BE.Controllers
             _service = userService;
         }
 
-        [HttpPost, Route("get-list")]
-        public async Task<ActionResult<ApiResponse>> GetListPaging(GetListPagingRequest request)
+        [HttpPost]
+        public ActionResult<ApiResponse> GetListPaging(GetListPagingRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = await _service.GetListPaging(request);
+                    var response = _service.GetListPaging(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -45,14 +45,14 @@ namespace BE.Controllers
             }
         }
 
-        [HttpPost, Route("get-by-id")]
-        public async Task<ActionResult<ApiResponse>> GetById(GetByIdRequest request)
+        [HttpPost]
+        public ActionResult<ApiResponse> GetById(GetByIdRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = await _service.GetById(request);
+                    var response = _service.GetById(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -70,14 +70,14 @@ namespace BE.Controllers
             }
         }
 
-        [HttpPost, Route("get-by-post")]
-        public async Task<ActionResult<ApiResponse>> GetByPost(GetByIdRequest request)
+        [HttpPost]
+        public ActionResult<ApiResponse> GetByPost(GetByIdRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = await _service.GetByPost(request);
+                    var response = _service.GetByPost(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -95,14 +95,14 @@ namespace BE.Controllers
             }
         }
 
-        [HttpPost, Route("insert")]
-        public async Task<ActionResult<ApiResponse>> Insert(PostUserRequest request)
+        [HttpPost]
+        public ActionResult<ApiResponse> Insert(PostUserRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = await _service.Insert(request);
+                    var response = _service.Insert(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -120,14 +120,14 @@ namespace BE.Controllers
             }
         }
 
-        [HttpPost, Route("update")]
-        public async Task<ActionResult<ApiResponse>> Update(PostUserRequest request)
+        [HttpPost]
+        public ActionResult<ApiResponse> Update(PostUserRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = await _service.Update(request);
+                    var response = _service.Update(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -145,40 +145,14 @@ namespace BE.Controllers
             }
         }
 
-        [HttpPost, Route("delete-list")]
-        public async Task<ActionResult<ApiResponse>> DeleteList(DeleteListRequest request)
+        [HttpPost]
+        public ActionResult<ApiResponse> DeleteList(DeleteListRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = await _service.DeleteList(request);
-                    if (response.Error)
-                    {
-                        throw new Exception(response.Message);
-                    }
-                    return Ok(new ApiResponse(response.Data));
-                }
-                else
-                {
-                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
-                }
-            }
-            catch (Exception ex)
-            {
-                return Ok(new ApiResponse(false, 500, ex.Message));
-            }
-        }
-
-        [AllowAnonymous]
-        [HttpPost, Route("login")]
-        public async Task<ActionResult<ApiResponse>> Login(LoginRequest request)
-        {
-            try
-            {
-                if (request != null && ModelState.IsValid)
-                {
-                    var response = await _service.Login(request);
+                    var response = _service.DeleteList(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -197,14 +171,14 @@ namespace BE.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost, Route("register")]
-        public async Task<ActionResult<ApiResponse>> Register(RegisterRequest request)
+        [HttpPost]
+        public ActionResult<ApiResponse> Login(LoginRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = await _service.Register(request);
+                    var response = _service.Login(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -223,14 +197,14 @@ namespace BE.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost, Route("refresh-token")]
-        public async Task<ActionResult<ApiResponse>> RefreshToken(PostRefreshTokenRequest request)
+        [HttpPost]
+        public ActionResult<ApiResponse> Register(RegisterRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = await _service.RefreshToken(request);
+                    var response = _service.Register(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -248,14 +222,66 @@ namespace BE.Controllers
             }
         }
 
-        [HttpPost, Route("logout")]
-        public async Task<ActionResult<ApiResponse>> Logout(PostLogoutRequest request)
+        [AllowAnonymous]
+        [HttpPost]
+        public ActionResult<ApiResponse> RefreshToken(PostRefreshTokenRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = await _service.Logout(request);
+                    var response = _service.RefreshToken(request);
+                    if (response.Error)
+                    {
+                        throw new Exception(response.Message);
+                    }
+                    return Ok(new ApiResponse(response.Data));
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
+
+        [HttpPost]
+        public ActionResult<ApiResponse> Logout(PostLogoutRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    var response = _service.Logout(request);
+                    if (response.Error)
+                    {
+                        throw new Exception(response.Message);
+                    }
+                    return Ok(new ApiResponse(response.Data));
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public ActionResult<ApiResponse> CheckUsernameExist(UsernameRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    var response = _service.CheckUsernameExist(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);

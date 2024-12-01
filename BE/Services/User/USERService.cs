@@ -29,7 +29,7 @@ namespace BE.Services.User
             _config = config;
         }
 
-        public async Task<BaseResponse<GetListPagingResponse>> GetListPaging(GetListPagingRequest request)
+        public BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request)
         {
             var response = new BaseResponse<GetListPagingResponse>();
             try
@@ -64,7 +64,7 @@ namespace BE.Services.User
             }
             return response;
         }
-        public async Task<BaseResponse<MODELUser>> GetById(GetByIdRequest request)
+        public BaseResponse<MODELUser> GetById(GetByIdRequest request)
         {
             var response = new BaseResponse<MODELUser>();
             try
@@ -88,7 +88,7 @@ namespace BE.Services.User
             }
             return response;
         }
-        public async Task<BaseResponse<PostUserRequest>> GetByPost(GetByIdRequest request)
+        public BaseResponse<PostUserRequest> GetByPost(GetByIdRequest request)
         {
             var response = new BaseResponse<PostUserRequest>();
             try
@@ -114,7 +114,7 @@ namespace BE.Services.User
             }
             return response;
         }
-        public async Task<BaseResponse<MODELUser>> Insert(PostUserRequest request)
+        public BaseResponse<MODELUser> Insert(PostUserRequest request)
         {
             var response = new BaseResponse<MODELUser>();
             try
@@ -169,7 +169,7 @@ namespace BE.Services.User
             return response;
         }
 
-        public async Task<BaseResponse<MODELUser>> Update(PostUserRequest request)
+        public BaseResponse<MODELUser> Update(PostUserRequest request)
         {
             var response = new BaseResponse<MODELUser>();
             try
@@ -231,7 +231,7 @@ namespace BE.Services.User
             return response;
         }
 
-        public async Task<BaseResponse<string>> DeleteList(DeleteListRequest request)
+        public BaseResponse<string> DeleteList(DeleteListRequest request)
         {
             var response = new BaseResponse<string>();
             try
@@ -262,7 +262,7 @@ namespace BE.Services.User
             return response;
         }
 
-        public async Task<BaseResponse<MODELUser>> Login(LoginRequest request)
+        public BaseResponse<MODELUser> Login(LoginRequest request)
         {
             var response = new BaseResponse<MODELUser>();
             try
@@ -317,7 +317,7 @@ namespace BE.Services.User
             return response;
         }
 
-        public async Task<BaseResponse<MODELUser>> Register(RegisterRequest request)
+        public BaseResponse<MODELUser> Register(RegisterRequest request)
         {
             var response = new BaseResponse<MODELUser>();
             try
@@ -373,7 +373,7 @@ namespace BE.Services.User
             return response;
         }
 
-        public async Task<BaseResponse<MODELRefreshToken>> RefreshToken(PostRefreshTokenRequest request)
+        public BaseResponse<MODELRefreshToken> RefreshToken(PostRefreshTokenRequest request)
         {
             var response = new BaseResponse<MODELRefreshToken>();
             try
@@ -388,7 +388,7 @@ namespace BE.Services.User
             return response;
         }
         
-        public async Task<BaseResponse<MODELUser>> Logout(PostLogoutRequest request)
+        public BaseResponse<MODELUser> Logout(PostLogoutRequest request)
         {
             var response = new BaseResponse<MODELUser>();
             try
@@ -403,7 +403,7 @@ namespace BE.Services.User
             return response;
         }
 
-        // Update 
+        // Update Image
         private string UploadPicture(string folderUpload, string oldImage, string fileDirectory)
         {
             string path = "";
@@ -446,6 +446,32 @@ namespace BE.Services.User
                 }
             }
             return path;
+        }
+
+        // CheckUsername Exist
+        public BaseResponse<LoginRequest> CheckUsernameExist(UsernameRequest request)
+        {
+            var response = new BaseResponse<LoginRequest>();
+            try
+            {
+                var data = new LoginRequest();
+                var user = _context.Users.Where(x => x.Username == request.Username).FirstOrDefault();
+                if(user == null)
+                {
+                    throw new Exception("Tài khoản không tồn tại");
+                }
+                else
+                {
+                    data.Username = user.Username;
+                }
+                response.Data = data;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
         }
     }
 }

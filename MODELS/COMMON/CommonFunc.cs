@@ -44,5 +44,17 @@ namespace MODELS.COMMON
 
             return errorList[0];
         }
+        public static string GetModelState(ModelStateDictionary dic)
+        {
+            string error = "";
+            var arrError = dic.Select(f => f.Value.Errors).Where(p => p.Count > 0).ToList();
+
+            foreach (var item in arrError)
+            {
+                error += item[0].ErrorMessage + "<br />";
+            }
+
+            return error;
+        }
     }
 }

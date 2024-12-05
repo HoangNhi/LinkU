@@ -458,13 +458,98 @@ namespace BE.Services.User
                 var user = _context.Users.Where(x => x.Username == request.Username).FirstOrDefault();
                 if(user == null)
                 {
-                    throw new Exception("Tài khoản không tồn tại");
+                    throw new Exception("Email hoặc số điện thoại không đúng");
                 }
                 else
                 {
                     data.Username = user.Username;
                 }
                 response.Data = data;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+    
+        // Login Google
+        public BaseResponse<MODELUser> LoginGoogle(LoginGoogleRequest request)
+        {
+            var response = new BaseResponse<MODELUser>();
+            try
+            {
+                var data = new MODELUser();
+                var user = _context.Users.Where(x => x.Username == request.Username).FirstOrDefault();
+                if (user == null)
+                {
+                    var add = _mapper.Map<ENTITIES.DbContent.User>(request);
+                    add.Id = Guid.NewGuid();
+                    add.PasswordSalt = Encrypt_DecryptHelper.GenerateSalt();
+                    add.Password = Encrypt_DecryptHelper.EncodePassword(Guid.Empty.ToString(), add.PasswordSalt);
+                    // Vai trò
+                    add.RoleId = Guid.Parse("EFF9DA3C-EF59-4131-B427-2D83518C950D");
+                    add.IsActived = true;
+                    add.NguoiTao = "admin";
+                    add.NgayTao = DateTime.Now;
+                    add.NguoiSua = "admin";
+                    add.NgaySua = DateTime.Now;
+
+                    _context.Users.Add(add);
+                    _context.SaveChanges();
+
+                    data = _mapper.Map<MODELUser>(user);
+                    var token = JWTHelper.GenerateJwtToken(data, _config);
+                    // Generate Refresh Token
+                    var refreshToken = new RefreshToken()
+                    {
+                        UserId = user.Id,
+                        RefreshToken1 = Guid.NewGuid(),
+                        ExpiryDate = DateTime.Now.AddHours(CommonConst.ExpireRefreshToken),
+                        ExpiryDateAccessTokenRecent = DateTime.Now.AddHours(CommonConst.ExpireAccessToken),
+                        IsActived = true,
+                        IsDeleted = false,
+                    };
+
+                    // Save Refresh Token
+                    _context.RefreshTokens.Add(refreshToken);
+                    _context.SaveChanges();
+
+                    data.RefreshToken = refreshToken.RefreshToken1.ToString();
+                    data.AccessToken = token;
+
+                    response.Data = data;
+                }
+                else
+                {
+                    if (!user.IsActived)
+                    {
+                        throw new Exception("Tài khoản đã bị vô hiệu");
+                    }
+
+                    data = _mapper.Map<MODELUser>(user);
+                    var token = JWTHelper.GenerateJwtToken(data, _config);
+                    // Generate Refresh Token
+                    var refreshToken = new RefreshToken()
+                    {
+                        UserId = user.Id,
+                        RefreshToken1 = Guid.NewGuid(),
+                        ExpiryDate = DateTime.Now.AddHours(CommonConst.ExpireRefreshToken),
+                        ExpiryDateAccessTokenRecent = DateTime.Now.AddHours(CommonConst.ExpireAccessToken),
+                        IsActived = true,
+                        IsDeleted = false,
+                    };
+
+                    // Save Refresh Token
+                    _context.RefreshTokens.Add(refreshToken);
+                    _context.SaveChanges();
+
+                    data.RefreshToken = refreshToken.RefreshToken1.ToString();
+                    data.AccessToken = token;
+
+                    response.Data = data;
+                }
             }
             catch (Exception ex)
             {

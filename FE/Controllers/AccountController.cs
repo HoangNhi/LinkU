@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication;
 using Newtonsoft.Json;
 using System.Security.Claims;
 using MODELS.USER.Dtos;
+using Microsoft.AspNetCore.Authentication.Google;
 
 namespace FE.Controllers
 {
@@ -28,10 +29,18 @@ namespace FE.Controllers
         }
 
         [AllowAnonymous]
-        public IActionResult Login()
+        public IActionResult Login(string userName = "")
         {
             ViewData["Title"] = "Đăng nhập";
-            return View("~/Views/Account/Login.cshtml", new UsernameRequest());
+            if (userName == "")
+            {
+                return View("~/Views/Account/Login.cshtml", new UsernameRequest());
+            }
+            else
+            {
+                return View("~/Views/Account/Login.cshtml", new UsernameRequest { Username = userName });
+            }
+
         }
 
         [AllowAnonymous]
@@ -51,8 +60,6 @@ namespace FE.Controllers
                         claims.Add(new Claim("Id", UserDate.Id.ToString()));
                         claims.Add(new Claim("Name", UserDate.Username));
                         claims.Add(new Claim("Fullname", UserDate.HoVaTen));
-                        claims.Add(new Claim("Email", UserDate.Email));
-                        claims.Add(new Claim("Phone", UserDate.SoDienThoai));
                         claims.Add(new Claim("Role", UserDate.RoleId.ToString()));
                         claims.Add(new Claim("Token", UserDate.AccessToken));
 
@@ -94,7 +101,7 @@ namespace FE.Controllers
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_CheckUsernameExist, request, HttpAction.Post);
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_CHECKUSERNAMEEXIST, request, HttpAction.Post);
                     if (response.Success)
                     {
                         return Json(new { IsSuccess = true, Message = "", Data = "" });
@@ -122,7 +129,7 @@ namespace FE.Controllers
             if (request != null && ModelState.IsValid)
             {
                 ViewData["Title"] = "Đăng nhập";
-                return View("~/Views/Account/Password.cshtml", new LoginRequest { Username = request.Username});
+                return View("~/Views/Account/Password.cshtml", new LoginRequest { Username = request.Username });
             }
             else
             {
@@ -134,6 +141,80 @@ namespace FE.Controllers
         public IActionResult Register()
         {
             return View("~/Views/Account/Register.cshtml", new RegisterRequest());
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult SigninGoogle()
+        {
+            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse") };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            try
+            {
+                var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+                // Đăng nhập thành công sẽ lấy được các claim như: email, name, ...
+                var claimsGoogle = result.Principal.Identities
+                    .FirstOrDefault().Claims.Select(claim => new
+                    {
+                        claim.Issuer,
+                        claim.OriginalIssuer,
+                        claim.Type,
+                        claim.Value
+                    });
+
+                var Username = claimsGoogle.FirstOrDefault(x => x.Type.EndsWith("emailaddress")).Value;
+                var HoLot = claimsGoogle.FirstOrDefault(x => x.Type.EndsWith("surname")).Value;
+                var Ten = claimsGoogle.FirstOrDefault(x => x.Type.EndsWith("givenname")).Value;
+
+                ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_LOGINGOOGLE, new LoginGoogleRequest { Username = Username , HoVaTen = HoLot + " " + Ten}, HttpAction.Post);
+                if (response.Success)
+                {
+                    var UserDate = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                    var claims = new List<Claim>();
+
+                    claims.Add(new Claim("Id", UserDate.Id.ToString()));
+                    claims.Add(new Claim("Name", UserDate.Username));
+                    claims.Add(new Claim("Fullname", UserDate.HoVaTen));
+                    claims.Add(new Claim("Role", UserDate.RoleId.ToString()));
+                    claims.Add(new Claim("Token", UserDate.AccessToken));
+
+                    // Create the identity from the user info
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    // Create the principal
+                    var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+                    // Save token in cookie
+                    await HttpContext.SignInAsync(claimsPrincipal, new AuthenticationProperties
+                    {
+                        IsPersistent = true, // Giữ cookie sau khi trình duyệt đóng
+                        ExpiresUtc = DateTimeOffset.UtcNow.AddHours(CommonConst.ExpireAccessToken) // Hạn sử dụng là 7 ngày
+                    });
+
+                    return Redirect(Url.Action("Index", "Home"));
+                }
+                else
+                {
+                    throw new Exception(response.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login");
         }
     }
 }

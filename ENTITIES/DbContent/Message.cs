@@ -13,6 +13,8 @@ public partial class Message
 
     public string Content { get; set; } = null!;
 
+    public bool IsCall { get; set; }
+
     public DateTime NgayTao { get; set; }
 
     public string NguoiTao { get; set; } = null!;

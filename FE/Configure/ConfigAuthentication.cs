@@ -13,7 +13,12 @@ namespace FE.Configure
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.IsEssential = true;
                 options.ExpireTimeSpan = TimeSpan.FromHours(MODELS.COMMON.CommonConst.ExpireAccessToken);
-                options.LoginPath = "/Account/Index";
+                options.LoginPath = "/Account/Login";
+            })
+            .AddGoogle(googleOptions =>
+            {
+                googleOptions.ClientId = builder.Configuration["Google:ClientId"];
+                googleOptions.ClientSecret = builder.Configuration["Google:ClientSecret"];
             });
 
             // Prevent Cross-Site Request Forgery (CSRF)

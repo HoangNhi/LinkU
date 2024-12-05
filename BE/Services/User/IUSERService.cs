@@ -21,5 +21,6 @@ namespace BE.Services.User
         BaseResponse<MODELRefreshToken> RefreshToken(PostRefreshTokenRequest request);
         BaseResponse<MODELUser> Logout(PostLogoutRequest request);
         BaseResponse<LoginRequest> CheckUsernameExist(UsernameRequest request);
+        BaseResponse<MODELUser> LoginGoogle(LoginGoogleRequest request);    
     }
 }

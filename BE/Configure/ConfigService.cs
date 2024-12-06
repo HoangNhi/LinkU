@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BE.AutoMapper;
+using BE.Services.Message;
 using BE.Services.User;
 using ENTITIES.DbContent;
 using FluentValidation.AspNetCore;
@@ -103,7 +104,8 @@ namespace BE.Configure
 
         public static void RegisterService(WebApplicationBuilder builder)
         {
-           builder.Services.AddTransient<IUSERService, USERService>();
+            builder.Services.AddTransient<IUSERService, USERService>();
+            builder.Services.AddTransient<IMESSAGEService, MESSAGEService>();
         }
     }
 }

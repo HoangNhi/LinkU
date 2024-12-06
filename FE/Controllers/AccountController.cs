@@ -54,14 +54,16 @@ namespace FE.Controllers
                     ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_LOGIN, request, HttpAction.Post);
                     if (response.Success)
                     {
-                        var UserDate = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                        var UserData = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
                         var claims = new List<Claim>();
 
-                        claims.Add(new Claim("Id", UserDate.Id.ToString()));
-                        claims.Add(new Claim("Name", UserDate.Username));
-                        claims.Add(new Claim("Fullname", UserDate.HoVaTen));
-                        claims.Add(new Claim("Role", UserDate.RoleId.ToString()));
-                        claims.Add(new Claim("Token", UserDate.AccessToken));
+                        claims.Add(new Claim("Id", UserData.Id.ToString()));
+                        claims.Add(new Claim("Name", UserData.Username));
+                        claims.Add(new Claim("HoLot", UserData.HoLot));
+                        claims.Add(new Claim("Ten", UserData.Ten));
+                        claims.Add(new Claim("ProfilePicture", String.IsNullOrEmpty(UserData.ProfilePicture) || String.IsNullOrEmpty(UserData.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + UserData.ProfilePicture));
+                        claims.Add(new Claim("Role", UserData.RoleId.ToString()));
+                        claims.Add(new Claim("Token", UserData.AccessToken));
 
                         // Create the identity from the user info
                         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -176,14 +178,16 @@ namespace FE.Controllers
                 ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_LOGINGOOGLE, new LoginGoogleRequest { Username = Username , HoVaTen = HoLot + " " + Ten}, HttpAction.Post);
                 if (response.Success)
                 {
-                    var UserDate = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                    var UserData = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
                     var claims = new List<Claim>();
 
-                    claims.Add(new Claim("Id", UserDate.Id.ToString()));
-                    claims.Add(new Claim("Name", UserDate.Username));
-                    claims.Add(new Claim("Fullname", UserDate.HoVaTen));
-                    claims.Add(new Claim("Role", UserDate.RoleId.ToString()));
-                    claims.Add(new Claim("Token", UserDate.AccessToken));
+                    claims.Add(new Claim("Id", UserData.Id.ToString()));
+                    claims.Add(new Claim("Name", UserData.Username));
+                    claims.Add(new Claim("HoLot", UserData.HoLot));
+                    claims.Add(new Claim("Ten", UserData.Ten));
+                    claims.Add(new Claim("ProfilePicture", String.IsNullOrEmpty(UserData.ProfilePicture) || String.IsNullOrEmpty(UserData.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + UserData.ProfilePicture));
+                    claims.Add(new Claim("Role", UserData.RoleId.ToString()));
+                    claims.Add(new Claim("Token", UserData.AccessToken));
 
                     // Create the identity from the user info
                     var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

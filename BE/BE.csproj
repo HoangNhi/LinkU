@@ -23,4 +23,8 @@
     <ProjectReference Include="..\MODELS\MODELS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Files\Common\" />
+  </ItemGroup>
+
 </Project>

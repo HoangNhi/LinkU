@@ -1,8 +1,27 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div>
+    <div id="MessageList"></div>
 </div>
+
+<script>
+    $(document).ready(function () {
+        loadMessageList(1);
+    });
+
+    function loadMessageList(index) {
+        $.ajax({
+            url: "@Url.Action("GetListMessage", "Home")",
+            type: "GET",
+            data: {
+                RowPerPage: 10,
+                PageIndex: index
+            },
+            success: function (data) {
+                $("#MessageList").html(data);
+            }
+        });
+    }
+</script>

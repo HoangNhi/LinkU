@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\Files\Common\" />
+    <Folder Include="wwwroot\Files\ProfilePicture\" />
   </ItemGroup>
 
 </Project>

@@ -1,10 +1,38 @@
 ﻿@{ 
     MODELS.USER.Dtos.MODELUser User = ViewBag.UserInfo;
 }
+
+<style>
+    .profile-pic {
+        transition: transform 0.2s ease;
+        cursor: pointer;
+        object-fit: cover;
+        height: 40px;
+        width: 40px;
+        border-radius: 100px;
+    }
+    #PictureProfile:active {
+        filter: brightness(75%);
+        transform: scale(0.8);
+    }
+
+    hr.solid{
+        border: 0;
+        border-top: 2px solid;
+        color: inherit;
+        opacity: .25;
+        margin: .75rem 0;
+    }
+
+    .fa-solid.fa-gear::before{
+        font-size: 24px
+    }
+</style>
+
 <header>
     <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
         <div class="container-fluid">
-            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">LinkU</a>
+            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold; color: #473c38;">LinkU</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -19,19 +47,52 @@
                     </li>
                 </ul>
             </div>
-            <div class="dropdown">
-                <img    class=""
-                        style="height: 50px"
-                        src="@User.ProfilePicture"
+            <div id="dropdownPicture" class="dropdown">
+                <img    src="@User.ProfilePicture"
                         id="PictureProfile"
+                        class="profile-pic"
+                        role="button"
                         data-mdb-dropdown-init
                         data-mdb-ripple-init
-                        aria-expanded="false" />
-                <ul class="dropdown-menu" aria-labelledby="PictureProfile">
-                    <li><a class="dropdown-item" href="#">Action</a></li>
-                    <li><a class="dropdown-item" href="#">Another action</a></li>
-                    <li><a class="dropdown-item" href="#">Something else here</a></li>
-                </ul>
+                        aria-expanded="false"
+                        data-mdb-auto-close="outside" />
+                <div class="dropdown-menu" aria-labelledby="PictureProfile" style="box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 12px 0px; padding: 8px 16px 16px;"  >
+                    <div class="card text-center" style="width: 360px; background-color: #f2f4f7">
+                        <div class="card-body p-0">
+                            <div class="rounded-6 bg-white" style="padding: 12px; box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 12px 0px">
+                                <div class="d-flex align-items-center">
+                                    <img class="profile-pic p-1"
+                                         src="@User.ProfilePicture" />
+                                    <span class="p-1 fs-6">@User.HoVaTen</span>
+                                </div>
+                                <hr class="solid">
+                                <button type="button"
+                                        class="btn w-100"
+                                        style="background-color: rgb(226, 229, 233) "
+                                        data-mdb-ripple-init
+                                        data-mdb-ripple-color="dark">
+                                    <i class="fa-solid fa-people-arrows"></i> Xem tất cả trang cá nhân
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="row align-items-center">
+                                <div class="col-sm-2 p-2" style="background-color: rgb(226, 229, 233); border-radius: 100px; height">
+                                    <i class="fa-solid fa-gear"></i>
+                                </div>
+                                <span class="col-sm-9 text-start">Cài đặt và quyền riêng tư</span>
+                                <i class="fa-solid fa-chevron-right col-sm-1"></i>
+                            </div>
+                        </div>
+
+                        
+
+                        <div class="card-footer text-muted text-start" style="font-size: 12px">
+                            <strong>Quyền riêng tư . Điều khoản . Quảng cáo . Lựa chọn quản cáo <i class="fa-solid fa-play"></i> . Cookie .</strong> Xem thêm <strong>.</strong> LinkU <i class="fa-regular fa-copyright"></i> 2024
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>

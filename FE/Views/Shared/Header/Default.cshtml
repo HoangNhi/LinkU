@@ -21,11 +21,12 @@
         border-top: 2px solid;
         color: inherit;
         opacity: .25;
-        margin: .75rem 0;
+        margin: 1px 0 12px;
     }
 
-    .fa-solid.fa-gear::before{
-        font-size: 24px
+    .SettingBtn:hover,
+    .ProfilePicture:hover{
+        background-color: rgba(0, 0, 0, 0.05);
     }
 </style>
 
@@ -47,49 +48,136 @@
                     </li>
                 </ul>
             </div>
-            <div id="dropdownPicture" class="dropdown">
-                <img    src="@User.ProfilePicture"
-                        id="PictureProfile"
-                        class="profile-pic"
-                        role="button"
-                        data-mdb-dropdown-init
-                        data-mdb-ripple-init
-                        aria-expanded="false"
-                        data-mdb-auto-close="outside" />
-                <div class="dropdown-menu" aria-labelledby="PictureProfile" style="box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 12px 0px; padding: 8px 16px 16px;"  >
-                    <div class="card text-center" style="width: 360px; background-color: #f2f4f7">
-                        <div class="card-body p-0">
-                            <div class="rounded-6 bg-white" style="padding: 12px; box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 12px 0px">
-                                <div class="d-flex align-items-center">
-                                    <img class="profile-pic p-1"
-                                         src="@User.ProfilePicture" />
-                                    <span class="p-1 fs-6">@User.HoVaTen</span>
+
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <div role="button"
+                         id="dropdownNotification"
+                         data-mdb-dropdown-init
+                         data-mdb-ripple-init
+                         aria-expanded="false"
+                         data-mdb-auto-close="outside">
+                        <div class="p-0" style="background-color: rgb(226, 229, 233); border-radius: 100px; height: 40px; width: 40px; position: relative">
+                            <i class="fa-solid fa-bell" style="position: absolute; right: 9px; top: 8px; font-size: 24px"></i>
+                        </div>
+                    </div>
+                    <div class="dropdown-menu" aria-labelledby="dropdownNotification" style="width: 360px">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="fs-4 fw-bold">Thông báo</span>
+                                    <div class="dropdown">
+                                        <button type="button"
+                                                id="dropdownSettingNotification"
+                                                class="btn btn-light p-2" 
+                                                style="border-radius: 100px; height: 40px; width: 40px; position: relative" 
+                                                data-mdb-ripple-color="dark">
+                                            <i class="fa-solid fa-ellipsis" style="font-size: 24px; position: absolute; right: 9px; top: 8px;"></i>
+                                        </button>
+                                        <div class="dropdownSettingNotification fade">
+                                            Hello
+                                        </div>
+                                    </div>
                                 </div>
-                                <hr class="solid">
-                                <button type="button"
-                                        class="btn w-100"
-                                        style="background-color: rgb(226, 229, 233) "
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="dropdownPicture" class="dropdown">
+                    <img src="@User.ProfilePicture"
+                         id="PictureProfile"
+                         class="profile-pic"
+                         role="button"
+                         data-mdb-dropdown-init
+                         data-mdb-ripple-init
+                         aria-expanded="false"
+                         data-mdb-auto-close="outside" />
+                    <div class="dropdown-menu" aria-labelledby="PictureProfile" style="box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 12px 0px; padding: 8px 16px 16px;">
+                        <div class="card text-center" style="width: 360px; background-color: #f2f4f7">
+                            <div class="card-body p-0">
+                                <div class="rounded-6 bg-white" style="padding: 12px; box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 12px 0px">
+                                    <div role="button" class="ProfilePicture d-flex align-items-center rounded-5" style="padding: 8px">
+                                        <img class="profile-pic p-1"
+                                             src="@User.ProfilePicture" />
+                                        <span class="p-1 fs-6">@User.HoVaTen</span>
+                                    </div>
+                                    <hr class="solid" style="width: calc(100% - 16px); justify-self: center">
+                                    <button type="button"
+                                            class="btn"
+                                            style="background-color: rgb(226, 229, 233); width: calc(100% - 16px)"
+                                            data-mdb-ripple-init
+                                            data-mdb-ripple-color="dark">
+                                        <i class="fa-solid fa-people-arrows"></i> Xem tất cả trang cá nhân
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Cài đặt -->
+                            <div class="mt-3">
+                                <button class="SettingBtn d-flex align-items-center btn btn-light p-2 justify-content-between w-100"
                                         data-mdb-ripple-init
-                                        data-mdb-ripple-color="dark">
-                                    <i class="fa-solid fa-people-arrows"></i> Xem tất cả trang cá nhân
+                                        data-mdb-ripple-color="dark"
+                                        type="button">
+                                    <div class="d-flex align-items-center">
+                                        <div class="p-0" style="background-color: rgb(226, 229, 233); border-radius: 100px; height: 40px; width: 40px; position: relative">
+                                            <i class="fa-solid fa-gear" style="position: absolute; right: 8px; top: 8px; font-size: 24px"></i>
+                                        </div>
+                                        <span class="text-start ms-3">Cài đặt và quyền riêng tư</span>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right col-sm-1" style="font-size: 16px"></i>
+                                </button>
+                                <button class="SettingBtn d-flex align-items-center btn btn-light p-2 justify-content-between w-100"
+                                        data-mdb-ripple-init
+                                        data-mdb-ripple-color="dark"
+                                        type="button">
+                                    <div class="d-flex align-items-center">
+                                        <div class="p-0" style="background-color: rgb(226, 229, 233); border-radius: 100px; height: 40px; width: 40px; position: relative">
+                                            <i class="fa-solid fa-circle-question" style="position: absolute; right: 8px; top: 8px; font-size: 24px "></i>
+                                        </div>
+                                        <span class="text-start ms-3">Trợ giúp và hỗ trợ</span>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right col-sm-1" style="font-size: 16px"></i>
+                                </button>
+                                <button class="SettingBtn d-flex align-items-center btn btn-light p-2 justify-content-between w-100"
+                                        data-mdb-ripple-init
+                                        data-mdb-ripple-color="dark"
+                                        type="button">
+                                    <div class="d-flex align-items-center">
+                                        <div class="p-0" style="background-color: rgb(226, 229, 233); border-radius: 100px; height: 40px; width: 40px; position: relative">
+                                            <i class="fa-solid fa-moon" style="position: absolute; right: 10px; top: 8px; font-size: 24px"></i>
+                                        </div>
+                                        <span class="text-start ms-3">Màn hình và trợ năng</span>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right col-sm-1" style="font-size: 16px"></i>
+                                </button>
+                                <button class="SettingBtn d-flex align-items-center btn btn-light p-2 justify-content-between w-100"
+                                        data-mdb-ripple-init
+                                        data-mdb-ripple-color="dark"
+                                        type="button">
+                                    <div class="d-flex align-items-center">
+                                        <div class="p-0" style="background-color: rgb(226, 229, 233); border-radius: 100px; height: 40px; width: 40px; position: relative">
+                                            <i class="fa-solid fa-circle-exclamation" style="position: absolute; right: 8px; top: 8px; font-size: 24px"></i>
+                                        </div>
+                                        <span class="text-start ms-3">Đóng góp ý kiến</span>
+                                    </div>
+                                </button>
+                                <button class="SettingBtn d-flex align-items-center btn btn-light p-2 justify-content-between w-100"
+                                        data-mdb-ripple-init
+                                        data-mdb-ripple-color="dark"
+                                        type="button">
+                                    <div class="d-flex align-items-center">
+                                        <div class="p-0" style="background-color: rgb(226, 229, 233); border-radius: 100px; height: 40px; width: 40px; position: relative">
+                                            <i class="fa-solid fa-right-from-bracket" style="position: absolute; right: 8px; top: 8px; font-size: 24px"></i>
+                                        </div>
+                                        <span class="text-start ms-3">Đăng xuất</span>
+                                    </div>
                                 </button>
                             </div>
-                        </div>
 
-                        <div class="mt-3">
-                            <div class="row align-items-center">
-                                <div class="col-sm-2 p-2" style="background-color: rgb(226, 229, 233); border-radius: 100px; height">
-                                    <i class="fa-solid fa-gear"></i>
-                                </div>
-                                <span class="col-sm-9 text-start">Cài đặt và quyền riêng tư</span>
-                                <i class="fa-solid fa-chevron-right col-sm-1"></i>
+                            <div class="card-footer text-muted text-start" style="font-size: 12px">
+                                <strong>Quyền riêng tư . Điều khoản . Quảng cáo . Lựa chọn quản cáo <i class="fa-solid fa-play"></i> . Cookie .</strong> Xem thêm <strong>.</strong> LinkU <i class="fa-regular fa-copyright"></i> 2024
                             </div>
-                        </div>
-
-                        
-
-                        <div class="card-footer text-muted text-start" style="font-size: 12px">
-                            <strong>Quyền riêng tư . Điều khoản . Quảng cáo . Lựa chọn quản cáo <i class="fa-solid fa-play"></i> . Cookie .</strong> Xem thêm <strong>.</strong> LinkU <i class="fa-regular fa-copyright"></i> 2024
                         </div>
                     </div>
                 </div>

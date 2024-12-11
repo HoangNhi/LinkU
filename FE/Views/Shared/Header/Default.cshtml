@@ -28,7 +28,95 @@
     .ProfilePicture:hover{
         background-color: rgba(0, 0, 0, 0.05);
     }
+
+    .dropdownSettingNotification {
+        width: 344px;
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+        position: absolute;
+        right: -10px;
+        top: 70px
+    }
+
+    .dropdownSettingNotification .setting:hover{
+        background-color: #EEEEEE
+    }
+
+    .callouts {
+        display: inline-block;
+        position: relative;
+        width: 100%;
+        height: fit-content;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        background-color: #fff;
+        border: 1px solid #c1c1c1;
+        border-radius: 8px;
+        box-shadow: 0 0 10px #c1c1c1;
+    }
+
+    /* TOP */
+    .callouts--top:before {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 0;
+        right: 23px;
+        top: -42px;
+        border: 10px solid transparent;
+        border-bottom: 32px solid rgba(193,193,193,0.5);
+        z-index: 2;
+    }
+
+    .callouts--top:after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 0;
+        right: 25px;
+        top: -32px;
+        border: 8px solid transparent;
+        border-bottom: 25px solid #fff;
+        z-index: 3;
+    }
 </style>
+
+<script>
+    $(document).ready(function () {
+        //$("#dropdownSettingNotification").click(function () {
+        //    if ($(".dropdownSettingNotification").hasClass("show")) {
+        //        $(".dropdownSettingNotification").removeClass("show")
+        //    } else {
+        //        $(".dropdownSettingNotification").addClass("show")
+        //    }
+        //});
+        $("#dropdownSettingNotification").click(function (e) {
+            e.stopPropagation(); // Ngăn chặn sự kiện lan ra ngoài
+            if ($(".dropdownSettingNotification").hasClass("invisible")) {
+                $(".dropdownSettingNotification").removeClass("invisible");
+            } else {
+                $(".dropdownSettingNotification").addClass("invisible");
+            }
+        });
+
+        $(document).click(function (e) {
+            // Kiểm tra nếu click vào bên ngoài .dropdownSettingNotification và #dropdownNotificationMenu
+            if (
+                !$(e.target).closest(".dropdownSettingNotification").length &&
+                !$(e.target).closest("#dropdownNotificationMenu").length
+            ) {
+                $(".dropdownSettingNotification").addClass("invisible");
+            }
+        });
+
+        $("#dropdownNotificationMenu").click(function (e) {
+            e.stopPropagation();
+            if (!$(e.target).closest(".dropdownSettingNotification").length &&
+                $(e.target).closest("#dropdownNotificationMenu").length) {
+                $(".dropdownSettingNotification").addClass("invisible");
+            }
+        });
+    });
+</script>
 
 <header>
     <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
@@ -61,10 +149,14 @@
                             <i class="fa-solid fa-bell" style="position: absolute; right: 9px; top: 8px; font-size: 24px"></i>
                         </div>
                     </div>
-                    <div class="dropdown-menu" aria-labelledby="dropdownNotification" style="width: 360px">
+                    <div id="dropdownNotificationMenu" 
+                         class="dropdown-menu" 
+                         aria-labelledby="dropdownNotification" 
+                         style="width: 360px">
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex align-items-center justify-content-between">
+                                    <!--Header and Setting-->
                                     <span class="fs-4 fw-bold">Thông báo</span>
                                     <div class="dropdown">
                                         <button type="button"
@@ -74,16 +166,85 @@
                                                 data-mdb-ripple-color="dark">
                                             <i class="fa-solid fa-ellipsis" style="font-size: 24px; position: absolute; right: 9px; top: 8px;"></i>
                                         </button>
-                                        <div class="dropdownSettingNotification fade">
-                                            Hello
+                                        <div class="dropdownSettingNotification invisible">
+                                            <div class="callouts callouts--top">
+                                                <div class="row setting py-2 mx-2" role="button" style="border-radius: 4px">
+                                                    <div class="col-sm-1">
+                                                        <i class="fa-solid fa-check"></i>
+                                                    </div>
+                                                    <div class="col-sm-11 fw-bold" style="font-size: 14px">
+                                                        Đánh dấu tất cả là đã đọc
+                                                    </div>
+                                                </div>
+
+                                                <div class="row setting py-2 mx-2" role="button" style="border-radius: 4px">
+                                                    <div class="col-sm-1">
+                                                        <i class="fa-solid fa-gear"></i>
+                                                    </div>
+                                                    <div class="col-sm-11 fw-bold" style="font-size: 14px">
+                                                        Cài đặt thông báo
+                                                    </div>
+                                                </div>
+
+                                                <div class="row setting py-2 mx-2" role="button" style="border-radius: 4px">
+                                                    <div class="col-sm-1">
+                                                        <i class="fa-solid fa-display"></i>
+                                                    </div>
+                                                    <div class="col-sm-11 fw-bold" style="font-size: 14px">
+                                                        Mở thông báo
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 
+                                <!--Tất cả và chưa đọc button-->
+                                <div>
+                                    <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" 
+                                                    id="pills-all-tab" 
+                                                    style="font-size: 14px; padding: 12px; text-transform: unset; border-radius: 18px"
+                                                    data-bs-toggle="pill" 
+                                                    data-bs-target="#pills-all" 
+                                                    type="button" 
+                                                    role="tab" 
+                                                    aria-controls="pills-all" 
+                                                    aria-selected="true">Tất cả</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" 
+                                                    id="pills-unread-tab" 
+                                                    style="font-size: 14px; padding: 12px; text-transform: unset; border-radius: 18px"
+                                                    data-bs-toggle="pill" 
+                                                    data-bs-target="#pills-unread" 
+                                                    type="button" 
+                                                    role="tab" 
+                                                    aria-controls="pills-unread" 
+                                                    aria-selected="false">Chưa đọc</button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content" id="pills-tabContent">
+                                        <div class="tab-pane fade show active" id="pills-all" role="tabpanel" aria-labelledby="pills-all-tab" tabindex="0">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>
+                                                    Trước đó
+                                                </span>
+                                                <button type="button" class="btn btn-link" data-mdb-ripple-init data-mdb-ripple-color="dark">Xem tất cà</button>
+                                            </div>
+                                            <div>
+
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="pills-unread" role="tabpanel" aria-labelledby="pills-unread-tab" tabindex="0">...</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div id="dropdownPicture" class="dropdown">
                     <img src="@User.ProfilePicture"
                          id="PictureProfile"

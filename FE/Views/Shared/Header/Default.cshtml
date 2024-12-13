@@ -154,10 +154,10 @@
                          aria-labelledby="dropdownNotification" 
                          style="width: 360px">
                         <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center justify-content-between">
+                            <div class="card-body p-0">
+                                <div class="d-flex align-items-center justify-content-between" style="margin: 20px 16px 12px 16px">
                                     <!--Header and Setting-->
-                                    <span class="fs-4 fw-bold">Thông báo</span>
+                                    <span class="fs-4 fw-bold" style="">Thông báo</span>
                                     <div class="dropdown">
                                         <button type="button"
                                                 id="dropdownSettingNotification"
@@ -201,11 +201,11 @@
                                 
                                 <!--Tất cả và chưa đọc button-->
                                 <div>
-                                    <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                                    <ul class="nav nav-pills" id="pills-tab" role="tablist" style="padding-left: 16px">
                                         <li class="nav-item" role="presentation">
                                             <button class="nav-link active" 
                                                     id="pills-all-tab" 
-                                                    style="font-size: 14px; padding: 12px; text-transform: unset; border-radius: 18px"
+                                                    style="font-size: 14px; padding: 12px; text-transform: unset; border-radius: 18px; margin: 0px 8px"
                                                     data-bs-toggle="pill" 
                                                     data-bs-target="#pills-all" 
                                                     type="button" 
@@ -216,7 +216,7 @@
                                         <li class="nav-item" role="presentation">
                                             <button class="nav-link" 
                                                     id="pills-unread-tab" 
-                                                    style="font-size: 14px; padding: 12px; text-transform: unset; border-radius: 18px"
+                                                    style="font-size: 14px; padding: 12px; text-transform: unset; border-radius: 18px; margin: 0px 8px"
                                                     data-bs-toggle="pill" 
                                                     data-bs-target="#pills-unread" 
                                                     type="button" 
@@ -227,14 +227,26 @@
                                     </ul>
                                     <div class="tab-content" id="pills-tabContent">
                                         <div class="tab-pane fade show active" id="pills-all" role="tabpanel" aria-labelledby="pills-all-tab" tabindex="0">
-                                            <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex justify-content-between align-items-center" style="padding: 0 16px">
                                                 <span>
                                                     Trước đó
                                                 </span>
                                                 <button type="button" class="btn btn-link" data-mdb-ripple-init data-mdb-ripple-color="dark">Xem tất cà</button>
                                             </div>
                                             <div>
-
+                                                <button type="button" 
+                                                        class="btn btn-link d-flex align-items-center"
+                                                        data-mdb-ripple-init 
+                                                        data-mdb-ripple-color="dark"
+                                                        style="padding: 0px 8px">
+                                                    <div style="margin: 6px 12px 6px 0px">
+                                                        <img src="~/asset/Notification/RGB.jpg" />
+                                                    </div>
+                                                    <span class="" 
+                                                          style="font-size: 14px; font-weight: 400; text-transform: none; text-align: left">
+                                                        <strong>RGB</strong> ơi, một trang cá nhân mà bạn theo dõi vừa đăng trên Threads đấy.
+                                                    </span>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="tab-pane fade" id="pills-unread" role="tabpanel" aria-labelledby="pills-unread-tab" tabindex="0">...</div>

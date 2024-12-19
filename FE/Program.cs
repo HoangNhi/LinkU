@@ -7,7 +7,6 @@ builder.Services.AddControllersWithViews();
 builder.ConfigureSystem();
 builder.ConfigureAuthen();
 
-
 var app = builder.Build();
 
 app.UseStatusCodePages(async context =>

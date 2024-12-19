@@ -1,4 +1,5 @@
 ﻿using BE.Configure;
+using BE.Services.Message;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,11 +13,22 @@ builder.Services.AddSwaggerGen();
 builder.Config();
 // Config authentication
 builder.ExecuteConfigAuthentication();
+// Add SignalR
+builder.Services.AddSignalR();
+// Add Cors
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials().SetIsOriginAllowed((hosts) => true);
+        });
+});
 
 var app = builder.Build();
-
-// Truy cập hình ảnh
-app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -26,10 +38,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+// Truy cập hình ảnh
+app.UseStaticFiles();
+app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<MessageHub>("/messageHub");
 app.MapControllers();
 
 app.Run();

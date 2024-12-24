@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MESSAGE.Dtos;
+using MODELS.USER.Dtos;
 using Newtonsoft.Json;
 using System.Diagnostics;
 
@@ -14,15 +15,30 @@ namespace FE.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ICONSUMEAPIService _consumeAPI;
+        private readonly IHttpContextAccessor _contextAccessor;
 
-        public HomeController(ILogger<HomeController> logger, ICONSUMEAPIService consumeAPI)
+        public HomeController(ILogger<HomeController> logger, ICONSUMEAPIService consumeAPI, IHttpContextAccessor contextAccessor)
         {
             _logger = logger;
             _consumeAPI = consumeAPI;
+            _contextAccessor = contextAccessor;
         }
 
         public IActionResult Index()
         {
+            MODELUser model = new MODELUser();
+
+            foreach (var claim in _contextAccessor.HttpContext.User.Claims)
+            {
+                switch (claim.Type)
+                {
+                    case "HoLot": { model.HoLot = claim.Value; }; break;
+                    case "Ten": { model.Ten = claim.Value; }; break;
+                    case "ProfilePicture": { model.ProfilePicture = claim.Value; }; break;
+                }
+            }
+
+            ViewBag.UserInfo = model;
             return View();
         }
 

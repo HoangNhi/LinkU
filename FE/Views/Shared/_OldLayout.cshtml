@@ -33,12 +33,25 @@
         .toast:not(.show) {
             display: block;
         }
+
+       
     </style>
 </head>
 <body>
-    <div style="margin: 16px 0; padding: 0px 16px">
-        @RenderBody()
+    <!-- Header -->
+    @await Component.InvokeAsync("Header", null)
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
     </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2024 - FE - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
 
     @* Thông báo - alert *@
     <div id="ThongBao-container" class="toast-container"></div>

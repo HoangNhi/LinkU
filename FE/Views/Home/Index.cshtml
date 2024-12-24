@@ -1,27 +1,119 @@
 ﻿@{
     ViewData["Title"] = "Trang chủ";
+    MODELS.USER.Dtos.MODELUser User = ViewBag.UserInfo;
 }
 
-<div>
-    <div id="MessageList"></div>
+<style>
+    .text-Functions {
+        font-weight: 500;
+        color: black;
+        font-size: 14px;
+        text-transform: none;
+        padding: 10px 0;
+    }
+
+    .icon-Functions {
+        padding: 12px 12px 12px 4px;
+        color: black;
+        font-size: 20px
+    }
+
+    .btn-Functions {
+        margin: 2px 0;
+        padding: 0px 8px;
+        width: 100%;
+    }
+
+    .btn-Functions:hover,
+    .btn-ProfilePicture:hover{
+        background-color: rgba(0,0,0,0.04);
+    }
+
+    .btn-Functions.active {
+        background-color: rgba(0,0,0,0.06);
+        border-radius: 8px;
+        pointer-events: none;
+    }
+</style>
+
+<div class="d-flex">
+    <!-- Chức năng -->
+    <div id="Functions" style="width: 240px">
+        <div>
+            <button type="button"
+                    class="btn btn-link d-flex align-items-center btn-Functions active"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark">
+                <i class="fa-solid fa-comment icon-Functions"
+                   style=""></i>
+                <span class="text-Functions">Đoạn chat</span>
+            </button>
+
+            <button type="button"
+                    class="btn btn-link d-flex align-items-center btn-Functions"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark">
+                <i class="fa-solid fa-comment-dots icon-Functions"></i>
+                <span class="text-Functions">Tin nhắn đang chờ</span>
+            </button>
+
+            <button type="button"
+                    class="btn btn-link d-flex align-items-center btn-Functions"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark">
+                <i class="fa-solid fa-box-archive icon-Functions"></i>
+                <span class="text-Functions">Tin nhắn lưu trữ</span>
+            </button>
+
+
+        </div>
+        <!-- Tên và sidenav -->
+        <div style="padding-top: 12px; margin: -6px 6px 0">
+            <button type="button"
+                    class="btn btn-link btn-ProfilePicture"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark"
+                    style="padding: 6px">
+                <img class="rounded-circle"
+                     src="@User.ProfilePicture" 
+                     width="32" height="32"
+                     style="margin: 6px"/>
+                <span style="text-transform: none; font-size: 14px; font-weight: 500; color: black">@User.Ten</span>
+            </button>
+            <div style="padding: 6px;">
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách tin nhắn -->
+    <div id="MessageList" style="width: 395px">
+        MessageList
+    </div>
+
+    <!-- Tin nhắn -->
+    <div id="Messages" style="width: 805px">
+        Messages
+    </div>
 </div>
+
 
 <script>
     $(document).ready(function () {
-        loadMessageList(1);
+
     });
 
-    function loadMessageList(index) {
-        $.ajax({
-            url: "@Url.Action("GetListMessage", "Home")",
-            type: "GET",
-            data: {
-                RowPerPage: 10,
-                PageIndex: index
-            },
-            success: function (data) {
-                $("#MessageList").html(data);
-            }
+    // Xử lý sự kiện chuyển button
+    const buttons = document.querySelectorAll('.btn-Functions');
+
+    // Thêm sự kiện click cho từng button
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Loại bỏ class .active khỏi tất cả các button
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Thêm class .active cho button vừa được click
+            button.classList.add('active');
         });
-    }
+    });
 </script>

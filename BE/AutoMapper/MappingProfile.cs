@@ -13,6 +13,7 @@ namespace BE.AutoMapper
             CreateMap<User, MODELUser>().ReverseMap();
             CreateMap<User, PostUserRequest>().ReverseMap();
             CreateMap<User, RegisterRequest>().ReverseMap();
+
         }
     }
 }

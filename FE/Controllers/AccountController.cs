@@ -142,6 +142,7 @@ namespace FE.Controllers
         [AllowAnonymous]
         public IActionResult Register()
         {
+            ViewData["Title"] = "Đăng ký";
             return View("~/Views/Account/Register.cshtml", new RegisterRequest());
         }
 
@@ -220,5 +221,6 @@ namespace FE.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }
+
     }
 }

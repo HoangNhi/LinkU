@@ -1,0 +1,49 @@
+﻿@model MODELS.USER.Requests.RegisterRequest
+@{ 
+    Layout = "~/Views/Shared/_LayoutAccount.cshtml";
+}
+<div style="width: 432px; justify-self: center">
+    <p style="font-size: 52px; font-weight: bold; color: #473c38; justify-self: center">LinkU</p>
+    <div class="card">
+        <div class="card-header d-flex flex-column align-items-center" 
+             style="padding: 10px 16px; color: black">
+            <span style="font-size: 25px; line-height: 32px; font-weight: 600;">Tạo tài khoản mới</span>
+            <span style="font-size: 15px; line-height: 24px; color: #606770">Nhanh chóng và dễ dàng</span>
+        </div>
+        <div class="card-body"
+             style="padding: 16px">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-outline" data-mdb-input-init>
+                        <input type="text" asp-for="HoLot" class="form-control" />
+                        <label class="form-label" for="HoLot">Họ lót</label>
+                    </div>
+
+                </div>
+                <div class="col-md-6">
+                    <div class="form-outline" data-mdb-input-init>
+                        <input type="text" asp-for="Ten" class="form-control" />
+                        <label class="form-label" for="Ten">Tên</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-group date">
+                    <asp:TextBox runat="server" ID="txtDataOrdine" class="form-control" onBlur="CalcolaTotaliTestata('txtDataOrdine')"></asp:TextBox>
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                </div>
+
+                <script type="text/javascript">
+               $('.input-group.date').datepicker({
+                   todayBtn: "linked",
+                   language: "it",
+                   autoclose: true,
+                   todayHighlight: true,
+                   format: 'dd/mm/yyyy'
+               });
+                </script>
+            </div>
+
+        </div>
+    </div>
+</div>

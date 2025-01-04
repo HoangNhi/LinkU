@@ -2,6 +2,14 @@
 @{ 
     Layout = "~/Views/Shared/_LayoutAccount.cshtml";
 }
+<script>
+    // Thêm link vào <head> bằng JavaScript
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/css/DatePicker.css';
+    document.head.appendChild(link);
+</script>
+
 <div style="width: 432px; justify-self: center">
     <p style="font-size: 52px; font-weight: bold; color: #473c38; justify-self: center">LinkU</p>
     <div class="card">
@@ -28,22 +36,26 @@
                 </div>
             </div>
             <div class="row">
-                <div class="input-group date">
-                    <asp:TextBox runat="server" ID="txtDataOrdine" class="form-control" onBlur="CalcolaTotaliTestata('txtDataOrdine')"></asp:TextBox>
-                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                <div class="wrapper">
+                    <label for="datepicker">
+                        Pick a Date
+                        <input type="text" id="datepicker" autocomplete="off">
+                    </label>
                 </div>
-
-                <script type="text/javascript">
-               $('.input-group.date').datepicker({
-                   todayBtn: "linked",
-                   language: "it",
-                   autoclose: true,
-                   todayHighlight: true,
-                   format: 'dd/mm/yyyy'
-               });
-                </script>
             </div>
-
         </div>
     </div>
 </div>
+
+<script>
+    $(function () {
+        $("#datepicker").datepicker({
+            dateFormat: "dd-mm-yy",
+            duration: "fast"
+        });
+        $("#datepicker").focus(function (e) {
+            $("#datepicker").datepicker("setDate", new Date());
+            100
+        });
+    });
+</script>

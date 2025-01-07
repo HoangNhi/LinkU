@@ -143,6 +143,7 @@ namespace FE.Controllers
         public IActionResult Register()
         {
             ViewData["Title"] = "Đăng ký";
+
             return View("~/Views/Account/Register.cshtml", new RegisterRequest());
         }
 

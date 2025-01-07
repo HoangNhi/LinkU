@@ -36,11 +36,20 @@
                 </div>
             </div>
             <div class="row">
-                <div class="wrapper">
-                    <label for="datepicker">
-                        Pick a Date
-                        <input type="text" id="datepicker" autocomplete="off">
-                    </label>
+                <div class="col-md-6">
+                    <div class="wrapper">
+                        <div class="form-outline" data-mdb-input-init>
+                            <input type="text" 
+                                   asp-for="DateOfBirth"
+                                   autocomplete="off"
+                                   class="form-control bg-white"
+                                   readonly
+                                   value=""
+                                   >
+                            <label class="form-label" for="DateOfBirth">Ngày sinh</label>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -49,13 +58,16 @@
 
 <script>
     $(function () {
-        $("#datepicker").datepicker({
+        $("#DateOfBirth").datepicker({
             dateFormat: "dd-mm-yy",
             duration: "fast"
         });
-        $("#datepicker").focus(function (e) {
-            $("#datepicker").datepicker("setDate", new Date());
-            100
+
+        $("#DateOfBirth").focus(function (e) {
+            if ($("#DateOfBirth").val() === "") {
+                $("#DateOfBirth").datepicker("setDate", new Date());
+                $("#DateOfBirth").addClass("active")
+            }
         });
     });
 </script>

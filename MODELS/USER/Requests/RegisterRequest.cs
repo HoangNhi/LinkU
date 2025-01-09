@@ -18,7 +18,10 @@ namespace MODELS.USER.Requests
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Ngày sinh không được để trống")]
         public DateTime DateOfBirth { get; set; }
-        
+
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Giới tính không được để trống")]
+        public bool Gender { get; set; }
+
         [Required(AllowEmptyStrings = false, ErrorMessage = "Số điện thoại hoặc email không được để trống")]
         public string Username { get; set; }
 
@@ -36,6 +39,7 @@ namespace MODELS.USER.Requests
             RuleFor(r => r.HoLot).NotEmpty().WithMessage("Họ lót không được để trống");
             RuleFor(r => r.Ten).NotEmpty().WithMessage("Tên không được để trống");
             RuleFor(r => r.DateOfBirth).NotEmpty().WithMessage("Ngày sinh không được để trống");
+            RuleFor(r => r.Gender).NotEmpty().WithMessage("Giới tính không được để trống");
             RuleFor(r => r.Username).NotEmpty().WithMessage("Số điện thoại hoặc email không được để trống");
             RuleFor(r => r.Password).NotEmpty().WithMessage("Mật khẩu không được để trống");
             RuleFor(r => r.ConfirmPassword).NotEmpty().WithMessage("Nhập lại mật khẩu không được để trống");

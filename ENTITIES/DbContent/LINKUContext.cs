@@ -230,6 +230,7 @@ public partial class LINKUContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(256)
                 .IsUnicode(false);
+            entity.Property(e => e.Gender).HasDefaultValue(true);
             entity.Property(e => e.HoLot).HasMaxLength(256);
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
             entity.Property(e => e.NgayTao).HasColumnType("datetime");

@@ -10,9 +10,42 @@
     document.head.appendChild(link);
 </script>
 
+<script>
+    $.datepicker.setDefaults(
+        $.extend(
+            $.datepicker.regional['vi']
+        )
+    );
+</script>
+
 <style>
     .form-select:focus {
         border-color: #3b71ca !important
+    }
+
+    .ui-datepicker-month,
+    .ui-datepicker-year {
+        padding: .32rem .75rem;
+        border: 1px solid rgb(189, 189, 189);
+        border-radius: 10px;
+        color: white;
+        background-color: #393E46;
+    }
+
+    .ui-datepicker-month {
+        margin-right: 10px;
+    }
+
+    .ui-datepicker-month:focus,
+    .ui-datepicker-year:focus{
+/*        border-color: #3b71ca;*/
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+    }
+
+    .link-underline-opacity-75-hover:hover {
+        text-decoration: underline;
+        text-decoration-color: #473c38 !important;
+        color: #473c38
     }
 </style>
 
@@ -32,7 +65,6 @@
                         <input type="text" asp-for="HoLot" class="form-control" />
                         <label class="form-label" for="HoLot">Họ lót</label>
                     </div>
-
                 </div>
                 <div class="col-md-6">
                     <div class="form-outline" data-mdb-input-init>
@@ -41,24 +73,23 @@
                     </div>
                 </div>
             </div>
-            <div class="row mt-2">
+            <div class="row mt-3">
                 <div class="col-md-6">
                     <div class="wrapper" style="min-width: 100%">
                         <div class="form-outline" data-mdb-input-init>
-                            <input type="text" 
+                            <input type="text"
                                    asp-for="DateOfBirth"
                                    autocomplete="off"
                                    class="form-control bg-white"
                                    readonly
-                                   value=""
-                                   >
+                                   value="">
                             <label class="form-label" for="DateOfBirth">Ngày sinh</label>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <select class="form-select"
-                            style="margin-top: 8px; padding: .32rem .75rem; font-size: 1rem; 
+                            style="padding: .32rem .75rem; font-size: 1rem;
                             font-weight: 400; line-height: 24px; color: #4f4f4f; border: 1px solid rgb(189, 189, 189)"
                             asp-for="Gender">
                         <option selected>- Giới tính -</option>
@@ -67,7 +98,43 @@
                     </select>
                 </div>
             </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="form-outline" data-mdb-input-init>
+                        <input type="text" asp-for="Username" class="form-control" />
+                        <label class="form-label" for="Username">Email hoặc số điện thoại</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="form-outline" data-mdb-input-init>
+                        <input type="text" asp-for="Password" class="form-control" />
+                        <label class="form-label" for="Password">Mật khẩu</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="form-outline" data-mdb-input-init>
+                        <input type="text" asp-for="ConfirmPassword" class="form-control" />
+                        <label class="form-label" for="ConfirmPassword">Xác nhận mật khẩu</label>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center">
+                <button type="submit" 
+                        class="btn btn-primary w-100 my-3" 
+                        style="background-color: #473c38; color: white;" 
+                        data-mdb-ripple-init>Đăng ký</button>
+                <a class="link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
+                   href="@Url.Action("Register", "Account")"
+                   style="color: black">
+                    Tạo tài khoản mới
+                </a>
+            </div>
         </div>
+
     </div>
 </div>
 
@@ -75,7 +142,9 @@
     $(function () {
         $("#DateOfBirth").datepicker({
             dateFormat: "dd-mm-yy",
-            duration: "fast"
+            duration: "fast",
+            changeMonth: true,
+            changeYear: true
         });
 
         $("#DateOfBirth").focus(function (e) {

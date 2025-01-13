@@ -353,9 +353,9 @@ namespace BE.Services.User
                     add.SoDienThoai = request.Username;
                 }
 
-                add.NguoiTao = "admin";
+                add.NguoiTao = "User";
                 add.NgayTao = DateTime.Now;
-                add.NguoiSua = "admin";
+                add.NguoiSua = "User";
                 add.NgaySua = DateTime.Now;
 
                 // Lưu dữ liệu

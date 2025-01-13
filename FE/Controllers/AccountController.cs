@@ -147,6 +147,36 @@ namespace FE.Controllers
             return View("~/Views/Account/Register.cshtml", new RegisterRequest());
         }
 
+        [AllowAnonymous]
+        [HttpPost]
+        public IActionResult Register(RegisterRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_REGISTER, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        return Json(new { IsSuccess = true, Message = "Đăng ký thành công", Data = "" });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi đăng ký: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
         [HttpGet]
         [AllowAnonymous]
         public IActionResult SigninGoogle()

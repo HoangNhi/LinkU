@@ -204,7 +204,7 @@ namespace FE.Controllers
                     });
 
                 var Username = claimsGoogle.FirstOrDefault(x => x.Type.EndsWith("emailaddress")).Value;
-                var HoLot = claimsGoogle.FirstOrDefault(x => x.Type.EndsWith("surname")).Value;
+                var HoLot = claimsGoogle.FirstOrDefault(x => x.Type.EndsWith("surname") || x.Type.EndsWith("name")).Value;
                 var Ten = claimsGoogle.FirstOrDefault(x => x.Type.EndsWith("givenname")).Value;
 
                 ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_LOGINGOOGLE, new LoginGoogleRequest { Username = Username , HoVaTen = HoLot + " " + Ten}, HttpAction.Post);

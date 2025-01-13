@@ -166,4 +166,34 @@
             }
         });
     });
+
+    $(document).ready(function () {
+        $("#frmRegister").submit(async function (event) {
+            event.preventDefault();
+            if ($("#frmRegister").valid()) {
+                DangKy();
+            }
+        });
+    });
+
+    function DangKy() {
+        var data = $("#frmRegister").serialize();
+        showLoading(true)
+        $.ajax({
+            url: "@Url.Action("Register", "Account")",
+            type: "POST",
+            data: data,
+            success: function (response) {
+                showLoading(false)
+                if (response.isSuccess) {
+                    ShowThongBaoThanhCong("Đăng ký tài khoản thành công")
+                } else {
+                    ShowThongBaoThatBai(response.message)
+                }
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        })
+    }
 </script>

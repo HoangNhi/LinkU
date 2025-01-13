@@ -25,7 +25,7 @@ public partial class User
 
     public DateTime DateOfBirth { get; set; }
 
-    public bool Gender { get; set; }
+    public int Gender { get; set; }
 
     public string? Bio { get; set; }
 

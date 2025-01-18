@@ -34,7 +34,7 @@ function ShowThongBaoThanhCong(Message) {
     // Tự động đóng sau 4 giây
     setTimeout(() => {
         toast.remove();
-    }, 2000);
+    }, 4000);
 }
 
 function ShowThongBaoThatBai(Message) {
@@ -63,7 +63,7 @@ function ShowThongBaoThatBai(Message) {
     // Tự động đóng sau 4 giây
     setTimeout(() => {
         toast.remove();
-    }, 2000);
+    }, 4000);
 }
 
 // Loading

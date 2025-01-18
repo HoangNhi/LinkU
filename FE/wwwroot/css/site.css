@@ -110,7 +110,7 @@
     height: inherit;
     background-color: hsl(240, 5%, 50%);
     animation-name: toastDuration;
-    animation-duration: 2s;
+    animation-duration: 4s;
     animation-timing-function: linear;
 }
 

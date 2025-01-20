@@ -47,6 +47,13 @@
         text-decoration-color: #473c38 !important;
         color: #473c38
     }
+
+    @@media (width <= 768px) {
+        .mt-bp-md-3 {
+            margin-top: 1rem!important
+        }
+    }
+
 </style>
 
 <div style="width: 432px; justify-self: center; height: 100vh; align-content: center">
@@ -69,7 +76,7 @@
                         </div>
                         @Html.ValidationMessageFor(model => model.HoLot, "", new { @class = "text-danger", @style = "align-self: start;" })
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 mt-bp-md-3">
                         <div class="form-outline" data-mdb-input-init>
                             <input type="text" asp-for="Ten" class="form-control" />
                             <label class="form-label" for="Ten">Tên</label>
@@ -92,7 +99,7 @@
                         </div>
                         @Html.ValidationMessageFor(model => model.DateOfBirth, "", new { @class = "text-danger", @style = "align-self: start;" })
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 mt-bp-md-3">
                         <select class="form-select"
                                 style="padding: .32rem .75rem; font-size: 1rem;
                                 font-weight: 400; line-height: 24px; color: #4f4f4f; border: 1px solid rgb(189, 189, 189)"

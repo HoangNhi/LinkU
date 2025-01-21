@@ -30,6 +30,7 @@ namespace MODELS.USER.Requests
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Nhập lại mật khẩu không được để trống")]
         public string ConfirmPassword { get; set; }
+        public bool IsGoogle { get; set; } = false;
     }
 
     public class RegisterRequestValidator : AbstractValidator<RegisterRequest>

@@ -33,6 +33,8 @@ public partial class User
 
     public string? CoverPicture { get; set; }
 
+    public bool IsGoogle { get; set; }
+
     public DateTime NgayTao { get; set; }
 
     public string NguoiTao { get; set; } = null!;

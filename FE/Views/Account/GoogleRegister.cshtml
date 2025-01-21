@@ -1,6 +1,7 @@
 ﻿@model MODELS.USER.Requests.RegisterRequest
-@{ 
+@{
     Layout = "~/Views/Shared/_LayoutAccount.cshtml";
+    string Password = Guid.NewGuid().ToString();
 }
 <script>
     // Thêm link vào <head> bằng JavaScript
@@ -36,11 +37,11 @@
         margin-right: 10px;
     }
 
-    .ui-datepicker-month:focus,
-    .ui-datepicker-year:focus{
-/*        border-color: #3b71ca;*/
-        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
-    }
+        .ui-datepicker-month:focus,
+        .ui-datepicker-year:focus {
+            /*        border-color: #3b71ca;*/
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+        }
 
     .link-underline-opacity-75-hover:hover {
         text-decoration: underline;
@@ -50,24 +51,26 @@
 
     @@media (width <= 768px) {
         .mt-bp-md-3 {
-            margin-top: 1rem!important
+            margin-top: 1rem !important
         }
     }
-
 </style>
 
 <div style="width: 543px; justify-self: center; height: 100vh; align-content: center">
     <p style="font-size: 52px; font-weight: bold; color: #473c38; justify-self: center">LinkU</p>
     <div class="card">
-        <div class="card-header d-flex flex-column align-items-center" 
+        <div class="card-header d-flex flex-column align-items-center"
              style="padding: 10px 16px; color: black">
-            <span style="font-size: 25px; line-height: 32px; font-weight: 600;">Tạo tài khoản mới</span>
-            <span style="font-size: 15px; line-height: 24px; color: #606770">Nhanh chóng và dễ dàng</span>
+            <span style="font-size: 25px; line-height: 32px; font-weight: 600;">Thông tin tài khoản</span>
+            <span style="font-size: 15px; line-height: 24px; color: #606770">Cập nhật thông tin</span>
         </div>
         <div class="card-body"
              style="padding: 16px">
             @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmRegister" }))
-            {    
+            {
+                @Html.HiddenFor(model => model.Username)
+                @Html.HiddenFor(model => model.Password)
+                @Html.HiddenFor(model => model.ConfirmPassword)
                 @Html.HiddenFor(model => model.IsGoogle)
                 <div class="row">
                     <div class="col-md-6">
@@ -112,39 +115,12 @@
                         @Html.ValidationMessageFor(model => model.Gender, "", new { @class = "text-danger", @style = "align-self: start;" })
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-12">
-                        <div class="form-outline" data-mdb-input-init>
-                            <input type="text" asp-for="Username" class="form-control" />
-                            <label class="form-label" for="Username">Email hoặc số điện thoại</label>
-                        </div>
-                        @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger", @style = "align-self: start;" })
-                    </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-md-12">
-                        <div class="form-outline" data-mdb-input-init>
-                            <input type="text" asp-for="Password" class="form-control" />
-                            <label class="form-label" for="Password">Mật khẩu</label>
-                        </div>
-                        @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger", @style = "align-self: start;" })
-                    </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-md-12">
-                        <div class="form-outline" data-mdb-input-init>
-                            <input type="text" asp-for="ConfirmPassword" class="form-control" />
-                            <label class="form-label" for="ConfirmPassword">Xác nhận mật khẩu</label>
-                        </div>
-                        @Html.ValidationMessageFor(model => model.ConfirmPassword, "", new { @class = "text-danger", @style = "align-self: start;" })
-                    </div>
-                </div>
                 <div style="display: flex; flex-direction: column; align-items: center">
                     <button type="submit"
                             class="btn btn-primary w-100 my-3"
                             style="background-color: #473c38; color: white;"
                             data-mdb-ripple-init>
-                        Đăng ký
+                        Xác nhận
                     </button>
                     <a class="link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
                        href="@Url.Action("Login", "Account")"
@@ -164,7 +140,8 @@
             dateFormat: "dd-mm-yy",
             duration: "fast",
             changeMonth: true,
-            changeYear: true
+            changeYear: true,
+            yearRange: "-90:+00"
         });
 
         $("#DateOfBirth").focus(function (e) {
@@ -185,16 +162,21 @@
     });
 
     function DangKy() {
-        var data = $("#frmRegister").serialize();
+        var data = $("#frmRegister").serializeArray();
+        data[data.findIndex(item => item.name === "Password")].value = "@Password";
+        data[data.findIndex(item => item.name === "ConfirmPassword")].value = "@Password";
         showLoading(true)
         $.ajax({
-            url: "@Url.Action("Register", "Account")",
+            url: "@Url.Action("GoogleRegister", "Account")",
             type: "POST",
             data: data,
             success: function (response) {
                 showLoading(false)
                 if (response.isSuccess) {
-                    ShowThongBaoThanhCong("Đăng ký tài khoản thành công")
+                    ShowThongBaoThanhCong("Cập nhật dữ liệu thành công")
+                    setTimeout(() => {
+                        window.location.href = "@Url.Action("Index", "Home")";
+                    }, 1000);
                 } else {
                     ShowThongBaoThatBai(response.message)
                 }

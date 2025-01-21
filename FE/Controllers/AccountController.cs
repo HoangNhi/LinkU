@@ -54,28 +54,8 @@ namespace FE.Controllers
                     ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_LOGIN, request, HttpAction.Post);
                     if (response.Success)
                     {
-                        var UserData = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                        var claims = new List<Claim>();
-
-                        claims.Add(new Claim("Id", UserData.Id.ToString()));
-                        claims.Add(new Claim("Name", UserData.Username));
-                        claims.Add(new Claim("HoLot", UserData.HoLot));
-                        claims.Add(new Claim("Ten", UserData.Ten));
-                        claims.Add(new Claim("ProfilePicture", String.IsNullOrEmpty(UserData.ProfilePicture) || String.IsNullOrEmpty(UserData.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + "/" + UserData.ProfilePicture));
-                        claims.Add(new Claim("Role", UserData.RoleId.ToString()));
-                        claims.Add(new Claim("Token", UserData.AccessToken));
-
-                        // Create the identity from the user info
-                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                        // Create the principal
-                        var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
                         // Save token in cookie
-                        await HttpContext.SignInAsync(claimsPrincipal, new AuthenticationProperties
-                        {
-                            IsPersistent = true, // Giữ cookie sau khi trình duyệt đóng
-                            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(CommonConst.ExpireAccessToken) // Hạn sử dụng là 7 ngày
-                        });
-
+                        SetClaimLogin(response.Data.ToString());
                         return Json(new { IsSuccess = true, Message = "Đăng nhập thành công", Data = "" });
                     }
                     else
@@ -192,6 +172,8 @@ namespace FE.Controllers
             try
             {
                 var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                // Xóa cookie hiện tại
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
                 // Đăng nhập thành công sẽ lấy được các claim như: email, name, ...
                 var claimsGoogle = result.Principal.Identities
@@ -204,44 +186,68 @@ namespace FE.Controllers
                     });
 
                 var Username = claimsGoogle.FirstOrDefault(x => x.Type.EndsWith("emailaddress")).Value;
-                var HoLot = claimsGoogle.FirstOrDefault(x => x.Type.EndsWith("surname") || x.Type.EndsWith("name")).Value;
-                var Ten = claimsGoogle.FirstOrDefault(x => x.Type.EndsWith("givenname")).Value;
 
-                ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_LOGINGOOGLE, new LoginGoogleRequest { Username = Username , HoVaTen = HoLot + " " + Ten}, HttpAction.Post);
+                ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_LOGINGOOGLE, new LoginGoogleRequest { Username = Username }, HttpAction.Post);
                 if (response.Success)
                 {
-                    var UserData = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                    var claims = new List<Claim>();
-
-                    claims.Add(new Claim("Id", UserData.Id.ToString()));
-                    claims.Add(new Claim("Name", UserData.Username));
-                    claims.Add(new Claim("HoLot", UserData.HoLot));
-                    claims.Add(new Claim("Ten", UserData.Ten));
-                    claims.Add(new Claim("ProfilePicture", String.IsNullOrEmpty(UserData.ProfilePicture) || String.IsNullOrEmpty(UserData.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + "/" + UserData.ProfilePicture));
-                    claims.Add(new Claim("Role", UserData.RoleId.ToString()));
-                    claims.Add(new Claim("Token", UserData.AccessToken));
-
-                    // Create the identity from the user info
-                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    // Create the principal
-                    var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
                     // Save token in cookie
-                    await HttpContext.SignInAsync(claimsPrincipal, new AuthenticationProperties
-                    {
-                        IsPersistent = true, // Giữ cookie sau khi trình duyệt đóng
-                        ExpiresUtc = DateTimeOffset.UtcNow.AddHours(CommonConst.ExpireAccessToken) // Hạn sử dụng là 7 ngày
-                    });
-
+                    SetClaimLogin(response.Data.ToString());
                     return Redirect(Url.Action("Index", "Home"));
                 }
                 else
                 {
-                    throw new Exception(response.Message);
+                    if(response.Message == "AccountNotExist")
+                    {
+                        return RedirectToAction("GoogleRegister", new { Username = Username });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                return Ok(new ApiResponse(false, 500, ex.Message));
+                string message = "Lỗi đăng ký: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        [AllowAnonymous]
+        public IActionResult GoogleRegister(string Username)
+        {
+            ViewData["Title"] = "Thông tin tài khoản";
+            return View("~/Views/Account/GoogleRegister.cshtml", new RegisterRequest { Username = Username });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult GoogleRegister(RegisterRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_REGISTER, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        SetClaimLogin(response.Data.ToString());
+                        return Json(new { IsSuccess = true, Message = "Cập nhật dữ liệu thành công", Data = "" });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi cập nhật thông tin: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
             }
         }
 
@@ -251,6 +257,31 @@ namespace FE.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
+        }
+
+        private async void SetClaimLogin(string ResponseData)
+        {
+            var UserData = JsonConvert.DeserializeObject<MODELUser>(ResponseData);
+            var claims = new List<Claim>();
+
+            claims.Add(new Claim("Id", UserData.Id.ToString()));
+            claims.Add(new Claim("Name", UserData.Username));
+            claims.Add(new Claim("HoLot", UserData.HoLot));
+            claims.Add(new Claim("Ten", UserData.Ten));
+            claims.Add(new Claim("ProfilePicture", String.IsNullOrEmpty(UserData.ProfilePicture) || String.IsNullOrEmpty(UserData.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + "/" + UserData.ProfilePicture));
+            claims.Add(new Claim("Role", UserData.RoleId.ToString()));
+            claims.Add(new Claim("Token", UserData.AccessToken));
+
+            // Create the identity from the user info
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            // Create the principal
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+            // Save token in cookie
+            await HttpContext.SignInAsync(claimsPrincipal, new AuthenticationProperties
+            {
+                IsPersistent = true, // Giữ cookie sau khi trình duyệt đóng
+                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(CommonConst.ExpireAccessToken) // Hạn sử dụng là 7 ngày
+            });
         }
 
     }

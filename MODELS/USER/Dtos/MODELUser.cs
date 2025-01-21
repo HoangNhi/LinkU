@@ -39,7 +39,7 @@ namespace MODELS.USER.Dtos
 
         public string? CoverPicture { get; set; }
 
-        public bool IsDeleted { get; set; }
+        public bool IsGoogle { get; set; }
 
         public string? RefreshToken { get; set; }
 

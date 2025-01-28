@@ -13,6 +13,7 @@ using MODELS.MAIL.Dtos;
 using BE.Services.Mail;
 using BE.Services.SMS;
 using MODELS.SMS.Dtos;
+using BE.Services.OTP;
 
 namespace BE.Services.User
 {
@@ -25,8 +26,9 @@ namespace BE.Services.User
         private readonly IConfiguration _config;
         private readonly IMAILService _mailService;
         private readonly ISMSService _smsService;
+        private readonly IOTPService _otpService;
 
-        public USERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IWebHostEnvironment webHostEnvironment, IConfiguration config, IMAILService mailService, ISMSService smsService)
+        public USERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IWebHostEnvironment webHostEnvironment, IConfiguration config, IMAILService mailService, ISMSService smsService, IOTPService otpService)
         {
             _context = context;
             _mapper = mapper;
@@ -35,8 +37,10 @@ namespace BE.Services.User
             _config = config;
             _mailService = mailService;
             _smsService = smsService;
+            _otpService = otpService;
         }
 
+        #region Common Method
         public BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request)
         {
             var response = new BaseResponse<GetListPagingResponse>();
@@ -272,7 +276,9 @@ namespace BE.Services.User
             }
             return response;
         }
+        #endregion
 
+        #region Login/Register/Logout
         public BaseResponse<MODELUser> Login(LoginRequest request)
         {
             var response = new BaseResponse<MODELUser>();
@@ -319,6 +325,32 @@ namespace BE.Services.User
 
                     response.Data = data;
                 }
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        // CheckUsername Exist
+        public BaseResponse<LoginRequest> CheckUsernameExist(UsernameRequest request)
+        {
+            var response = new BaseResponse<LoginRequest>();
+            try
+            {
+                var data = new LoginRequest();
+                var user = _context.Users.Where(x => x.Username == request.Username).FirstOrDefault();
+                if (user == null)
+                {
+                    throw new Exception("Email hoặc số điện thoại không đúng");
+                }
+                else
+                {
+                    data.Username = user.Username;
+                }
+                response.Data = data;
             }
             catch (Exception ex)
             {
@@ -417,77 +449,6 @@ namespace BE.Services.User
             return response;
         }
 
-        // Update Image
-        private string UploadPicture(string folderUpload, string oldImage, string fileDirectory)
-        {
-            string path = "";
-            string folderUploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "Files/Temp/UploadFile/" + folderUpload);
-            if (Directory.Exists(folderUploadPath))
-            {
-                string[] arrFiles = Directory.GetFiles(folderUploadPath);
-                string[] imageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg" };
-                List<string> imgFiles = new List<string>();
-                foreach (var file in arrFiles)
-                {
-                    string fileExtension = Path.GetExtension(file);
-
-                    if (imageExtensions.Contains(fileExtension.ToLower()))
-                    {
-                        imgFiles.Add(file);
-                    }
-                }
-                if (imgFiles.Count() > 0) //có đính kèm
-                {
-                    FileInfo info = new FileInfo(imgFiles[0]);
-                    string fileName = Guid.NewGuid().ToString() + info.Extension;
-                    //string avataPath = Path.Combine(_webHostEnvironment.WebRootPath, "Files/User/ProfilePicture");
-                    string avataPath = Path.Combine(_webHostEnvironment.WebRootPath, fileDirectory);
-                    //Kiểm tra nếu thư mục chưa tồn tại thì tạo mới.
-                    if (!Directory.Exists(avataPath))
-                    {
-                        Directory.CreateDirectory(avataPath);
-                    }
-
-                    //Xóa ảnh cũ nếu tồn tại
-                    if (File.Exists(_webHostEnvironment.WebRootPath + "/" + oldImage))
-                    {
-                        File.Delete(_webHostEnvironment.WebRootPath + "/" + oldImage);
-                    }
-
-                    //Copy ảnh mới
-                    File.Move(info.FullName, avataPath + "/" + fileName, true);
-                    path = fileDirectory + fileName;
-                }
-            }
-            return path;
-        }
-
-        // CheckUsername Exist
-        public BaseResponse<LoginRequest> CheckUsernameExist(UsernameRequest request)
-        {
-            var response = new BaseResponse<LoginRequest>();
-            try
-            {
-                var data = new LoginRequest();
-                var user = _context.Users.Where(x => x.Username == request.Username).FirstOrDefault();
-                if (user == null)
-                {
-                    throw new Exception("Email hoặc số điện thoại không đúng");
-                }
-                else
-                {
-                    data.Username = user.Username;
-                }
-                response.Data = data;
-            }
-            catch (Exception ex)
-            {
-                response.Error = true;
-                response.Message = ex.Message;
-            }
-            return response;
-        }
-
         // Login Google
         public BaseResponse<MODELUser> LoginGoogle(LoginGoogleRequest request)
         {
@@ -537,16 +498,30 @@ namespace BE.Services.User
             }
             return response;
         }
+        #endregion
 
-        public async Task<BaseResponse<MODELUser>> ForgetPassword(UsernameRequest request)
+        #region Quên mật khẩu
+        public BaseResponse SendOTP(UsernameRequest request)
         {
-            var response = new BaseResponse<MODELUser>();
+            var response = new BaseResponse();
             try
             {
-                Task res = _smsService.SendSmsAsync(request.Username, "Hello");
-                await res;
-                //await SendEmailConfirm(request.Username, "Hello");
-                response.Message = "Vui lòng kiểm tra email để lấy lại mật khẩu";
+                if (CommonFunc.IsValidEmail(request.Username))
+                {
+                    var OTP = _otpService.Insert(request.Username);
+                    if(OTP.Error)
+                    {
+                        throw new Exception(OTP.Message);
+                    }
+                    else
+                    {
+                        SendEmailConfirm(request.Username, OTP.Data.Code);
+                    }
+                }
+                else
+                {
+
+                }
             }
             catch (Exception ex)
             {
@@ -556,7 +531,7 @@ namespace BE.Services.User
             return response;
         }
 
-        private async Task SendEmailConfirm(string Email, string Fullname)
+        private async Task SendEmailConfirm(string Email, string OTPCode)
         {
             try
             {
@@ -569,7 +544,7 @@ namespace BE.Services.User
                 }
 
                 // Replace các giá trị trong template
-                string messageBody = builder.HtmlBody.Replace("{0}", Fullname);
+                string messageBody = builder.HtmlBody.Replace("{0}", OTPCode);
 
                 await _mailService.SendEmailAsync(new MODELMail
                 {
@@ -583,5 +558,54 @@ namespace BE.Services.User
                 throw new Exception(ex.Message);
             }
         }
+
+        #endregion
+
+        #region Private Method
+        // Update Image
+        private string UploadPicture(string folderUpload, string oldImage, string fileDirectory)
+        {
+            string path = "";
+            string folderUploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "Files/Temp/UploadFile/" + folderUpload);
+            if (Directory.Exists(folderUploadPath))
+            {
+                string[] arrFiles = Directory.GetFiles(folderUploadPath);
+                string[] imageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg" };
+                List<string> imgFiles = new List<string>();
+                foreach (var file in arrFiles)
+                {
+                    string fileExtension = Path.GetExtension(file);
+
+                    if (imageExtensions.Contains(fileExtension.ToLower()))
+                    {
+                        imgFiles.Add(file);
+                    }
+                }
+                if (imgFiles.Count() > 0) //có đính kèm
+                {
+                    FileInfo info = new FileInfo(imgFiles[0]);
+                    string fileName = Guid.NewGuid().ToString() + info.Extension;
+                    //string avataPath = Path.Combine(_webHostEnvironment.WebRootPath, "Files/User/ProfilePicture");
+                    string avataPath = Path.Combine(_webHostEnvironment.WebRootPath, fileDirectory);
+                    //Kiểm tra nếu thư mục chưa tồn tại thì tạo mới.
+                    if (!Directory.Exists(avataPath))
+                    {
+                        Directory.CreateDirectory(avataPath);
+                    }
+
+                    //Xóa ảnh cũ nếu tồn tại
+                    if (File.Exists(_webHostEnvironment.WebRootPath + "/" + oldImage))
+                    {
+                        File.Delete(_webHostEnvironment.WebRootPath + "/" + oldImage);
+                    }
+
+                    //Copy ảnh mới
+                    File.Move(info.FullName, avataPath + "/" + fileName, true);
+                    path = fileDirectory + fileName;
+                }
+            }
+            return path;
+        }
+        #endregion
     }
 }

@@ -22,6 +22,8 @@ namespace BE.Services.User
         BaseResponse<MODELUser> Logout(PostLogoutRequest request);
         BaseResponse<LoginRequest> CheckUsernameExist(UsernameRequest request);
         BaseResponse<MODELUser> LoginGoogle(LoginGoogleRequest request);
-        Task<BaseResponse<MODELUser>> ForgetPassword(UsernameRequest request);
+        
+        // Forgot Password
+        BaseResponse SendOTP(UsernameRequest request);
     }
 }

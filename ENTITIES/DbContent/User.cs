@@ -63,6 +63,8 @@ public partial class User
 
     public virtual ICollection<Message> MessageSenders { get; set; } = new List<Message>();
 
+    public virtual ICollection<OTP> OTPs { get; set; } = new List<OTP>();
+
     public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
 
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();

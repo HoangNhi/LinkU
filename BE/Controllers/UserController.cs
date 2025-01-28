@@ -327,18 +327,18 @@ namespace BE.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<ApiResponse>> ForgetPassword(UsernameRequest request)
+        public ActionResult<ApiResponse> SendOTP(UsernameRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = await _service.ForgetPassword(request);
+                    var response = _service.SendOTP(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
                     }
-                    return Ok(new ApiResponse(response.Data));
+                    return Ok(new ApiResponse(true, 200));
                 }
                 else
                 {

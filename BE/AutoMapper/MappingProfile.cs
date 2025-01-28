@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ENTITIES.DbContent;
+using MODELS.OTP.Dtos;
 using MODELS.USER.Dtos;
 using MODELS.USER.Requests;
 
@@ -14,6 +15,8 @@ namespace BE.AutoMapper
             CreateMap<User, PostUserRequest>().ReverseMap();
             CreateMap<User, RegisterRequest>().ReverseMap();
 
+            // OTP
+            CreateMap<OTP, MODELOTP>().ReverseMap();
         }
     }
 }

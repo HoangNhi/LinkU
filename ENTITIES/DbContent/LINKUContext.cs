@@ -19,6 +19,8 @@ public partial class LINKUContext : DbContext
 
     public virtual DbSet<Message> Messages { get; set; }
 
+    public virtual DbSet<OTP> OTPs { get; set; }
+
     public virtual DbSet<Post> Posts { get; set; }
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
@@ -149,6 +151,35 @@ public partial class LINKUContext : DbContext
                 .HasForeignKey(d => d.SenderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Message_User");
+        });
+
+        modelBuilder.Entity<OTP>(entity =>
+        {
+            entity.ToTable("OTP");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Code)
+                .HasMaxLength(6)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.Expires).HasColumnType("datetime");
+            entity.Property(e => e.NgaySua).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayXoa).HasColumnType("datetime");
+            entity.Property(e => e.NguoiSua)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiTao)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiXoa)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.User).WithMany(p => p.OTPs)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_OTP_User");
         });
 
         modelBuilder.Entity<Post>(entity =>

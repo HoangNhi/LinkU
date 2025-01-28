@@ -324,5 +324,31 @@ namespace BE.Controllers
                 return Ok(new ApiResponse(false, 500, ex.Message));
             }
         }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<ActionResult<ApiResponse>> ForgetPassword(UsernameRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    var response = await _service.ForgetPassword(request);
+                    if (response.Error)
+                    {
+                        throw new Exception(response.Message);
+                    }
+                    return Ok(new ApiResponse(response.Data));
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
     }
 }

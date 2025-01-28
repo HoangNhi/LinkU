@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using BE.AutoMapper;
+using BE.Services.Mail;
 using BE.Services.Message;
+using BE.Services.SMS;
 using BE.Services.User;
 using ENTITIES.DbContent;
 using FluentValidation.AspNetCore;
@@ -106,6 +108,8 @@ namespace BE.Configure
         {
             builder.Services.AddTransient<IUSERService, USERService>();
             builder.Services.AddTransient<IMESSAGEService, MESSAGEService>();
+            builder.Services.AddTransient<IMAILService, MAILService>();
+            builder.Services.AddTransient<ISMSService, SMSService>();
         }
     }
 }

@@ -217,7 +217,7 @@ namespace FE.Controllers
         public IActionResult GoogleRegister(string Username)
         {
             ViewData["Title"] = "Thông tin tài khoản";
-            return View("~/Views/Account/GoogleRegister.cshtml", new RegisterRequest { Username = Username });
+            return View("~/Views/Account/GoogleRegister.cshtml", new RegisterRequest { Username = Username, IsGoogle = true });
         }
 
         [HttpPost]
@@ -249,6 +249,13 @@ namespace FE.Controllers
                 string message = "Lỗi cập nhật thông tin: " + ex.Message;
                 return Json(new { IsSuccess = false, Message = message, Data = "" });
             }
+        }
+
+        [AllowAnonymous]
+        public IActionResult ForgetPassword()
+        {
+            ViewData["Title"] = "Quên mật khẩu";
+            return View("~/Views/Account/ForgetPassword.cshtml", new UsernameRequest());
         }
 
         [HttpGet]
@@ -283,6 +290,5 @@ namespace FE.Controllers
                 ExpiresUtc = DateTimeOffset.UtcNow.AddHours(CommonConst.ExpireAccessToken) // Hạn sử dụng là 7 ngày
             });
         }
-
     }
 }

@@ -2,13 +2,17 @@
 using BE.Helpers;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
-using Microsoft.Identity.Client;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.REFRESHTOKEN.Requests;
 using MODELS.USER.Dtos;
 using MODELS.USER.Requests;
+using MimeKit;
+using MODELS.MAIL.Dtos;
+using BE.Services.Mail;
+using BE.Services.SMS;
+using MODELS.SMS.Dtos;
 
 namespace BE.Services.User
 {
@@ -17,16 +21,20 @@ namespace BE.Services.User
         private readonly LINKUContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly IWebHostEnvironment _webHostEnvironment; 
+        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IConfiguration _config;
+        private readonly IMAILService _mailService;
+        private readonly ISMSService _smsService;
 
-        public USERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IWebHostEnvironment webHostEnvironment, IConfiguration config)
+        public USERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IWebHostEnvironment webHostEnvironment, IConfiguration config, IMAILService mailService, ISMSService smsService)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
             _webHostEnvironment = webHostEnvironment;
             _config = config;
+            _mailService = mailService;
+            _smsService = smsService;
         }
 
         public BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request)
@@ -64,6 +72,7 @@ namespace BE.Services.User
             }
             return response;
         }
+
         public BaseResponse<MODELUser> GetById(GetByIdRequest request)
         {
             var response = new BaseResponse<MODELUser>();
@@ -71,7 +80,7 @@ namespace BE.Services.User
             {
                 var result = new MODELUser();
                 var data = _context.Users.FindAsync(request.Id);
-                if(data == null)
+                if (data == null)
                 {
                     throw new Exception("Không tìm thấy dữ liệu");
                 }
@@ -88,6 +97,7 @@ namespace BE.Services.User
             }
             return response;
         }
+
         public BaseResponse<PostUserRequest> GetByPost(GetByIdRequest request)
         {
             var response = new BaseResponse<PostUserRequest>();
@@ -114,6 +124,7 @@ namespace BE.Services.User
             }
             return response;
         }
+
         public BaseResponse<MODELUser> Insert(PostUserRequest request)
         {
             var response = new BaseResponse<MODELUser>();
@@ -269,13 +280,13 @@ namespace BE.Services.User
             {
                 var data = new MODELUser();
                 var user = _context.Users.Where(x => x.Username == request.Username).FirstOrDefault();
-                if(user == null)
+                if (user == null)
                 {
                     throw new Exception("Tài khoản không tồn tại");
                 }
                 else
                 {
-                    if(!user.IsActived)
+                    if (!user.IsActived)
                     {
                         throw new Exception("Tài khoản đã bị vô hiệu");
                     }
@@ -335,7 +346,7 @@ namespace BE.Services.User
 
                 if (request.Password != request.ConfirmPassword)
                     throw new Exception("Mật khẩu không khớp");
-                
+
                 request.HoLot = request.HoLot.Trim();
                 request.Ten = request.Ten.Trim();
 
@@ -390,7 +401,7 @@ namespace BE.Services.User
             }
             return response;
         }
-        
+
         public BaseResponse<MODELUser> Logout(PostLogoutRequest request)
         {
             var response = new BaseResponse<MODELUser>();
@@ -459,7 +470,7 @@ namespace BE.Services.User
             {
                 var data = new LoginRequest();
                 var user = _context.Users.Where(x => x.Username == request.Username).FirstOrDefault();
-                if(user == null)
+                if (user == null)
                 {
                     throw new Exception("Email hoặc số điện thoại không đúng");
                 }
@@ -476,7 +487,7 @@ namespace BE.Services.User
             }
             return response;
         }
-    
+
         // Login Google
         public BaseResponse<MODELUser> LoginGoogle(LoginGoogleRequest request)
         {
@@ -525,6 +536,52 @@ namespace BE.Services.User
                 response.Message = ex.Message;
             }
             return response;
+        }
+
+        public async Task<BaseResponse<MODELUser>> ForgetPassword(UsernameRequest request)
+        {
+            var response = new BaseResponse<MODELUser>();
+            try
+            {
+                Task res = _smsService.SendSmsAsync(request.Username, "Hello");
+                await res;
+                //await SendEmailConfirm(request.Username, "Hello");
+                response.Message = "Vui lòng kiểm tra email để lấy lại mật khẩu";
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        private async Task SendEmailConfirm(string Email, string Fullname)
+        {
+            try
+            {
+                // Đường dẫn Template
+                string templateFullPath = Path.Combine(_webHostEnvironment.WebRootPath, @"Files//Mail//OTPMail.html");
+                var builder = new BodyBuilder();
+                using (StreamReader SourceReader = System.IO.File.OpenText(templateFullPath))
+                {
+                    builder.HtmlBody = SourceReader.ReadToEnd();
+                }
+
+                // Replace các giá trị trong template
+                string messageBody = builder.HtmlBody.Replace("{0}", Fullname);
+
+                await _mailService.SendEmailAsync(new MODELMail
+                {
+                    ToEmail = Email,
+                    Subject = "Quên mật khẩu",
+                    Body = messageBody
+                });
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

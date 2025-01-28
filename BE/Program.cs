@@ -1,5 +1,7 @@
 ﻿using BE.Configure;
-using BE.Services.Message;
+using BE.Hubs;
+using MODELS.MAIL.Dtos;
+using MODELS.SMS.Dtos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +29,10 @@ builder.Services.AddCors(options =>
             .AllowCredentials().SetIsOriginAllowed((hosts) => true);
         });
 });
+// Config Email setting
+builder.Services.Configure<MODELMailSettings>(builder.Configuration.GetSection("MailSettings"));
+// Config SMS setting
+builder.Services.Configure<SMSoptions>(builder.Configuration.GetSection("SmsSettings"));
 
 var app = builder.Build();
 

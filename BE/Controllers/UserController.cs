@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
+using MODELS.OTP.Requests;
 using MODELS.REFRESHTOKEN.Requests;
 using MODELS.USER.Requests;
 
@@ -334,6 +335,58 @@ namespace BE.Controllers
                 if (request != null && ModelState.IsValid)
                 {
                     var response = _service.SendOTP(request);
+                    if (response.Error)
+                    {
+                        throw new Exception(response.Message);
+                    }
+                    return Ok(new ApiResponse(true, 200));
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public ActionResult<ApiResponse> VerifyOTP(VerifyOTPRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    var response = _service.VerifyOTP(request);
+                    if (response.Error)
+                    {
+                        throw new Exception(response.Message);
+                    }
+                    return Ok(new ApiResponse(response.Data));
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public ActionResult<ApiResponse> ChangePassword(ChangePasswordRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    var response = _service.ChangePassword(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);

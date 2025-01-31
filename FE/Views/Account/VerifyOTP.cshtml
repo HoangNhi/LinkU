@@ -1,0 +1,30 @@
+﻿@using MODELS.OTP.Requests;
+@model VerifyOTPRequest
+
+@Html.HiddenFor(model => model.Username)
+<div class="card-header"
+     style="padding: 18px 16px 18px 18px; line-height: 24px; font-size: 20px; font-weight: 600; color: black">Tìm kiếm tài khoản của bạn</div>
+<div class="card-header"
+     style="padding: 18px 16px 18px 18px">
+    <div style="margin-bottom: 18px; font-size: 17px; line-height: 20px">
+        Vui lòng nhập mã OTP để xác thực tài khoản. Nếu bạn không nhận được mã OTP, bạn có thể thử lại
+    </div>
+    <div id="OTP-Container" class="form-outline p-1" data-mdb-input-init data-mdb-input-initialized="true">
+        <input type="text" asp-for="Code" class="form-control" />
+        <label class="form-label" for="Code">Mã OTP</label>
+    </div>
+    @Html.ValidationMessageFor(model => model.Code, "", new { @class = "text-danger", @style = "align-self: start;" })
+</div>
+<div class="card-footer" style="padding: 16px; text-align: end">
+    <a href="@Url.Action("ForgetPassword", "Account")"
+       class="btn btn-light"
+       data-mdb-ripple-init
+       data-mdb-ripple-color="dark">Trở lại</a>
+    <button type="button"
+            onclick="VerifyOTP()"
+            class="btn btn-primary"
+            style="background-color: #473c38; color: white;"
+            data-mdb-ripple-init>
+        Tiếp tục
+    </button>
+</div>

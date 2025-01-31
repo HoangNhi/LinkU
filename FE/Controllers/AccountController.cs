@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Security.Claims;
 using MODELS.USER.Dtos;
 using Microsoft.AspNetCore.Authentication.Google;
+using MODELS.OTP.Requests;
 
 namespace FE.Controllers
 {
@@ -258,6 +259,89 @@ namespace FE.Controllers
             return View("~/Views/Account/ForgetPassword.cshtml", new UsernameRequest());
         }
 
+        [AllowAnonymous]
+        [HttpPost]
+        public IActionResult SendOTP(string Username)
+        {
+            try
+            {
+                ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_SENDOTP, new UsernameRequest { Username = Username}, HttpAction.Post);
+                if (response.Success)
+                {
+                    return PartialView("~/Views/Account/VerifyOTP.cshtml", new VerifyOTPRequest { Username = Username });
+                }
+                else
+                {
+                    throw new Exception(response.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi cập nhật thông tin: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public IActionResult VerifyOTP(VerifyOTPRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_VERIFYOTP, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        return PartialView("~/Views/Account/ChangePassword.cshtml", new ChangePasswordRequest { Token = response.Data.ToString() });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public ActionResult ChangePassword(ChangePasswordRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_CHANGEPASSWORD, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        return Json(new { IsSuccess = true, Message = "Đổi mật khẩu thành công", Data = "" });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> Logout()
@@ -266,6 +350,7 @@ namespace FE.Controllers
             return RedirectToAction("Login");
         }
 
+        #region
         private async void SetClaimLogin(string ResponseData)
         {
             var UserData = JsonConvert.DeserializeObject<MODELUser>(ResponseData);
@@ -290,5 +375,7 @@ namespace FE.Controllers
                 ExpiresUtc = DateTimeOffset.UtcNow.AddHours(CommonConst.ExpireAccessToken) // Hạn sử dụng là 7 ngày
             });
         }
+
+        #endregion
     }
 }

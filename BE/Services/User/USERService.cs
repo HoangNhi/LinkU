@@ -14,6 +14,9 @@ using BE.Services.Mail;
 using BE.Services.SMS;
 using MODELS.SMS.Dtos;
 using BE.Services.OTP;
+using MODELS.OTP.Requests;
+using System.IdentityModel.Tokens.Jwt;
+using System.Diagnostics;
 
 namespace BE.Services.User
 {
@@ -504,12 +507,14 @@ namespace BE.Services.User
         public BaseResponse SendOTP(UsernameRequest request)
         {
             var response = new BaseResponse();
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             try
             {
                 if (CommonFunc.IsValidEmail(request.Username))
                 {
                     var OTP = _otpService.Insert(request.Username);
-                    if(OTP.Error)
+                    if (OTP.Error)
                     {
                         throw new Exception(OTP.Message);
                     }
@@ -528,35 +533,80 @@ namespace BE.Services.User
                 response.Error = true;
                 response.Message = ex.Message;
             }
+            // Dừng đếm thời gian
+            stopwatch.Stop();
+            // In kết quả thời gian chạy (tính bằng mili giây)
+            Console.WriteLine($"Thời gian chạy: {stopwatch.ElapsedMilliseconds} ms");
             return response;
         }
 
-        private async Task SendEmailConfirm(string Email, string OTPCode)
+        public BaseResponse<string> VerifyOTP(VerifyOTPRequest request)
         {
+            var response = new BaseResponse<string>();
             try
             {
-                // Đường dẫn Template
-                string templateFullPath = Path.Combine(_webHostEnvironment.WebRootPath, @"Files//Mail//OTPMail.html");
-                var builder = new BodyBuilder();
-                using (StreamReader SourceReader = System.IO.File.OpenText(templateFullPath))
+                // Check User
+                var checkUser = _context.Users.FirstOrDefault(x => x.Username == request.Username);
+                if (checkUser == null)
                 {
-                    builder.HtmlBody = SourceReader.ReadToEnd();
+                    throw new Exception("Mã OTP không hợp lệ");
                 }
+                request.UserId = checkUser.Id;
 
-                // Replace các giá trị trong template
-                string messageBody = builder.HtmlBody.Replace("{0}", OTPCode);
-
-                await _mailService.SendEmailAsync(new MODELMail
+                // Verify OTP
+                var checkOTP = _otpService.Verify(request).Data;
+                if (checkOTP)
                 {
-                    ToEmail = Email,
-                    Subject = "Quên mật khẩu",
-                    Body = messageBody
-                });
+                    string Token = JWTHelper.GenerateForgetPasswordToken(new MODELUser { Id = checkUser.Id, Username = checkUser.Username}, _config);
+                    response.Data = Token;
+                }
+                else
+                {
+                    throw new Exception("Mã OTP không hợp lệ");
+                }
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                response.Error = true;
+                response.Message = ex.Message;
             }
+            return response;
+        }
+
+        public BaseResponse ChangePassword(ChangePasswordRequest request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Validate Token
+                var principal = JWTHelper.ValidateForgetPasswordToken(request.Token, _config);
+                if (principal == null)
+                {
+                    throw new Exception("Quá thời hạn đổi mật khẩu");
+                }
+
+                var UserId = principal.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
+                var User = _context.Users.Find(Guid.Parse(UserId));
+                if (User == null)
+                {
+                    throw new Exception("Đổi mật khẩu không thành công");
+                }
+
+                // Change Password
+                User.PasswordSalt = Encrypt_DecryptHelper.GenerateSalt();
+                User.Password = Encrypt_DecryptHelper.EncodePassword(request.Password, User.PasswordSalt);
+                User.NguoiSua = "User";
+                User.NgaySua = DateTime.Now;
+                // Lưu dữ liệu
+                _context.Users.Update(User);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
         }
 
         #endregion
@@ -605,6 +655,30 @@ namespace BE.Services.User
                 }
             }
             return path;
+        }
+
+        // Send Email Confirm
+        private async Task SendEmailConfirm(string Email, string OTPCode)
+        {
+            try
+            {
+                // Đường dẫn Template
+                string templateFullPath = Path.Combine(_webHostEnvironment.WebRootPath, @"Files/Mail/OTPMail.html");
+                string messageBody = await File.ReadAllTextAsync(templateFullPath);
+                // Replace các giá trị trong template
+                messageBody = messageBody.Replace("{0}", OTPCode);
+
+                Task.Run(() => _mailService.SendEmailAsync(new MODELMail
+                {
+                    ToEmail = Email,
+                    Subject = "Quên mật khẩu",
+                    Body = messageBody
+                }));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
         #endregion
     }

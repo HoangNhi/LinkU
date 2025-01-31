@@ -15,6 +15,9 @@
         public const string USER_LOGOUT = "/User/Logout";
         public const string USER_CHECKUSERNAMEEXIST = "/User/CheckUsernameExist";
         public const string USER_LOGINGOOGLE = "/User/LoginGoogle";
+        public const string USER_SENDOTP = "/User/SendOTP";
+        public const string USER_VERIFYOTP = "/User/VerifyOTP";
+        public const string USER_CHANGEPASSWORD = "/User/ChangePassword";
 
         // Message
         public const string MESSAGE_GET_LIST_PAGING = "/Message/GetListPaging";

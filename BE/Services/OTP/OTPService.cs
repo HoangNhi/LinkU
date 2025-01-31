@@ -33,8 +33,8 @@ namespace BE.Services.OTP
                 else
                 {
                     // Check if OTP exists
-                    var PreviousOTP = _context.OTPs.Where(x => x.UserId == user.Id);
-                    if (PreviousOTP != null)
+                    var PreviousOTP = _context.OTPs.Where(x => x.UserId == user.Id && x.IsActived == true);
+                    if (PreviousOTP.Count() > 0)
                     {
                         foreach (var item in PreviousOTP)
                         {

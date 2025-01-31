@@ -1,4 +1,5 @@
 ﻿using MODELS.BASE;
+using MODELS.OTP.Requests;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.REFRESHTOKEN.Requests;
 using MODELS.USER.Dtos;
@@ -25,5 +26,7 @@ namespace BE.Services.User
         
         // Forgot Password
         BaseResponse SendOTP(UsernameRequest request);
+        BaseResponse<string> VerifyOTP(VerifyOTPRequest request);
+        BaseResponse ChangePassword(ChangePasswordRequest request);
     }
 }

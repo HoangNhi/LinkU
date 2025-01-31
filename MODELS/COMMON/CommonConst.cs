@@ -13,6 +13,10 @@ namespace MODELS.COMMON
         /// <summary>
         /// Thời hạn OTP là 5 phút
         /// </summary>
-        public static int ExpireOTP = 5; 
+        public static int ExpireOTP = 5;
+        /// <summary>
+        /// Thời hạn đổi mật khẩu sau khi xác thực OTP là 10 phút
+        /// </summary>
+        public static int ExpireChangePassword = 10;
     }
 }

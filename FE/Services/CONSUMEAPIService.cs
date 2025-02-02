@@ -3,6 +3,11 @@ using System.Net.Http.Headers;
 using System.Net;
 using MODELS.BASE;
 using Newtonsoft.Json;
+using FE.Constant;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using MODELS.USER.Dtos;
 
 namespace FE.Services
 {
@@ -28,7 +33,7 @@ namespace FE.Services
                     client.Timeout = TimeSpan.FromMinutes(5);
                     // Set header cho request
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _httpContextAccessor.HttpContext.User.Claims.Where(x => x.Type == "Token").FirstOrDefault().Value.ToString());
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken("AccessToken"));
 
                     client.DefaultRequestHeaders.Accept.Clear();
 
@@ -110,10 +115,6 @@ namespace FE.Services
             }
             return response;
         }
-        public string GetBEUrl()
-        {
-            return _configuration["BeURL"];
-        }
         public ApiResponse ExecuteAPIResponse(Task<HttpResponseMessage> responseTask)
         {
             ApiResponse response = new ApiResponse();
@@ -147,6 +148,40 @@ namespace FE.Services
                         response.Data = resultData.Data;
                     }
                 }
+            }else if(result.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                // Call Refresh Token
+                ApiResponse responseAPI = ExcuteAPIWithoutToken(URL_API.USER_REFRESH_TOKEN, GetToken("RefreshToken"), HttpAction.Post);
+                if (responseAPI.Success)
+                {
+                    // Lưu lại token mới
+                    var resultData = JsonConvert.DeserializeObject<MODELUser>(responseAPI.Data.ToString());
+                    var claims = new List<Claim>();
+
+                    claims.Add(new Claim("UserId", GetUserId()));
+                    claims.Add(new Claim("AccessToken", resultData.AccessToken));
+                    claims.Add(new Claim("RefreshToken", resultData.RefreshToken));
+
+                    // Create the identity from the user info
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    // Create the principal
+                    var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+                    // Remove old token in cookie
+                    _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
+
+                    // Save token in cookie
+                    _httpContextAccessor.HttpContext.SignInAsync(claimsPrincipal, new AuthenticationProperties
+                    {
+                        IsPersistent = true, // Giữ cookie sau khi trình duyệt đóng
+                    });
+
+                    response = ExcuteAPI(responseTask.Result.RequestMessage.RequestUri.AbsolutePath, null, HttpAction.Post);
+                }
+                else
+                {
+                    _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                }
             }
             else
             {
@@ -155,5 +190,21 @@ namespace FE.Services
             }
             return response;
         }
+
+        #region Helper Method
+        public string GetBEUrl()
+        {
+            return _configuration["BeURL"];
+        }
+        public string GetToken(string nameToken)
+        {
+            return _httpContextAccessor.HttpContext.User.Claims.Where(x => x.Type == nameToken).FirstOrDefault().Value.ToString();
+        }
+        public string GetUserId()
+        {
+            return _httpContextAccessor.HttpContext.User.Claims.Where(x => x.Type == "UserId").FirstOrDefault().Value.ToString();
+        }
+
+        #endregion
     }
 }

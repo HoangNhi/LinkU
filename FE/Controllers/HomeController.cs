@@ -1,6 +1,7 @@
 ﻿using FE.Constant;
 using FE.Models;
 using FE.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
@@ -26,19 +27,18 @@ namespace FE.Controllers
 
         public IActionResult Index()
         {
-            MODELUser model = new MODELUser();
-
-            foreach (var claim in _contextAccessor.HttpContext.User.Claims)
+            // Lấy thông tin user
+            ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, new GetByIdRequest { Id = Guid.Parse(_consumeAPI.GetUserId())}, HttpAction.Post);
+            if(response.Success)
             {
-                switch (claim.Type)
-                {
-                    case "HoLot": { model.HoLot = claim.Value; }; break;
-                    case "Ten": { model.Ten = claim.Value; }; break;
-                    case "ProfilePicture": { model.ProfilePicture = claim.Value; }; break;
-                }
+                var user = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                user.ProfilePicture = String.IsNullOrEmpty(user.ProfilePicture) || String.IsNullOrEmpty(user.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + "/" + user.ProfilePicture;
+                ViewBag.UserInfo = user;
             }
-
-            ViewBag.UserInfo = model;
+            else
+            {
+                return View("~/Views/Shared/Error.cshtml", new ErrorViewModel { Message = response.Message});
+            }
             return View();
         }
 
@@ -47,6 +47,7 @@ namespace FE.Controllers
             return View();
         }
 
+        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

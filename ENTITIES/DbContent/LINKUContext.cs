@@ -209,21 +209,28 @@ public partial class LINKUContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.RefreshToken1);
+            entity.HasKey(e => e.Token).HasName("PK_RefreshToken_1");
 
             entity.ToTable("RefreshToken");
 
-            entity.Property(e => e.RefreshToken1)
-                .ValueGeneratedNever()
-                .HasComment("Refresh Token")
-                .HasColumnName("RefreshToken");
-            entity.Property(e => e.AccessToken)
+            entity.Property(e => e.Token)
+                .HasMaxLength(100)
                 .IsUnicode(false)
-                .HasDefaultValueSql("((1))");
-            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
-            entity.Property(e => e.ExpiryDateAccessTokenRecent)
+                .HasComment("Refresh Token");
+            entity.Property(e => e.Created)
                 .HasComment("Lưu lại thời gian access token được cấp mới nhất để kiểm tra nếu token mới nhất chưa hết hạn mà lại được yêu cầu cấp 1 accesstoken mới thì sẽ trả về lỗi")
                 .HasColumnType("datetime");
+            entity.Property(e => e.CreatedByIp)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Expires).HasColumnType("datetime");
+            entity.Property(e => e.ReplacedByToken)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Revoked).HasColumnType("datetime");
+            entity.Property(e => e.RevokedByIp)
+                .HasMaxLength(50)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
                 .HasForeignKey(d => d.UserId)

@@ -9,10 +9,11 @@ namespace FE.Configure
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
+                options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = SameSiteMode.None;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.IsEssential = true;
-                options.ExpireTimeSpan = TimeSpan.FromHours(MODELS.COMMON.CommonConst.ExpireAccessToken);
+                options.ExpireTimeSpan = TimeSpan.FromDays(MODELS.COMMON.CommonConst.ExpireRefreshToken);
                 options.LoginPath = "/Account/Login";
             })
             .AddGoogle(googleOptions =>

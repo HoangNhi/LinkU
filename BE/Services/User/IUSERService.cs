@@ -17,12 +17,12 @@ namespace BE.Services.User
         BaseResponse<string> DeleteList(DeleteListRequest request);
 
         // Login by UserName and Password
-        BaseResponse<MODELUser> Login(LoginRequest request);
-        BaseResponse<MODELUser> Register(RegisterRequest request);
-        BaseResponse<MODELRefreshToken> RefreshToken(PostRefreshTokenRequest request);
+        BaseResponse<MODELUser> Login(LoginRequest request, string ipAddress);
+        BaseResponse<MODELUser> Register(RegisterRequest request, string ipAddress);
+        BaseResponse<MODELToken> RefreshToken(string token, string ipAddress);
         BaseResponse<MODELUser> Logout(PostLogoutRequest request);
         BaseResponse<LoginRequest> CheckUsernameExist(UsernameRequest request);
-        BaseResponse<MODELUser> LoginGoogle(LoginGoogleRequest request);
+        BaseResponse<MODELUser> LoginGoogle(LoginGoogleRequest request, string ipAddress);
         
         // Forgot Password
         BaseResponse SendOTP(UsernameRequest request);

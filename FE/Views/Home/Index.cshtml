@@ -49,12 +49,27 @@
     #Functions-container::-webkit-scrollbar-thumb {
         -webkit-box-shadow: none
     }
+
+    #MessageList {
+        width: unset;
+        max-width: 480px;
+        min-width: 300px;
+        margin-left: 16px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0px 0px 8px rgba(52, 72, 84, .05);
+    }
+
+    #Messages{
+        max-height: 100%;
+        min-height: 0
+    }
 </style>
 
 <div class="d-flex"
      style="background-color: rgb(245, 245, 245); height: calc(100vh - 32px)">
     <!-- Chức năng -->
-    <div id="Functions" style="width: 20%; max-width: 240px">
+    <div id="Functions" style="width: 240px;">
         <div style="height: calc(100vh - 110px); overflow: hidden; position: relative;">
             <div style="position: absolute; top: 0; bottom: 0; left: 0; right: -10px; overflow-y: scroll;">
                 <button type="button"
@@ -78,14 +93,14 @@
                         class="btn btn-link d-flex align-items-center btn-Functions"
                         data-mdb-ripple-init
                         data-mdb-ripple-color="dark">
-                    <i class="fa-solid fa-box-archive icon-Functions"></i>
-                    <span class="text-Functions">Tin nhắn lưu trữ</span>
+                    <i class="fa-solid fa-user-group icon-Functions"></i>
+                    <span class="text-Functions">Lời mời kết bạn</span>
                 </button>
             </div>
         </div>
         <!-- Tên và sidenav -->
         <div id="ProfilePicture"
-             style="padding-top: 12px; bottom: 12px; width: 20%; max-width: 240px; background-color: rgb(245, 245, 245)"
+             style="padding-top: 12px; bottom: 12px; width: 100%; max-width: 240px; background-color: rgb(245, 245, 245)"
              class="d-flex align-items-center position-fixed">
             <button type="button"
                     class="btn btn-link btn-ProfilePicture"
@@ -116,12 +131,12 @@
     </div>
 
     <!-- Danh sách tin nhắn -->
-    <div id="MessageList" style="width: 30%">
+    <div id="MessageList">
         MessageList
     </div>
 
     <!-- Tin nhắn -->
-    <div id="Messages" style="width: 50%">
+    <div id="Messages" style="">
         Messages
     </div>
 </div>
@@ -130,6 +145,12 @@
 <script>
     $(document).ready(function () {
 
+    });
+
+    $(window).on('resize', function () {
+        if ($(window).width() < 900 && $("#Functions").width() > 44) {
+            ThuNhoSideNav();
+        }
     });
 
     // Xử lý sự kiện chuyển button
@@ -157,9 +178,9 @@
             $("#Functions").width(240)
             $("#ProfilePicture").width(240)
             const Functions = document.querySelector("#Functions")
-            Functions.style.width = "20%"
+            Functions.style.width = "240px"
             const ProfilePicture = document.querySelector("#ProfilePicture")
-            ProfilePicture.style.width = "20%"
+            ProfilePicture.style.width = "100%"
             // Show title
             const elements = document.querySelectorAll(".text-Functions");
             elements.forEach(element => {

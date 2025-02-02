@@ -179,7 +179,7 @@ namespace BE.Controllers
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.Login(request);
+                    var response = _service.Login(request, ipAddress());
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -205,7 +205,7 @@ namespace BE.Controllers
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.Register(request);
+                    var response = _service.Register(request, ipAddress());
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -225,13 +225,13 @@ namespace BE.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public ActionResult<ApiResponse> RefreshToken(PostRefreshTokenRequest request)
+        public ActionResult<ApiResponse> RefreshToken(string token)
         {
             try
             {
-                if (request != null && ModelState.IsValid)
+                if (token != null)
                 {
-                    var response = _service.RefreshToken(request);
+                    var response = _service.RefreshToken(token, ipAddress());
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -240,7 +240,7 @@ namespace BE.Controllers
                 }
                 else
                 {
-                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
+                    throw new Exception("Refresh Token không được để trống");
                 }
             }
             catch (Exception ex)
@@ -308,7 +308,7 @@ namespace BE.Controllers
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.LoginGoogle(request);
+                    var response = _service.LoginGoogle(request, ipAddress());
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -402,6 +402,15 @@ namespace BE.Controllers
             {
                 return Ok(new ApiResponse(false, 500, ex.Message));
             }
+        }
+
+        private string ipAddress()
+        {
+            // get source ip address for the current request
+            if (Request.Headers.ContainsKey("X-Forwarded-For"))
+                return Request.Headers["X-Forwarded-For"];
+            else
+                return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
         }
     }
 }

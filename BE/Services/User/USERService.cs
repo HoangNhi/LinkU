@@ -1,22 +1,21 @@
 ﻿using AutoMapper;
 using BE.Helpers;
+using BE.Services.Mail;
+using BE.Services.OTP;
+using BE.Services.SMS;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
 using MODELS.COMMON;
+using MODELS.MAIL.Dtos;
+using MODELS.OTP.Requests;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.REFRESHTOKEN.Requests;
 using MODELS.USER.Dtos;
 using MODELS.USER.Requests;
-using MimeKit;
-using MODELS.MAIL.Dtos;
-using BE.Services.Mail;
-using BE.Services.SMS;
-using MODELS.SMS.Dtos;
-using BE.Services.OTP;
-using MODELS.OTP.Requests;
-using System.IdentityModel.Tokens.Jwt;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Cryptography;
 
 namespace BE.Services.User
 {
@@ -86,7 +85,7 @@ namespace BE.Services.User
             try
             {
                 var result = new MODELUser();
-                var data = _context.Users.FindAsync(request.Id);
+                var data = _context.Users.Find(request.Id);
                 if (data == null)
                 {
                     throw new Exception("Không tìm thấy dữ liệu");
@@ -282,7 +281,7 @@ namespace BE.Services.User
         #endregion
 
         #region Login/Register/Logout
-        public BaseResponse<MODELUser> Login(LoginRequest request)
+        public BaseResponse<MODELUser> Login(LoginRequest request, string ipAddress)
         {
             var response = new BaseResponse<MODELUser>();
             try
@@ -309,21 +308,13 @@ namespace BE.Services.User
                     data = _mapper.Map<MODELUser>(user);
                     var token = JWTHelper.GenerateJwtToken(data, _config);
                     // Generate Refresh Token
-                    var refreshToken = new RefreshToken()
-                    {
-                        UserId = user.Id,
-                        RefreshToken1 = Guid.NewGuid(),
-                        ExpiryDate = DateTime.Now.AddHours(CommonConst.ExpireRefreshToken),
-                        ExpiryDateAccessTokenRecent = DateTime.Now.AddHours(CommonConst.ExpireAccessToken),
-                        IsActived = true,
-                        IsDeleted = false,
-                    };
-
+                    var refreshToken = GenerateRefreshToken(ipAddress);
+                    refreshToken.UserId = user.Id;
                     // Save Refresh Token
                     _context.RefreshTokens.Add(refreshToken);
                     _context.SaveChanges();
 
-                    data.RefreshToken = refreshToken.RefreshToken1.ToString();
+                    data.RefreshToken = refreshToken.Token.ToString();
                     data.AccessToken = token;
 
                     response.Data = data;
@@ -363,7 +354,7 @@ namespace BE.Services.User
             return response;
         }
 
-        public BaseResponse<MODELUser> Register(RegisterRequest request)
+        public BaseResponse<MODELUser> Register(RegisterRequest request, string ipAddress)
         {
             var response = new BaseResponse<MODELUser>();
             try
@@ -411,8 +402,16 @@ namespace BE.Services.User
                 _context.Users.Add(add);
                 _context.SaveChanges();
 
-                // Khi đã cập nhật dữ liệu thành công thì sẽ tự động đăng nhập cho người dùng
-                response = LoginGoogle(new LoginGoogleRequest() { Username = request.Username });
+                // Nếu là đăng nhập bằng Google thì sẽ tự động đăng nhập
+                if (add.IsGoogle)
+                {
+                    // Khi đã cập nhật dữ liệu thành công thì sẽ tự động đăng nhập cho người dùng
+                    response = LoginGoogle(new LoginGoogleRequest() { Username = request.Username }, ipAddress);
+                }
+                else
+                {
+                    response.Data = _mapper.Map<MODELUser>(add);
+                }
             }
             catch (Exception ex)
             {
@@ -422,12 +421,39 @@ namespace BE.Services.User
             return response;
         }
 
-        public BaseResponse<MODELRefreshToken> RefreshToken(PostRefreshTokenRequest request)
+        public BaseResponse<MODELToken> RefreshToken(string token, string ipAddress)
         {
-            var response = new BaseResponse<MODELRefreshToken>();
+            var response = new BaseResponse<MODELToken>();
             try
             {
+                var user = getUserByRefreshToken(token);
+                var refreshToken = _mapper.Map<MODELRefreshToken>(user.RefreshTokens.Single(x => x.Token == token));
 
+                if (refreshToken.IsRevoked)
+                {
+                    // Thu hồi tất cả các Refresh Token trong trường hợp Token này đã bị thu hồi
+                    revokeDescendantRefreshTokens(refreshToken, user, ipAddress, $"RefreshToken bị thu hồi đang được sử dụng lại: {token}");
+                    _context.Update(user);
+                    _context.SaveChanges();
+                }
+
+                if (!refreshToken.IsActive)
+                    throw new Exception("RefreshToken không hợp lệ");
+
+                // replace old refresh token with a new one (rotate token)
+                var newRefreshToken = rotateRefreshToken(refreshToken, ipAddress);
+                user.RefreshTokens.Add(newRefreshToken);
+
+                // save changes to db
+                _context.Update(user);
+                _context.SaveChanges();
+
+                // generate new jwt
+                response.Data = new MODELToken
+                {
+                    AccessToken = JWTHelper.GenerateJwtToken(_mapper.Map<MODELUser>(user), _config),
+                    RefreshToken = newRefreshToken.Token
+                };
             }
             catch (Exception ex)
             {
@@ -453,7 +479,7 @@ namespace BE.Services.User
         }
 
         // Login Google
-        public BaseResponse<MODELUser> LoginGoogle(LoginGoogleRequest request)
+        public BaseResponse<MODELUser> LoginGoogle(LoginGoogleRequest request, string ipAddress)
         {
             var response = new BaseResponse<MODELUser>();
             try
@@ -474,21 +500,13 @@ namespace BE.Services.User
                     data = _mapper.Map<MODELUser>(user);
                     var token = JWTHelper.GenerateJwtToken(data, _config);
                     // Generate Refresh Token
-                    var refreshToken = new RefreshToken()
-                    {
-                        UserId = user.Id,
-                        RefreshToken1 = Guid.NewGuid(),
-                        ExpiryDate = DateTime.Now.AddHours(CommonConst.ExpireRefreshToken),
-                        ExpiryDateAccessTokenRecent = DateTime.Now.AddHours(CommonConst.ExpireAccessToken),
-                        IsActived = true,
-                        IsDeleted = false,
-                    };
-
+                    var refreshToken = GenerateRefreshToken(ipAddress);
+                    refreshToken.UserId = user.Id;
                     // Save Refresh Token
                     _context.RefreshTokens.Add(refreshToken);
                     _context.SaveChanges();
 
-                    data.RefreshToken = refreshToken.RefreshToken1.ToString();
+                    data.RefreshToken = refreshToken.Token.ToString();
                     data.AccessToken = token;
 
                     response.Data = data;
@@ -557,7 +575,7 @@ namespace BE.Services.User
                 var checkOTP = _otpService.Verify(request).Data;
                 if (checkOTP)
                 {
-                    string Token = JWTHelper.GenerateForgetPasswordToken(new MODELUser { Id = checkUser.Id, Username = checkUser.Username}, _config);
+                    string Token = JWTHelper.GenerateForgetPasswordToken(new MODELUser { Id = checkUser.Id, Username = checkUser.Username }, _config);
                     response.Data = Token;
                 }
                 else
@@ -680,6 +698,56 @@ namespace BE.Services.User
                 throw new Exception(ex.Message);
             }
         }
+
+        #region Refresh Token
+        private RefreshToken GenerateRefreshToken(string ipAddress)
+        {
+            var refreshToken = new RefreshToken
+            {
+                Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
+                Expires = DateTime.UtcNow.AddDays(CommonConst.ExpireRefreshToken),
+                Created = DateTime.UtcNow,
+                CreatedByIp = ipAddress
+            };
+            return refreshToken;
+        }
+
+        private ENTITIES.DbContent.User? getUserByRefreshToken(string token)
+        {
+            return _context.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token)); ;
+        }
+
+        private RefreshToken rotateRefreshToken(MODELRefreshToken refreshToken, string ipAddress)
+        {
+            var newRefreshToken = GenerateRefreshToken(ipAddress);
+            revokeRefreshToken(refreshToken, ipAddress, "Đổi RefreshToken mới", newRefreshToken.Token);
+            return newRefreshToken;
+        }
+
+        private void revokeRefreshToken(MODELRefreshToken token, string ipAddress, string reason = null, string replacedByToken = null)
+        {
+            token.Revoked = DateTime.UtcNow;
+            token.RevokedByIp = ipAddress;
+            token.ReasonRevoked = reason;
+            token.ReplacedByToken = replacedByToken;
+
+            var updateToken = _mapper.Map<ENTITIES.DbContent.RefreshToken>(token);
+            _context.RefreshTokens.Update(updateToken);
+        }
+
+        // Thu hồi tất cả các Refresh Token cũ
+        private void revokeDescendantRefreshTokens(MODELRefreshToken refreshToken, ENTITIES.DbContent.User user, string ipAddress, string reason)
+        {
+            if (!string.IsNullOrEmpty(refreshToken.ReplacedByToken))
+            {
+                var childToken = _mapper.Map<MODELRefreshToken>(user.RefreshTokens.SingleOrDefault(x => x.Token == refreshToken.ReplacedByToken));
+                if (childToken.IsActive)
+                    revokeRefreshToken(childToken, ipAddress, reason);
+                else
+                    revokeDescendantRefreshTokens(childToken, user, ipAddress, reason);
+            }
+        }
+        #endregion
         #endregion
     }
 }

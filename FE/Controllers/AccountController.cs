@@ -350,19 +350,20 @@ namespace FE.Controllers
             return RedirectToAction("Login");
         }
 
-        #region
+        #region Private Method
         private async void SetClaimLogin(string ResponseData)
         {
             var UserData = JsonConvert.DeserializeObject<MODELUser>(ResponseData);
             var claims = new List<Claim>();
 
-            claims.Add(new Claim("Id", UserData.Id.ToString()));
-            claims.Add(new Claim("Name", UserData.Username));
-            claims.Add(new Claim("HoLot", UserData.HoLot));
-            claims.Add(new Claim("Ten", UserData.Ten));
-            claims.Add(new Claim("ProfilePicture", String.IsNullOrEmpty(UserData.ProfilePicture) || String.IsNullOrEmpty(UserData.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + "/" + UserData.ProfilePicture));
-            claims.Add(new Claim("Role", UserData.RoleId.ToString()));
-            claims.Add(new Claim("Token", UserData.AccessToken));
+            claims.Add(new Claim("UserId", UserData.Id.ToString()));
+            //claims.Add(new Claim("Name", UserData.Username));
+            //claims.Add(new Claim("HoLot", UserData.HoLot));
+            //claims.Add(new Claim("Ten", UserData.Ten));
+            //claims.Add(new Claim("ProfilePicture", String.IsNullOrEmpty(UserData.ProfilePicture) || String.IsNullOrEmpty(UserData.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + "/" + UserData.ProfilePicture));
+            //claims.Add(new Claim("Role", UserData.RoleId.ToString()));
+            claims.Add(new Claim("AccessToken", UserData.AccessToken));
+            claims.Add(new Claim("RefreshToken", UserData.RefreshToken));
 
             // Create the identity from the user info
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -372,7 +373,6 @@ namespace FE.Controllers
             await HttpContext.SignInAsync(claimsPrincipal, new AuthenticationProperties
             {
                 IsPersistent = true, // Giữ cookie sau khi trình duyệt đóng
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(CommonConst.ExpireAccessToken) // Hạn sử dụng là 7 ngày
             });
         }
 

@@ -9,7 +9,7 @@ namespace MODELS.COMMON
     public static class CommonConst
     {
         public static int ExpireAccessToken = 1; // Thời hạn Access Token là 1 giờ
-        public static int ExpireRefreshToken = 7 * 24; // Thời hạn Refresh Token là 7 ngày
+        public static int ExpireRefreshToken = 7; // Thời hạn Refresh Token là 7 ngày
         /// <summary>
         /// Thời hạn OTP là 5 phút
         /// </summary>

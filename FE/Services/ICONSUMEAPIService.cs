@@ -8,5 +8,7 @@ namespace FE.Services
         ApiResponse ExcuteAPI(string action, object? model, HttpAction method);
         ApiResponse ExcuteAPIWithoutToken(string action, object? model, HttpAction method);
         string GetBEUrl();
+        string GetToken(string nameToken);
+        string GetUserId();
     }
 }

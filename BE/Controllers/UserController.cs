@@ -225,13 +225,13 @@ namespace BE.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public ActionResult<ApiResponse> RefreshToken(string token)
+        public ActionResult<ApiResponse> RefreshToken(RefreshTokenRequest request)
         {
             try
             {
-                if (token != null)
+                if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.RefreshToken(token, ipAddress());
+                    var response = _service.RefreshToken(request.Token, ipAddress());
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -240,7 +240,7 @@ namespace BE.Controllers
                 }
                 else
                 {
-                    throw new Exception("Refresh Token không được để trống");
+                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
                 }
             }
             catch (Exception ex)

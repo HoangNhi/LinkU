@@ -5,6 +5,7 @@ using BE.Services.OTP;
 using BE.Services.SMS;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MAIL.Dtos;
@@ -433,7 +434,6 @@ namespace BE.Services.User
                 {
                     // Thu hồi tất cả các Refresh Token trong trường hợp Token này đã bị thu hồi
                     revokeDescendantRefreshTokens(refreshToken, user, ipAddress, $"RefreshToken bị thu hồi đang được sử dụng lại: {token}");
-                    _context.Update(user);
                     _context.SaveChanges();
                 }
 
@@ -442,10 +442,10 @@ namespace BE.Services.User
 
                 // replace old refresh token with a new one (rotate token)
                 var newRefreshToken = rotateRefreshToken(refreshToken, ipAddress);
-                user.RefreshTokens.Add(newRefreshToken);
+                newRefreshToken.UserId = user.Id;
 
                 // save changes to db
-                _context.Update(user);
+                _context.RefreshTokens.Add(newRefreshToken);
                 _context.SaveChanges();
 
                 // generate new jwt
@@ -714,7 +714,10 @@ namespace BE.Services.User
 
         private ENTITIES.DbContent.User? getUserByRefreshToken(string token)
         {
-            return _context.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token)); ;
+            return _context.Users
+                .Include(u => u.RefreshTokens)
+                .AsNoTracking()
+                .SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
         }
 
         private RefreshToken rotateRefreshToken(MODELRefreshToken refreshToken, string ipAddress)

@@ -1,19 +1,24 @@
-﻿using MODELS.COMMON;
-using System.Net.Http.Headers;
-using System.Net;
-using MODELS.BASE;
-using Newtonsoft.Json;
-using FE.Constant;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using FE.Constant;
 using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using MODELS.BASE;
+using MODELS.COMMON;
+using MODELS.REFRESHTOKEN.Requests;
 using MODELS.USER.Dtos;
+using Newtonsoft.Json;
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection;
+using System.Security.Claims;
+using System.Text;
 
 namespace FE.Services
 {
     public class CONSUMEAPIService : ICONSUMEAPIService
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
         public CONSUMEAPIService(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
@@ -58,7 +63,7 @@ namespace FE.Services
                     }
 
                     responseTask.Wait();
-                    response = ExecuteAPIResponse(responseTask);
+                    response = ExecuteAPIResponse(responseTask).Result;
                 }
             }
             catch (Exception ex)
@@ -105,7 +110,7 @@ namespace FE.Services
                     }
 
                     responseTask.Wait();
-                    response = ExecuteAPIResponse(responseTask);
+                    response = ExecuteAPIResponse(responseTask).Result;
                 }
             }
             catch (Exception ex)
@@ -115,7 +120,7 @@ namespace FE.Services
             }
             return response;
         }
-        public ApiResponse ExecuteAPIResponse(Task<HttpResponseMessage> responseTask)
+        public async Task<ApiResponse> ExecuteAPIResponse(Task<HttpResponseMessage> responseTask)
         {
             ApiResponse response = new ApiResponse();
 
@@ -148,10 +153,11 @@ namespace FE.Services
                         response.Data = resultData.Data;
                     }
                 }
-            }else if(result.StatusCode == HttpStatusCode.Unauthorized)
+            }
+            else if (result.StatusCode == HttpStatusCode.Unauthorized)
             {
                 // Call Refresh Token
-                ApiResponse responseAPI = ExcuteAPIWithoutToken(URL_API.USER_REFRESH_TOKEN, GetToken("RefreshToken"), HttpAction.Post);
+                ApiResponse responseAPI = ExcuteAPIWithoutToken(URL_API.USER_REFRESH_TOKEN, new RefreshTokenRequest { Token = GetToken("RefreshToken") }, HttpAction.Post);
                 if (responseAPI.Success)
                 {
                     // Lưu lại token mới
@@ -168,19 +174,29 @@ namespace FE.Services
                     var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
                     // Remove old token in cookie
-                    _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
+                    await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
                     // Save token in cookie
-                    _httpContextAccessor.HttpContext.SignInAsync(claimsPrincipal, new AuthenticationProperties
+                    await _httpContextAccessor.HttpContext.SignInAsync(claimsPrincipal, new AuthenticationProperties
                     {
                         IsPersistent = true, // Giữ cookie sau khi trình duyệt đóng
                     });
 
-                    response = ExcuteAPI(responseTask.Result.RequestMessage.RequestUri.AbsolutePath, null, HttpAction.Post);
+                    _httpContextAccessor.HttpContext.User = claimsPrincipal;
+
+                    // Re-call API
+                    using (var client = new HttpClient())
+                    {
+                        var request = await CreateRequestMessage(result.RequestMessage);
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", GetToken("AccessToken"));
+                        var RecallResponseTask = client.SendAsync(request);
+                        response = await ExecuteAPIResponse(RecallResponseTask);
+                    }
                 }
                 else
                 {
-                    _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    _httpContextAccessor.HttpContext.Response.Redirect("/Account/Login");
                 }
             }
             else
@@ -203,6 +219,32 @@ namespace FE.Services
         public string GetUserId()
         {
             return _httpContextAccessor.HttpContext.User.Claims.Where(x => x.Type == "UserId").FirstOrDefault().Value.ToString();
+        }
+
+        // Tạo 1 HTTP Request message từ request cũ
+        // Error: The request message was already sent. Cannot send the same request message multiple times.
+        public async Task<HttpRequestMessage> CreateRequestMessage(HttpRequestMessage originalRequest)
+        {
+            // Tạo một request mới từ request cũ
+            var newRequest = new HttpRequestMessage(originalRequest.Method, originalRequest.RequestUri);
+
+            // Sao chép Headers từ request cũ
+            foreach (var header in originalRequest.Headers)
+            {
+                newRequest.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            // Cập nhật Authorization với token mới
+            newRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", GetToken("AccessToken"));
+
+            // Sao chép Content nếu có
+            if (originalRequest.Content != null)
+            {
+                var originalContent = await originalRequest.Content.ReadAsStringAsync();
+                newRequest.Content = new StringContent(originalContent, Encoding.UTF8, originalRequest.Content.Headers.ContentType?.MediaType);
+            }
+
+            return newRequest;
         }
 
         #endregion

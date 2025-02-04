@@ -25,7 +25,9 @@ namespace BE.Configure
             // Cấu hình DbContext
             builder.Services.AddDbContext<LINKUContext>(options =>
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("LinkU"));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("LinkU"))
+                       // Hiển thị log SQL
+                       .EnableSensitiveDataLogging();
             });
 
             // Thêm AutoMapper

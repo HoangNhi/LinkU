@@ -25,32 +25,34 @@
         width: 100%;
     }
 
-    .btn-Functions:hover,
-    .btn-ProfilePicture:hover{
-        background-color: rgba(0,0,0,0.04);
-    }
+        .btn-Functions:hover,
+        .btn-ProfilePicture:hover {
+            background-color: rgba(0,0,0,0.04);
+        }
 
-    .btn-Functions.active {
-        background-color: rgba(0,0,0,0.06);
-        border-radius: 8px;
-        pointer-events: none;
-    }
+        .btn-Functions.active {
+            background-color: rgba(0,0,0,0.06);
+            border-radius: 8px;
+            pointer-events: none;
+        }
 
-    ::-webkit-scrollbar {
+    /*::-webkit-scrollbar {
         width: 12px;
-    }
+    }*/
 
     /* Track */
     #Functions-container::-webkit-scrollbar-track:hover {
         -webkit-box-shadow: none;
     }
 
-    /* Handle */
+    /*Handle*/
     #Functions-container::-webkit-scrollbar-thumb {
         -webkit-box-shadow: none
     }
 
     #MessageList {
+        max-height: 100%;
+        min-height: 0;
         width: unset;
         max-width: 480px;
         min-width: 300px;
@@ -58,45 +60,62 @@
         background-color: white;
         border-radius: 12px;
         box-shadow: 0px 0px 8px rgba(52, 72, 84, .05);
+        display: flex;
+        flex: 2;
     }
 
-    #Messages{
+    #Messages {
         max-height: 100%;
-        min-height: 0
+        min-height: 0;
+        width: unset;
+        max-width: 100%;
+        min-width: 300px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0px 0px 8px rgba(52, 72, 84, .05);
+        margin-left: 16px;
+        display: flex;
+        flex: 3;
+    }
+
+    .btn.btn-light.rounded-circle{
+        background-color: rgba(211, 212, 213, 0.6)
+    }
+
+    .btn.btn-light.rounded-circle:hover {
+        background-color: rgba(211, 212, 213, 1)
     }
 </style>
 
 <div class="d-flex"
      style="background-color: rgb(245, 245, 245); height: calc(100vh - 32px)">
     <!-- Chức năng -->
-    <div id="Functions" style="width: 240px;">
-        <div style="height: calc(100vh - 110px); overflow: hidden; position: relative;">
-            <div style="position: absolute; top: 0; bottom: 0; left: 0; right: -10px; overflow-y: scroll;">
-                <button type="button"
-                        class="btn btn-link d-flex align-items-center btn-Functions active"
-                        data-mdb-ripple-init
-                        data-mdb-ripple-color="dark">
-                    <i class="fa-solid fa-comment icon-Functions"
-                       style=""></i>
-                    <span class="text-Functions">Đoạn chat</span>
-                </button>
+    <div id="Functions" style="width: 240px; min-width: 240px">
+        <div>
+            <button type="button"
+                    class="btn btn-link d-flex align-items-center btn-Functions active"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark">
+                <i class="fa-solid fa-comment icon-Functions"
+                   style=""></i>
+                <span class="text-Functions">Đoạn chat</span>
+            </button>
 
-                <button type="button"
-                        class="btn btn-link d-flex align-items-center btn-Functions"
-                        data-mdb-ripple-init
-                        data-mdb-ripple-color="dark">
-                    <i class="fa-solid fa-comment-dots icon-Functions"></i>
-                    <span class="text-Functions">Tin nhắn đang chờ</span>
-                </button>
+            <button type="button"
+                    class="btn btn-link d-flex align-items-center btn-Functions"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark">
+                <i class="fa-solid fa-comment-dots icon-Functions"></i>
+                <span class="text-Functions">Tin nhắn đang chờ</span>
+            </button>
 
-                <button type="button"
-                        class="btn btn-link d-flex align-items-center btn-Functions"
-                        data-mdb-ripple-init
-                        data-mdb-ripple-color="dark">
-                    <i class="fa-solid fa-user-group icon-Functions"></i>
-                    <span class="text-Functions">Lời mời kết bạn</span>
-                </button>
-            </div>
+            <button type="button"
+                    class="btn btn-link d-flex align-items-center btn-Functions"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark">
+                <i class="fa-solid fa-user-group icon-Functions"></i>
+                <span class="text-Functions">Lời mời kết bạn</span>
+            </button>
         </div>
         <!-- Tên và sidenav -->
         <div id="ProfilePicture"
@@ -109,22 +128,22 @@
                     style="padding: 6px; width: 80%; text-align: left; display: flex; align-items: center">
                 <img id="Img-ProfilePicture"
                      class="rounded-circle"
-                     src="@User.ProfilePicture" 
+                     src="@User.ProfilePicture"
                      width="32" height="32"
-                     style="margin: 0 6px"/>
+                     style="margin: 0 6px" />
                 <span id="Name-ProfilePicture"
                       style="text-transform: none; font-size: 14px; font-weight: 500; color: black">@User.Ten</span>
             </button>
             <div id="SideNav"
-                 style="width: 20%">
+                    style="width: 20%; text-align: center">
                 <button type="button"
                         class="btn btn-light rounded-circle"
                         data-mdb-ripple-init
                         data-mdb-ripple-color="dark"
-                        style="padding: 12px"
-                        onclick="ThuNhoSideNav()">
+                        style="padding: 9px"
+                        onclick="ChangeWidthSideNav()">
                     <img src="~/asset/hide.png"
-                         width="20" height="20" />
+                            width="20" height="20" />
                 </button>
             </div>
         </div>
@@ -132,25 +151,47 @@
 
     <!-- Danh sách tin nhắn -->
     <div id="MessageList">
-        MessageList
+        <div class="card text-center flex-grow-1">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span style="font-size: 1.5rem; font-weight: 700; color: black; line-height: 28px">
+                    Đoạn chat
+                </span>
+                <button type="button"
+                        class="btn btn-light rounded-circle"
+                        data-mdb-ripple-init
+                        data-mdb-ripple-color="dark"
+                        style="padding: 9px">
+                    <i class="fa-regular fa-pen-to-square" style="font-size: 20px; color: black"></i>
+                </button>
+                
+            </div>
+            <div class="card-body">
+                Danh sách tin nhắn
+            </div>
+        </div>
     </div>
 
     <!-- Tin nhắn -->
-    <div id="Messages" style="">
-        Messages
+    <div id="Messages">
+        <div class="card text-center flex-grow-1">
+            <div class="card-header">Featured</div>
+            <div class="card-body">
+                Message - Tin nhắn
+            </div>
+            <div class="card-footer text-muted">2 days ago</div>
+        </div>
     </div>
 </div>
 
 
 <script>
     $(document).ready(function () {
-
+        changeWidthFocusScreen();
     });
 
+    // Hiển thị
     $(window).on('resize', function () {
-        if ($(window).width() < 900 && $("#Functions").width() > 44) {
-            ThuNhoSideNav();
-        }
+        changeWidthFocusScreen();
     });
 
     // Xử lý sự kiện chuyển button
@@ -167,7 +208,7 @@
         });
     });
 
-    function ThuNhoSideNav() {
+    function ChangeWidthSideNav() {
         const width = $("#Functions").width()
         // Change Flex dir
         const ProfilePicture = document.querySelector("#ProfilePicture");
@@ -176,6 +217,7 @@
 
         if (width == 44) {
             $("#Functions").width(240)
+            $("#Functions").css("min-width", "240px")
             $("#ProfilePicture").width(240)
             const Functions = document.querySelector("#Functions")
             Functions.style.width = "240px"
@@ -198,7 +240,9 @@
             SideNav.style.width = "20%"
         } else {
             $("#Functions").width(44)
+            $("#Functions").css("min-width", "44px")
             $("#ProfilePicture").width(44)
+
             // Hide title
             const elements = document.querySelectorAll(".text-Functions");
             elements.forEach(element => {
@@ -214,6 +258,50 @@
             BtnProfilePicture.style.width = "100%"
             const SideNav = document.querySelector("#SideNav")
             SideNav.style.width = "100%"
+        }
+    }
+
+    // Lấy ra vùng đang được Focus
+    // 1: MessageList
+    // 2: Messages
+    function getFocusScreen() {
+        return 1;
+    }
+
+    function changeWidthFocusScreen() {
+        // Max width - 900
+        if ($(window).width() < 900 && $("#Functions").width() > 44) {
+            ChangeWidthSideNav();
+        }
+
+        // Màn hình MessageList và Messages
+        if ($(window).width() < 700) {
+            if (getFocusScreen() == 1) {
+                $("#MessageList").show()
+                $("#MessageList").css("max-width", "100%")
+                $("#MessageList").css("width", "100%")
+                $("#Messages").hide()
+            } else {
+                $("#MessageList").hide()
+                $("#Messages").show()
+                $("#Messages").css("max-width", "100%")
+                $("#Messages").css("width", "100%")
+            }
+        } else {
+            $("#MessageList").show()
+            $("#Messages").show()
+            // Reset css
+            $("#MessageList").css("max-width", "480px")
+            $("#MessageList").css("width", "unset")
+            $("#Messages").css("max-width", "100%")
+            $("#Messages").css("width", "unset")
+        }
+
+        // Button SideNav
+        if ($(window).width() < 590) {
+            $("#SideNav").hide();
+        } else {
+            $("#SideNav").show();
         }
     }
 </script>

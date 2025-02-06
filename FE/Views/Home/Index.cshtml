@@ -25,16 +25,16 @@
         width: 100%;
     }
 
-        .btn-Functions:hover,
-        .btn-ProfilePicture:hover {
-            background-color: rgba(0,0,0,0.04);
-        }
+    .btn-Functions:hover,
+    .btn-ProfilePicture:hover {
+        background-color: rgba(0,0,0,0.04);
+    }
 
-        .btn-Functions.active {
-            background-color: rgba(0,0,0,0.06);
-            border-radius: 8px;
-            pointer-events: none;
-        }
+    .btn-Functions.active {
+        background-color: rgba(0,0,0,0.06);
+        border-radius: 8px;
+        pointer-events: none;
+    }
 
     /*::-webkit-scrollbar {
         width: 12px;
@@ -82,9 +82,24 @@
         background-color: rgba(211, 212, 213, 0.6)
     }
 
-    .btn.btn-light.rounded-circle:hover {
-        background-color: rgba(211, 212, 213, 1)
+    .btn.btn-light.rounded-circle:hover{
+        background-color: rgba(211, 212, 213, 1)!important 
     }
+
+    #MessageList_SearchInput {
+        padding: 4px 12px 4px 2px;
+        border: 0;
+        font-size: .9375rem;
+        font-size: 15px;
+        height: 36px;
+        background-color: rgba(0,0,0,0)
+    }
+
+    #MessageList_SearchInput:focus-visible {
+        outline: none;
+        box-shadow: none;
+    }
+
 </style>
 
 <div class="d-flex"
@@ -152,17 +167,42 @@
     <!-- Danh sách tin nhắn -->
     <div id="MessageList">
         <div class="card text-center flex-grow-1">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span style="font-size: 1.5rem; font-weight: 700; color: black; line-height: 28px">
-                    Đoạn chat
-                </span>
-                <button type="button"
-                        class="btn btn-light rounded-circle"
-                        data-mdb-ripple-init
-                        data-mdb-ripple-color="dark"
-                        style="padding: 9px">
-                    <i class="fa-regular fa-pen-to-square" style="font-size: 20px; color: black"></i>
-                </button>
+            <div class="card-header d-flex justify-content-between align-items-center flex-column"
+                 style="padding: 6px 12px">
+                <div class="d-flex justify-content-between align-items-center w-100"
+                     style="">
+                    <span style="font-size: 1.5rem; font-weight: 700; color: black; line-height: 28px">
+                        Đoạn chat
+                    </span>
+                    <button type="button"
+                            class="btn btn-light rounded-circle"
+                            data-mdb-ripple-init
+                            data-mdb-ripple-color="dark"
+                            style="padding: 9px; margin: 6px">
+                        <i class="fa-regular fa-pen-to-square" style="font-size: 20px; color: black"></i>
+                    </button>
+                </div>
+                <div class="d-flex w-100">
+                    <button id="MessageList_Back"
+                            type="button"
+                            class="btn btn-light rounded-circle d-none"
+                            data-mdb-ripple-init
+                            data-mdb-ripple-color="dark"
+                            style="margin-right: 4px; padding: 8px 9.25px; line-height: 1; background-color: rgba(0,0,0,0)"
+                            onclick="returnMessageListScreen()">
+                        <i class="fa-solid fa-arrow-left" 
+                           style="color: black; font-size: 20px"></i>
+                    </button>
+                    <div class="d-flex w-100 align-items-center"
+                         style="background-color: rgba(134, 142, 153, .1); border-radius: 50px; overflow: hidden">
+                        <i class="fas fa-search"
+                           style="padding: 0 4px 0 14px; line-height: 36px; background-color: rgba(0,0,0,0)"></i>
+                        <input id="MessageList_SearchInput"
+                               class="w-100"
+                               type="text"
+                               placeholder="Tìm kiếm">
+                    </div>
+                </div>
                 
             </div>
             <div class="card-body">
@@ -186,7 +226,17 @@
 
 <script>
     $(document).ready(function () {
+        // Thay đổi giao diện khi lần đầu truy cập vào trang
         changeWidthFocusScreen();
+
+        // Xử lý sự kiện MessageList_Search
+        //$("#MessageList_SearchInput").on('focus', function () {
+        //    $("#MessageList_Back").removeClass("d-none")
+        //});
+
+        //$("#MessageList_SearchInput").on('blur', function () {
+        //    $("#MessageList_Back").addClass("d-none")
+        //});
     });
 
     // Hiển thị
@@ -303,5 +353,9 @@
         } else {
             $("#SideNav").show();
         }
+    }
+
+    function returnMessageListScreen() {
+        $("#MessageList_Back").addClass("d-none")
     }
 </script>

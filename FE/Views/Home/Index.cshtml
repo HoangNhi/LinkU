@@ -167,7 +167,8 @@
     <!-- Danh sách tin nhắn -->
     <div id="MessageList">
         <div class="card text-center flex-grow-1">
-            <div class="card-header d-flex justify-content-between align-items-center flex-column"
+            @* Header *@
+            <div class="card-header d-flex justify-content-between align-items-center flex-column border-bottom-0"
                  style="padding: 6px 12px">
                 <div class="d-flex justify-content-between align-items-center w-100"
                      style="">
@@ -200,12 +201,14 @@
                         <input id="MessageList_SearchInput"
                                class="w-100"
                                type="text"
-                               placeholder="Tìm kiếm">
+                               placeholder="Tìm kiếm"
+                               oninput="searchMessage()">
                     </div>
                 </div>
-                
             </div>
-            <div class="card-body">
+            @* Body *@
+            <div id="MessageList_Body"
+                 class="card-body">
                 Danh sách tin nhắn
             </div>
         </div>
@@ -230,9 +233,12 @@
         changeWidthFocusScreen();
 
         // Xử lý sự kiện MessageList_Search
-        //$("#MessageList_SearchInput").on('focus', function () {
-        //    $("#MessageList_Back").removeClass("d-none")
-        //});
+        $("#MessageList_SearchInput").on('focus', function () {
+            $("#MessageList_Back").removeClass("d-none");
+            $.get("@Url.Action("Index", "MessageList")", function (data) {
+                $("#MessageList_Body").html(data)
+            });
+        });
 
         //$("#MessageList_SearchInput").on('blur', function () {
         //    $("#MessageList_Back").addClass("d-none")
@@ -357,5 +363,6 @@
 
     function returnMessageListScreen() {
         $("#MessageList_Back").addClass("d-none")
+        $("#MessageList_SearchInput").val("")
     }
 </script>

@@ -2,6 +2,7 @@
 using BE.AutoMapper;
 using BE.Services.Mail;
 using BE.Services.Message;
+using BE.Services.MessageList;
 using BE.Services.OTP;
 using BE.Services.SMS;
 using BE.Services.User;
@@ -114,6 +115,7 @@ namespace BE.Configure
             builder.Services.AddTransient<IMAILService, MAILService>();
             builder.Services.AddTransient<ISMSService, SMSService>();
             builder.Services.AddTransient<IOTPService, OTPService>();
+            builder.Services.AddTransient<IMESSAGELISTService, MESSAGELISTService>();
         }
     }
 }

@@ -141,6 +141,10 @@ public partial class LINKUContext : DbContext
             entity.Property(e => e.NguoiXoa)
                 .HasMaxLength(256)
                 .IsUnicode(false);
+            entity.Property(e => e.RefId).HasComment("Id của tin nhắn được trả lời");
+            entity.Property(e => e.TenMoRong)
+                .HasMaxLength(50)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.Receiver).WithMany(p => p.MessageReceivers)
                 .HasForeignKey(d => d.ReceiverId)

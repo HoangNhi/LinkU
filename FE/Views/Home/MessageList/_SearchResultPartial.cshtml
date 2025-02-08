@@ -1,0 +1,22 @@
+﻿@model MODELS.MESSAGELIST.Dtos.MODELMessageList_Search
+@{
+    bool isHaveData = (Model.Users.Count() + Model.Messages.Count() + Model.Files.Count()) > 0;
+}
+@if (isHaveData)
+{
+    if (Model.Users.Count() > 0)
+    {
+        foreach (MODELS.USER.Dtos.MODELUser user in Model.Users)
+        {
+            <div>
+                <img class="rounded-circle"
+                     width="48" height="48"
+                     src='@(String.IsNullOrEmpty(user.ProfilePicture) || String.IsNullOrEmpty(user.ProfilePicture) ? ViewBag.BeURL + "/Files/Common/NoPicture.png" : ViewBag.BeURL + "/" + user.ProfilePicture)' />
+            </div>
+        }
+    }
+}
+else
+{
+    <span style="font-size: 14px; font-weight: 600; color:black">Không tìm thấy kết quả nào</span>
+}

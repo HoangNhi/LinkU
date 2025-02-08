@@ -3,6 +3,8 @@ using BE.Helpers;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
+using MODELS.MESSAGELIST.Dtos;
+using MODELS.MESSAGELIST.Requests;
 using MODELS.USER.Dtos;
 
 namespace BE.Services.MessageList
@@ -11,40 +13,44 @@ namespace BE.Services.MessageList
     {
         private readonly LINKUContext _context;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _contextAccessor;
 
-        public MESSAGELISTService(LINKUContext context, IMapper mapper)
+        public MESSAGELISTService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _contextAccessor = contextAccessor;
         }
 
-
-        public BaseResponse<GetListPagingResponse> Search(GetListPagingRequest request)
+        /// <summary>
+        /// Tìm kiếm danh sách tin nhắn: Người dùng, tin nhắn, file đính kèm,...
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public BaseResponse<MODELMessageList_Search> Search(MessageList_SearchRequest request)
         {
-            var response = new BaseResponse<GetListPagingResponse>();
+            var response = new BaseResponse<MODELMessageList_Search>();
             try
             {
-                SqlParameter iTotalRow = new SqlParameter()
+                var UserId = Guid.Parse(_contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "name").Value);
+                var users = _context.Users.Where(u => u.IsDeleted == false 
+                                                && (u.SoDienThoai.Equals(request.TextSearch) || u.Email.Equals(request.TextSearch))
+                                                && u.Id != UserId) // Không trả về User hiện tại
+                                          .Select(x => new MODELUser
+                                            {
+                                                Id = x.Id,
+                                                HoLot = x.HoLot,
+                                                Ten = x.Ten,
+                                                Email = x.Email,
+                                                SoDienThoai = x.SoDienThoai,
+                                                ProfilePicture = x.ProfilePicture
+                                            })
+                                          .OrderBy(x => string.Concat(x.HoLot, " ", x.Ten))
+                                          .ToList();
+                response.Data = new MODELMessageList_Search
                 {
-                    ParameterName = "@oTotalRow",
-                    SqlDbType = System.Data.SqlDbType.BigInt,
-                    Direction = System.Data.ParameterDirection.Output
+                    Users = users
                 };
-
-                var parameters = new[]
-                {
-                    new SqlParameter("@iTextSearch", request.TextSearch),
-                    new SqlParameter("@iPageIndex", request.PageIndex - 1),
-                    new SqlParameter("@iRowsPerPage", request.RowPerPage),
-                    iTotalRow
-                };
-
-                var result = _context.ExcuteStoredProcedure<MODELUser>("sp_MESSAGELIST_Search", parameters).ToList();
-                GetListPagingResponse resposeData = new GetListPagingResponse();
-                resposeData.PageIndex = request.PageIndex;
-                resposeData.Data = result;
-                resposeData.TotalRow = Convert.ToInt32(iTotalRow.Value);
-                response.Data = resposeData;
             }
             catch (System.Exception ex)
             {

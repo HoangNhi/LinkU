@@ -234,10 +234,10 @@
 
         // Xử lý sự kiện MessageList_Search
         $("#MessageList_SearchInput").on('focus', function () {
-            $("#MessageList_Back").removeClass("d-none");
-            $.get("@Url.Action("Index", "MessageList")", function (data) {
-                $("#MessageList_Body").html(data)
-            });
+            if ($("#MessageList_Back").hasClass("d-none")) {
+                $("#MessageList_Back").removeClass("d-none");
+                $("#MessageList_Body").html('<div id="MessageList_SearchResult"></div>')
+            }
         });
 
         //$("#MessageList_SearchInput").on('blur', function () {
@@ -364,5 +364,34 @@
     function returnMessageListScreen() {
         $("#MessageList_Back").addClass("d-none")
         $("#MessageList_SearchInput").val("")
+    }
+
+    function searchMessage() {
+        var textSearch = $("#MessageList_SearchInput").val()
+        if (textSearch === "") {
+            $("#MessageList_Body").html('<div id="MessageList_SearchResult"></div>')
+        } else {
+             showLoading(true)
+             $.ajax({
+                 url: "@Url.Action("Search", "MessageList")",
+                 type: "POST",
+                 data: {
+                     TextSearch: textSearch
+                 },
+                 success: function (response) {
+                     showLoading(false)
+                     if (response.isSuccess === undefined) {
+                         $("#MessageList_SearchResult").html(response)
+                     } else {
+                         ShowThongBaoThatBai(response.message)
+                     }
+                 },
+                 error: function (xhr, error) {
+                     showLoading(false)
+                     ShowThongBaoThatBai(error)
+                 }
+             })
+        }
+
     }
 </script>

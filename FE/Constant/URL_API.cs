@@ -26,5 +26,8 @@
         public const string MESSAGE_INSERT = "/Message/Insert";
         public const string MESSAGE_UPDATE = "/Message/Update";
         public const string MESSAGE_DELETE_LIST = "/Message/DeleteList";
+
+        // MessageList
+        public const string MESSAGELIST_SEARCH = "/MessageList/Search";
     }
 }

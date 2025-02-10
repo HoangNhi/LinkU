@@ -2,17 +2,51 @@
 @{
     bool isHaveData = (Model.Users.Count() + Model.Messages.Count() + Model.Files.Count()) > 0;
 }
+
+<style>
+    #btnMessageList_Search:hover {
+        background-color: hsl(0 0% 90% / 1)
+    }
+</style>
+
 @if (isHaveData)
 {
     if (Model.Users.Count() > 0)
     {
-        foreach (MODELS.USER.Dtos.MODELUser user in Model.Users)
+        for (int i = 0; i < 10; i++)
         {
-            <div>
-                <img class="rounded-circle"
-                     width="48" height="48"
-                     src='@(String.IsNullOrEmpty(user.ProfilePicture) || String.IsNullOrEmpty(user.ProfilePicture) ? ViewBag.BeURL + "/Files/Common/NoPicture.png" : ViewBag.BeURL + "/" + user.ProfilePicture)' />
-            </div>
+            foreach (MODELS.USER.Dtos.MODELUser user in Model.Users)
+            {
+                <button id="btnMessageList_Search"
+                        type="button"
+                        class="d-flex w-100 btn btn-link"
+                        style="text-align: start; text-transform: none; padding: 8px; align-items: center; color: inherit"
+                        data-mdb-ripple-init
+                        data-mdb-ripple-color="dark">
+                    <img class="rounded-circle"
+                         style="margin: 6px"
+                         width="36" height="36"
+                         src='@(String.IsNullOrEmpty(user.ProfilePicture) || String.IsNullOrEmpty(user.ProfilePicture) ? ViewBag.BeURL + "/Files/Common/NoPicture.png" : ViewBag.BeURL + "/" + user.ProfilePicture)' />
+                    <div class="d-flex flex-column">
+                        <span style="font-size: 14px">@(string.Concat(user.HoLot, " ", user.Ten))</span>
+                        @if (user.SoDienThoai != null)
+                        {
+                            //<span style="font-size: 14px">Số điện thoại: @user.SoDienThoai</span>
+                            <span style="font-size: 14px">
+                                <i class="fa-solid fa-phone"></i>
+                                <span class="text-primary-emphasis">@user.SoDienThoai</span>
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="font-size: 14px">
+                                <i class="fa-solid fa-envelope"></i>
+                                <span class="text-primary-emphasis">@user.Email</span>
+                            </span>
+                        }
+                    </div>
+                </button>
+            }
         }
     }
 }
@@ -20,3 +54,30 @@ else
 {
     <span style="font-size: 14px; font-weight: 600; color:black">Không tìm thấy kết quả nào</span>
 }
+
+
+<script>
+    // Chuyển giao diện nhắn tin với User
+    function transToChatScreen(userId) {
+        showLoading(true)
+        $.ajax({
+            url: "@Url.Action("Search", "MessageList")",
+            type: "POST",
+            data: {
+                TextSearch: textSearch
+            },
+            success: function (response) {
+                showLoading(false)
+                if (response.isSuccess === undefined) {
+                    $("#MessageList_SearchResult").html(response)
+                } else {
+                    ShowThongBaoThatBai(response.message)
+                }
+            },
+            error: function (xhr, error) {
+                showLoading(false)
+                ShowThongBaoThatBai(error)
+            }
+        })
+    }
+</script>

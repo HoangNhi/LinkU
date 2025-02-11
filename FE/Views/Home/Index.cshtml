@@ -129,7 +129,7 @@
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark">
                 <i class="fa-solid fa-user-group icon-Functions"></i>
-                <span class="text-Functions">Lời mời kết bạn</span>
+                <span class="text-Functions">Lời mời kết nối</span>
             </button>
         </div>
         <!-- Tên và sidenav -->
@@ -373,7 +373,6 @@
         if (textSearch === "") {
             $("#MessageList_Body").html('<div id="MessageList_SearchResult"></div>')
         } else {
-             showLoading(true)
              $.ajax({
                  url: "@Url.Action("Search", "MessageList")",
                  type: "POST",
@@ -381,7 +380,6 @@
                      TextSearch: textSearch
                  },
                  success: function (response) {
-                     showLoading(false)
                      if (response.isSuccess === undefined) {
                          $("#MessageList_SearchResult").html(response)
                      } else {
@@ -389,11 +387,9 @@
                      }
                  },
                  error: function (xhr, error) {
-                     showLoading(false)
                      ShowThongBaoThatBai(error)
                  }
              })
         }
-
     }
 </script>

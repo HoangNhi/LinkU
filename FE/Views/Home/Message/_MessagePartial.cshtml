@@ -18,7 +18,7 @@
                  src='@(String.IsNullOrEmpty(Model.ProfilePicture) || String.IsNullOrEmpty(Model.ProfilePicture) ? ViewBag.BeURL + "/Files/Common/NoPicture.png" : ViewBag.BeURL + "/" + Model.ProfilePicture)' />
             <div class="d-flex align-items-center"
                  style="padding: 6px 6px 6px 2px; color: rgb(5,5,5); font-size: 15px; font-weight: 500; line-height: 20px">
-                <span>@Model.HoVaTen</span>
+                <span style="text-align: start">@Model.HoVaTen</span>
             </div>
         </div>
         <div class="d-flex">
@@ -61,7 +61,7 @@
         </div>
     </div>
     <div class="card-body p-0">
-        @* Kết bạn *@
+        @* Kết bạn - START *@
         <div class="bg-body-secondary rounded-4"
              style="margin: 8px;
                     padding: 8px 14px;
@@ -71,7 +71,8 @@
                     align-items: center;
                     box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;">
             <span style="font-size: 14px;
-                         font-weight: 400">
+                         font-weight: 400;
+                         text-align: start">
                 <i class="fa-solid fa-user-plus" style="padding-right: 4px"></i>
                 Gửi yêu cầu kết bạn tới người này
             </span>
@@ -87,6 +88,7 @@
                 Gửi kết bạn
             </button>
         </div>
+        @* Kết bạn - END *@
     </div>
     <div class="card-footer d-flex border-0"
          style="padding: 12px 8px">

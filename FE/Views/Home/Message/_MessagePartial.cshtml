@@ -1,5 +1,13 @@
 ﻿@model MODELS.USER.Dtos.MODELUser
 
+<style>
+    #Message_Content:empty::before {
+        content: attr(data-placeholder);
+        color: gray;
+        pointer-events: none;
+    }
+</style>
+
 <div class="card text-center flex-grow-1">
     <div class="card-header d-flex justify-content-between"
          style="padding: 10px 12px; box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 4px 0px; border: 0">
@@ -52,8 +60,33 @@
             </button>
         </div>
     </div>
-    <div class="card-body">
-        Hello World
+    <div class="card-body p-0">
+        @* Kết bạn *@
+        <div class="bg-body-secondary rounded-4"
+             style="margin: 8px;
+                    padding: 8px 14px;
+                    display: flex;
+                    color: black;
+                    justify-content: space-between;
+                    align-items: center;
+                    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;">
+            <span style="font-size: 14px;
+                         font-weight: 400">
+                <i class="fa-solid fa-user-plus" style="padding-right: 4px"></i>
+                Gửi yêu cầu kết bạn tới người này
+            </span>
+            <button type="button"
+                    class="btn btn-light bg-white"
+                    style="text-transform: unset;
+                           font-size: 14px;
+                           font-weight: 700;
+                           padding: 4px 12px;
+                           color: black"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark">
+                Gửi kết bạn
+            </button>
+        </div>
     </div>
     <div class="card-footer d-flex border-0"
          style="padding: 12px 8px">
@@ -75,7 +108,8 @@
                     width: calc(100% - 96px); 
                     align-content: center">
             <div id="Message_Content"
-                 contenteditable
+                 contenteditable="true"
+                 data-placeholder="Aa"
                  style="color: rgb(5,5,5);
                         font-size: .9375rem;
                         line-height: 1.34;
@@ -86,8 +120,7 @@
                         max-height: 140px;
                         align-content: center;
                         overflow-y: auto;
-                        overflow-x: hidden">
-            </div>
+                        overflow-x: hidden"></div>
         </div>
         <button type="button"
                 class="btn btn-link rounded-circle position-relative align-self-end"
@@ -103,3 +136,14 @@
         </button>
     </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+        document.getElementById("Message_Content").addEventListener("input", function () {
+            if (this.innerHTML === "<br>") {
+                this.innerHTML = ""
+            }
+        });
+        
+    });
+</script>

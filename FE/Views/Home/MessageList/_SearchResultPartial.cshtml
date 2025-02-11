@@ -22,7 +22,9 @@
                         class="d-flex w-100 btn btn-link"
                         style="text-align: start; text-transform: none; padding: 8px; align-items: center; color: inherit"
                         data-mdb-ripple-init
-                        data-mdb-ripple-color="dark">
+                        data-mdb-ripple-color="dark"
+                        onclick="transToChatScreen('@user.Id')"
+                        >
                     <img class="rounded-circle"
                          style="margin: 6px"
                          width="36" height="36"
@@ -58,26 +60,26 @@ else
 
 <script>
     // Chuyển giao diện nhắn tin với User
-    function transToChatScreen(userId) {
-        showLoading(true)
-        $.ajax({
-            url: "@Url.Action("Search", "MessageList")",
-            type: "POST",
-            data: {
-                TextSearch: textSearch
-            },
-            success: function (response) {
-                showLoading(false)
-                if (response.isSuccess === undefined) {
-                    $("#MessageList_SearchResult").html(response)
-                } else {
-                    ShowThongBaoThatBai(response.message)
-                }
-            },
-            error: function (xhr, error) {
-                showLoading(false)
-                ShowThongBaoThatBai(error)
+function transToChatScreen(userId) {
+    showLoading(true)
+    $.ajax({
+        url: "@Url.Action("GetByUserId", "Message")",
+        type: "POST",
+        data: {
+            Id: userId
+        },
+        success: function (response) {
+            showLoading(false)
+            if (response.isSuccess === undefined) {
+                $("#Messages").html(response)
+            } else {
+                ShowThongBaoThatBai(response.message)
             }
-        })
-    }
+        },
+        error: function (xhr, error) {
+            showLoading(false)
+            ShowThongBaoThatBai(error)
+        }
+    })
+}
 </script>

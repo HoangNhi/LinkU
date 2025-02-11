@@ -234,9 +234,6 @@
         // Thay đổi giao diện khi lần đầu truy cập vào trang
         changeWidthFocusScreen();
 
-        // Mốt xóa
-        transToChatScreen("Hello World");
-
         // Xử lý sự kiện MessageList_Search
         $("#MessageList_SearchInput").on('focus', function () {
             if ($("#MessageList_Back").hasClass("d-none")) {
@@ -398,29 +395,5 @@
              })
         }
 
-    }
-
-    // Chuyển giao diện nhắn tin với User
-    function transToChatScreen(userId) {
-        showLoading(true)
-        $.ajax({
-            url: "@Url.Action("GetByUserId", "Message")",
-            type: "POST",
-            data: {
-                Id: "D5F6F4D4-581C-4AF4-97B4-563C360761BD"
-            },
-            success: function (response) {
-                showLoading(false)                                      
-                if (response.isSuccess === undefined) {
-                    $("#Messages").html(response)
-                } else {
-                    ShowThongBaoThatBai(response.message)
-                }
-            },
-            error: function (xhr, error) {
-                showLoading(false)
-                ShowThongBaoThatBai(error)
-            }
-        })
     }
 </script>

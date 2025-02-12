@@ -21,7 +21,7 @@ namespace FE.Controllers
 
         public IActionResult Index()
         {
-            return PartialView("~/Views/Home/MessageList/_SearchPartial.cshtml");
+            return PartialView("~/Views/Home/MessageList/_TabMessageListPartial.cshtml");
         }
 
         [HttpPost]

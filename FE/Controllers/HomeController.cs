@@ -54,34 +54,5 @@ namespace FE.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        public IActionResult GetListMessage(GetListPagingRequest request)
-        {
-            try
-            {
-                var result = new GetListPagingResponse();
-
-                GetListPagingRequest param = new GetListPagingRequest();
-                param.PageIndex = request.PageIndex - 1;
-                param.RowPerPage = request.RowPerPage;
-                param.TextSearch = request.TextSearch == null ? string.Empty : request.TextSearch.Trim();
-
-                ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.MESSAGE_GET_LIST_PAGING, request, HttpAction.Post);
-                if (response.Success)
-                {
-                    result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
-                    result.Data = JsonConvert.DeserializeObject<List<MODELMessage>>(result.Data.ToString());
-                    return PartialView("~/Views/Home/_MessageListPartial.cshtml", result);
-                }
-                else
-                {
-                    throw new Exception(response.Message);
-                }
-            }
-            catch (Exception ex)
-            {
-                string message = "Lỗi lấy danh sách: " + ex.Message;
-                return Json(new { IsSuccess = false, Message = message, Data = "" });
-            }
-        }
     }
 }

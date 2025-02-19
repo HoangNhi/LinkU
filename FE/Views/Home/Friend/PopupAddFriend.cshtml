@@ -12,17 +12,29 @@
         color: gray;
         pointer-events: none;
     }
+
+    .btn-close:hover {
+        background-color: var(--bs-secondary-bg)!important
+    }
 </style>
 <div class="modal-content">
     <div class="modal-header">
-        <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h1 class="modal-title fs-5" 
+            id="staticBackdropLabel" 
+            style="color: rgb(5,5,5); line-height: 1">Thông tin tài khoản</h1>
+        <button type="button" 
+                class="btn-close btn-link rounded-circle" 
+                data-bs-dismiss="modal" 
+                aria-label="Close"
+                data-mdb-ripple-init 
+                data-mdb-ripple-color="dark">
+        </button>
     </div>
 
     <div class="tab-content" id="pills-tabContent">
         <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">
-            <div class="modal-body">
-                @* Tab Controller *@
+            <div class="modal-body p-0">
+                @* Tab Controller - Hidden *@
                 <ul class="nav nav-pills mb-3 d-none" id="pills-tab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active"
@@ -49,9 +61,25 @@
                         </button>
                     </li>
                 </ul>
+
+                @* Content Main Screen *@
+                <img src="@Model.CoverPicture"
+                     height="200"
+                     style="object-fit: cover; width: 100%;"/>
+                <div style="padding: 16px; display: flex">
+                    <div style="width: 100%; position: relative; background-color: white">
+                        <img src="@Model.ProfilePicture"
+                             class="rounded-circle"
+                             height="100"
+                             style="border: 3px solid white;
+                                    border-radius: 50%;
+                                    top: 50%;
+                                    left: 50%;
+                                    -ms-transform: translate(-50%, -50%);
+                                    transform: translate(-50%, -50%);" />
+                    </div>
+                </div>
             </div>
-
-
 
             <div class="modal-footer">
                 @* Button change to Info screen *@
@@ -60,6 +88,8 @@
                 <button type="button" class="btn btn-primary">Kết bạn</button>
             </div>
         </div>
+
+        @* Secondary Screen - Profile Tab *@
         <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
             Thông tin
         </div>

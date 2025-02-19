@@ -26,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\Files\Common\" />
     <Folder Include="wwwroot\Files\Mail\" />
     <Folder Include="wwwroot\Files\ProfilePicture\" />
   </ItemGroup>

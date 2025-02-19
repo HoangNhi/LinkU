@@ -1,24 +1,14 @@
-﻿@model MODELS.USER.Dtos.MODELUser
-
-<style>
-    #Message_Content:empty::before {
-        content: attr(data-placeholder);
-        color: gray;
-        pointer-events: none;
-    }
-</style>
-
-<div class="card text-center flex-grow-1">
+﻿<div class="card text-center flex-grow-1">
     <div class="card-header d-flex justify-content-between"
          style="padding: 10px 12px; box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 4px 0px; border: 0">
         <div class="d-flex">
             <img class="rounded-circle"
                  style="margin: 6px"
                  width="36" height="36"
-                 src='@(String.IsNullOrEmpty(Model.ProfilePicture) || String.IsNullOrEmpty(Model.ProfilePicture) ? ViewBag.BeURL + "/Files/Common/NoPicture.png" : ViewBag.BeURL + "/" + Model.ProfilePicture)' />
+                 src='@(ViewBag.BeURL + "/Files/Common/NoPicture.png")' />
             <div class="d-flex align-items-center"
                  style="padding: 6px 6px 6px 2px; color: rgb(5,5,5); font-size: 15px; font-weight: 500; line-height: 20px">
-                <span style="text-align: start">@Model.HoVaTen</span>
+                <span style="text-align: start">Lời mời kết bạn</span>
             </div>
         </div>
         <div class="d-flex">
@@ -84,8 +74,7 @@
                            padding: 4px 12px;
                            color: black"
                     data-mdb-ripple-init
-                    data-mdb-ripple-color="dark"
-                    onclick="ShowPopupAddFriend()">
+                    data-mdb-ripple-color="dark">
                 Gửi kết bạn
             </button>
         </div>
@@ -139,25 +128,3 @@
         </button>
     </div>
 </div>
-
-<script>
-    $(document).ready(function () {
-        document.getElementById("Message_Content").addEventListener("input", function () {
-            if (this.innerHTML === "<br>") {
-                this.innerHTML = ""
-            }
-        });
-    });
-
-    function ShowPopupAddFriend() {
-        $.ajax({
-            url: '@Url.Action("ShowAddFriendPopup", "Friend")',
-            type: 'GET',
-            data: { id: '@Model.Id' },
-            success: function (data) {
-                ShowModal(data, "md")
-            }
-        });
-    }
-
-</script>

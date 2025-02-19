@@ -358,7 +358,7 @@ namespace FE.Controllers
             var claims = new List<Claim>();
 
             claims.Add(new Claim("UserId", UserData.Id.ToString()));
-            //claims.Add(new Claim("Name", UserData.Username));
+            claims.Add(new Claim("Name", UserData.HoVaTen));
             //claims.Add(new Claim("HoLot", UserData.HoLot));
             //claims.Add(new Claim("Ten", UserData.Ten));
             //claims.Add(new Claim("ProfilePicture", String.IsNullOrEmpty(UserData.ProfilePicture) || String.IsNullOrEmpty(UserData.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + "/" + UserData.ProfilePicture));

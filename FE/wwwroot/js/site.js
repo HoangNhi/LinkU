@@ -106,3 +106,16 @@ function showLoadingElement(value, id) {
         $('#' + id).unblock();
     }
 }
+function ShowModal(html, size) {
+    $('#modalContainer').removeClass().addClass("modal-dialog modal-dialog-centered");
+    if (size != 'md')
+    {
+        $('#modalContainer').addClass('modal-' + size);
+    }
+    $('#modalContainer').html(html);
+    $('#modal-default').modal('show');
+}
+
+function CloseModal() {
+    $('#modal-default').modal('hide');
+}

@@ -165,6 +165,7 @@ namespace FE.Services
                     var claims = new List<Claim>();
 
                     claims.Add(new Claim("UserId", GetUserId()));
+                    claims.Add(new Claim("Name", GetName()));
                     claims.Add(new Claim("AccessToken", resultData.AccessToken));
                     claims.Add(new Claim("RefreshToken", resultData.RefreshToken));
 
@@ -219,6 +220,10 @@ namespace FE.Services
         public string GetUserId()
         {
             return _httpContextAccessor.HttpContext.User.Claims.Where(x => x.Type == "UserId").FirstOrDefault().Value.ToString();
+        }
+        public string GetName()
+        {
+            return _httpContextAccessor.HttpContext.User.Claims.Where(x => x.Type == "Name").FirstOrDefault().Value.ToString();
         }
 
         // Tạo 1 HTTP Request message từ request cũ

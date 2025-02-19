@@ -1,0 +1,122 @@
+﻿@model MODELS.USER.Dtos.MODELUser
+
+<style>
+    #FriendMessageContent:empty::before {
+        content: attr(data-placeholder);
+        color: gray;
+        pointer-events: none;
+    }
+
+    #FriendMessageContent::after {
+        content: attr(data-content);
+        color: gray;
+        pointer-events: none;
+    }
+</style>
+<div class="modal-content">
+    <div class="modal-header">
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+
+    <div class="tab-content" id="pills-tabContent">
+        <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">
+            <div class="modal-body">
+                @* Tab Controller *@
+                <ul class="nav nav-pills mb-3 d-none" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active"
+                                id="pills-home-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#pills-home"
+                                type="button"
+                                role="tab"
+                                aria-controls="pills-home"
+                                aria-selected="true">
+                            Home
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="pills-profile-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#pills-profile"
+                                type="button"
+                                role="tab"
+                                aria-controls="pills-profile"
+                                aria-selected="false">
+                            Profile
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+
+
+            <div class="modal-footer">
+                @* Button change to Info screen *@
+                <button type="button" class="btn btn-secondary" id="btnInfo">Thông tin</button>
+                @* Kết bạn button *@
+                <button type="button" class="btn btn-primary">Kết bạn</button>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
+            Thông tin
+        </div>
+    </div>
+</div>
+
+    
+<script>
+    document.getElementById("btnInfo").addEventListener("click", function () {
+        let profileTab = new bootstrap.Tab(document.getElementById("pills-profile-tab"));
+        profileTab.show();
+    });
+
+    //document.getElementById("btnFriend").addEventListener("click", function () {
+    //    let profileTab = new bootstrap.Tab(document.getElementById("pills-profile-tab"));
+    //    profileTab.show();
+    //});
+</script>
+
+<script>
+    $(document).ready(function () {
+        @*var FriendMessageContent = document.getElementById("FriendMessageContent");
+        // Default
+        FriendMessageContent.innerHTML = "Xin chào, mình là @User.Claims.FirstOrDefault(c => c.Type == "Name").Value. Kết bạn với mình nhé!"
+        $("#FriendMessageCount").html(FriendMessageContent.innerHTML.length + "/150 ký tự")
+
+        // Message Content Input
+        FriendMessageContent.addEventListener("input", function () {
+            if (this.innerHTML === "<br>") {
+                this.innerHTML = ""
+            }
+
+            // Nếu vượt quá số ký tự cho phép, cắt bớt
+            if (FriendMessageContent.innerText.length > 150) {
+                FriendMessageContent.innerText = FriendMessageContent.innerText.substring(0, 150);
+                placeCaretAtEnd(FriendMessageContent); // Đưa con trỏ về cuối
+            }
+
+            $("#FriendMessageCount").html(this.innerHTML.length + "/150 ký tự")
+        });
+
+        // Friend Message Container
+        FriendMessageContent.addEventListener("focus", function () {
+            document.getElementById("FriendMessageContainer").style.border = "1px solid var(--bs-primary)";
+        });
+        FriendMessageContent.addEventListener("blur", function () {
+            document.getElementById("FriendMessageContainer").style.border = "1px solid white";
+        });*@
+    });
+
+    // Hàm đặt con trỏ về cuối sau khi cắt bớt nội dung
+    function placeCaretAtEnd(el) {
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+</script>

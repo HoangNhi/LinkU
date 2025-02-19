@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ namespace MODELS.BASE
 {
     public class GetByIdRequest
     {
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Id không được để trống")]
         public Guid? Id { get; set; }
     }
 
@@ -16,7 +18,7 @@ namespace MODELS.BASE
     {
         public GetByIdRequestValidator()
         {
-            RuleFor(r => r.Id).NotNull().WithMessage("Mã không được rỗng");
+            RuleFor(r => r.Id).NotNull().WithMessage("Mã không được để trống");
         }
     }
 }

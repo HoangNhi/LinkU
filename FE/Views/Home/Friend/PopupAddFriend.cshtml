@@ -66,17 +66,46 @@
                 <img src="@Model.CoverPicture"
                      height="200"
                      style="object-fit: cover; width: 100%;"/>
-                <div style="padding: 16px; display: flex">
-                    <div style="width: 100%; position: relative; background-color: white">
-                        <img src="@Model.ProfilePicture"
-                             class="rounded-circle"
-                             height="100"
-                             style="border: 3px solid white;
-                                    border-radius: 50%;
-                                    top: 50%;
-                                    left: 50%;
-                                    -ms-transform: translate(-50%, -50%);
-                                    transform: translate(-50%, -50%);" />
+                <div style="padding: 16px">
+                    <div style="display: flex; margin-bottom: 48px">
+                        <div style="width: 100px; position: relative; margin-right: 16px">
+                            <img src="@Model.ProfilePicture"
+                                 class="rounded-circle;"
+                                 height="100"
+                                 style="border: 3px solid white;
+                                        border-radius: 50%;
+                                        background-color: white;
+                                        position: absolute;
+                                        top: 50%;
+                                        left: 50%;
+                                        -ms-transform: translate(-50%, -50%);
+                                        transform: translate(-50%, -50%);" />
+                        </div>
+                        <span class="fs-5"
+                              style="color: rgb(8,8,9)">@Model.HoVaTen</span>
+                    </div>
+                    <div id="FriendMessageContainer" 
+                            class="rounded position-relative"
+                            style="padding: 16px 16px 48px; box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;">
+                        <div id="FriendMessageContent"
+                                contenteditable="true"
+                                data-placeholder="Aa"
+                                style="color: rgb(5,5,5);
+                                font-size: .9375rem;
+                                line-height: 1.34;
+                                text-align: left;
+                                font-weight: 400;
+                                height: 60.3px;
+                                outline: 0;
+                                overflow-y: auto;
+                                overflow-x: hidden"></div>
+                        <span id="FriendMessageCount"
+                              class="position-absolute"
+                              style="right: 16px; 
+                                     bottom: 16px; 
+                                     pointer-events: none;
+                                     line-height: 1;
+                                     color: var(--bs-tertiary-color)">0/150 ký tự</span>
                     </div>
                 </div>
             </div>
@@ -111,7 +140,7 @@
 
 <script>
     $(document).ready(function () {
-        @*var FriendMessageContent = document.getElementById("FriendMessageContent");
+        var FriendMessageContent = document.getElementById("FriendMessageContent");
         // Default
         FriendMessageContent.innerHTML = "Xin chào, mình là @User.Claims.FirstOrDefault(c => c.Type == "Name").Value. Kết bạn với mình nhé!"
         $("#FriendMessageCount").html(FriendMessageContent.innerHTML.length + "/150 ký tự")
@@ -137,7 +166,7 @@
         });
         FriendMessageContent.addEventListener("blur", function () {
             document.getElementById("FriendMessageContainer").style.border = "1px solid white";
-        });*@
+        });
     });
 
     // Hàm đặt con trỏ về cuối sau khi cắt bớt nội dung

@@ -213,6 +213,10 @@ namespace FE.Services
         {
             return _configuration["BeURL"];
         }
+        public string GetImageURL()
+        {
+            return _configuration["ImageURL"];
+        }
         public string GetToken(string nameToken)
         {
             return _httpContextAccessor.HttpContext.User.Claims.Where(x => x.Type == nameToken).FirstOrDefault().Value.ToString();

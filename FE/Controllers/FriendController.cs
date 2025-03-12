@@ -38,8 +38,8 @@ namespace FE.Controllers
                     if (response.Success)
                     {
                         var result = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                        result.ProfilePicture = String.IsNullOrEmpty(result.ProfilePicture) || String.IsNullOrEmpty(result.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + "/" + result.ProfilePicture;
-                        result.CoverPicture = String.IsNullOrEmpty(result.CoverPicture) || String.IsNullOrEmpty(result.CoverPicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/CoverPicture.jpg" : _consumeAPI.GetBEUrl() + "/" + result.CoverPicture;
+                        result.ProfilePicture = String.IsNullOrEmpty(result.ProfilePicture) || String.IsNullOrEmpty(result.ProfilePicture) ? _consumeAPI.GetImageURL() + "/Files/Common/NoPicture.png" : _consumeAPI.GetImageURL() + "/" + result.ProfilePicture;
+                        result.CoverPicture = String.IsNullOrEmpty(result.CoverPicture) || String.IsNullOrEmpty(result.CoverPicture) ? _consumeAPI.GetImageURL() + "/Files/Common/CoverPicture.jpg" : _consumeAPI.GetImageURL() + "/" + result.CoverPicture;
                         return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml", result);
                     }
                     else

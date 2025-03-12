@@ -35,7 +35,7 @@ namespace FE.Controllers
                     if (response.Success)
                     {
                         var result = JsonConvert.DeserializeObject<MODELMessageList_Search>(response.Data.ToString());
-                        ViewBag.BeURL = _consumeAPI.GetBEUrl();
+                        ViewBag.BeURL = _consumeAPI.GetImageURL();
                         return PartialView("~/Views/Home/MessageList/_SearchResultPartial.cshtml", result);
                     }
                     else

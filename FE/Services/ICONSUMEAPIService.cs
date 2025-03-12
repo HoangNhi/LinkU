@@ -10,5 +10,6 @@ namespace FE.Services
         string GetBEUrl();
         string GetToken(string nameToken);
         string GetUserId();
+        string GetImageURL();
     }
 }

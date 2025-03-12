@@ -32,7 +32,7 @@ namespace FE.Controllers
             if(response.Success)
             {
                 var user = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                user.ProfilePicture = String.IsNullOrEmpty(user.ProfilePicture) || String.IsNullOrEmpty(user.ProfilePicture) ? _consumeAPI.GetBEUrl() + "/Files/Common/NoPicture.png" : _consumeAPI.GetBEUrl() + "/" + user.ProfilePicture;
+                user.ProfilePicture = String.IsNullOrEmpty(user.ProfilePicture) || String.IsNullOrEmpty(user.ProfilePicture) ? _consumeAPI.GetImageURL() + "/Files/Common/NoPicture.png" : _consumeAPI.GetImageURL() + "/" + user.ProfilePicture;
                 ViewBag.UserInfo = user;
             }
             else

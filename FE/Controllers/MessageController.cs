@@ -34,7 +34,7 @@ namespace FE.Controllers
                     if (response.Success)
                     {
                         var result = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                        ViewBag.BeURL = _consumeAPI.GetBEUrl();
+                        ViewBag.BeURL = _consumeAPI.GetImageURL();
                         return PartialView("~/Views/Home/Message/_MessagePartial.cshtml", result);
                     }
                     else

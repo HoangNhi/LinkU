@@ -16,13 +16,9 @@ fi
 /opt/mssql/bin/sqlservr &
 
 # Đợi SQL Server khởi động
-# echo "Đợi SQL Server khởi động..."
-# timeout 60s bash -c "until /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $MSSQL_SA_PASSWORD -Q 'SELECT 1' > /dev/null 2>&1; do sleep 1; done"
-# if [ $? -ne 0 ]; then
-#     echo "SQL Server không khởi động được sau 60 giây."
-#     exit 1
-# fi
-# echo "SQL Server đã sẵn sàng."
+echo "Đợi SQL Server khởi động..."
+WAIT 10
+echo "SQL Server đã sẵn sàng."
 
 # Kiểm tra file backup
 if [ ! -f /app/LINKU.bak ]; then
@@ -45,9 +41,7 @@ if [ ! -w /var/opt/mssql/data ]; then
 fi
 
 # Restore database
-/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "RESTORE DATABASE LINKU 
-FROM DISK = '/app/LINKU.bak' 
-WITH 
+/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "RESTORE DATABASE LINKU FROM DISK = '/app/LINKU.bak' WITH 
     MOVE 'LINKU' TO '/var/opt/mssql/data/LINKU.mdf', 
     MOVE 'LINKU_log' TO '/var/opt/mssql/data/LINKU_log.ldf', 
     REPLACE;" -C > /tmp/restore_log.txt 2>&1

@@ -11,7 +11,7 @@ namespace FE.Configure
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
                 options.Cookie.IsEssential = true;
                 options.ExpireTimeSpan = TimeSpan.FromDays(MODELS.COMMON.CommonConst.ExpireRefreshToken);
                 options.LoginPath = "/Account/Login";

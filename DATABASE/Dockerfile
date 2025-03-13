@@ -1,21 +1,7 @@
-# Sử dụng image cơ bản Ubuntu 22.04
-FROM ubuntu:22.04
-
-# Cài đặt các gói phụ thuộc cần thiết
-RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg \
-    apt-transport-https \
-    software-properties-common \
-    && rm -rf /var/lib/apt/lists/*
-
-# Thêm khóa GPG và kho lưu trữ của Microsoft SQL Server
-RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | tee /etc/apt/trusted.gpg.d/microsoft.asc
-RUN curl -fsSL https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list | tee /etc/apt/sources.list.d/mssql-server-2022.list
-
-# Cập nhật và cài đặt SQL Server 2022
-RUN apt-get update && ACCEPT_EULA=Y apt-get install -y mssql-server
+# Sử dụng image chính thức của Microsoft SQL Server 2022
+FROM mcr.microsoft.com/mssql/server:2022-latest
+# Chuyển sang người dùng root để có quyền chỉnh sửa
+USER root
 
 # Cài đặt công cụ dòng lệnh (sqlcmd) - tùy chọn
 RUN curl -fsSL https://packages.microsoft.com/config/ubuntu/22.04/prod.list | tee /etc/apt/sources.list.d/msprod.list
@@ -27,13 +13,13 @@ ENV MSSQL_SA_PASSWORD=Aa123456.
 ENV PATH="$PATH:/opt/mssql-tools18/bin"
 
 # Tạo thư mục cho dữ liệu SQL Server (tùy chọn)
-RUN mkdir -p /var/opt/mssql
+RUN mkdir -p /var/opt/mssql/data
 
-# Cấu hình SQL Server khi container khởi động
-COPY /DATABASE/config.sh /usr/local/bin/config.sh
-COPY /DATABASE/LINKU.bak /app/LINKU.bak
+# Sao chép file backup và script cấu hình vào container
+COPY DATABASE/LINKU.bak /app/LINKU.bak
+COPY DATABASE/config.sh /usr/local/bin/config.sh
 
-#COPY config.sh /usr/local/bin/config.sh
+# Cấp quyền thực thi cho script
 RUN chmod +x /usr/local/bin/config.sh
 RUN /usr/local/bin/config.sh
 

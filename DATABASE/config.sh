@@ -1,17 +1,5 @@
 #!/bin/bash
-# entrypoint.sh
-
-# Kiểm tra xem SQL Server đã được cấu hình chưa
-if [ ! -f /var/opt/mssql/mssql.conf ]; then
-    echo "Cấu hình SQL Server lần đầu tiên..."
-    /opt/mssql/bin/mssql-conf setup run <<EOF
-    $MSSQL_PID
-    Y
-    2
-    $MSSQL_SA_PASSWORD
-    $MSSQL_SA_PASSWORD
-EOF
-fi
+# config.sh
 
 /opt/mssql/bin/sqlservr &
 

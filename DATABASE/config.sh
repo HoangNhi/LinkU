@@ -5,7 +5,7 @@
 
 # Đợi SQL Server khởi động
 echo "Đợi SQL Server khởi động..."
-WAIT 10
+sleep 10
 echo "SQL Server đã sẵn sàng."
 
 # Kiểm tra file backup

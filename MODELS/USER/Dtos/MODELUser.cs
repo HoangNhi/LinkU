@@ -17,8 +17,6 @@ namespace MODELS.USER.Dtos
 
         public string Ten { get; set; } = null!;
 
-        public string HoVaTen => $"{HoLot} {Ten}";
-
         public string? Email { get; set; }
 
         public string? SoDienThoai { get; set; }
@@ -44,5 +42,13 @@ namespace MODELS.USER.Dtos
         public string? RefreshToken { get; set; }
 
         public string? AccessToken { get; set; }
+
+        #region Hàm hỗ trợ
+        public string HoVaTen => $"{HoLot} {Ten}";
+
+        public string GenderString => Gender == 1 ? "Nam" : "Nữ";
+
+        public string DateOfBirthString => DateOfBirth.ToString("dd/MM/yyyy");
+        #endregion
     }
 }

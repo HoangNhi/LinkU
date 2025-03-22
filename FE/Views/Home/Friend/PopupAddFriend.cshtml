@@ -13,12 +13,24 @@
         pointer-events: none;
     }
 
-    .btn-close:hover {
-        background-color: var(--bs-secondary-bg)!important
+    .btn-close:hover,
+    .btn-back:hover{
+        background-color: var(--bs-secondary-bg) !important;
+        opacity: 1!important;
+        color: black!important
     }
 </style>
-<div class="modal-content">
+<div class="modal-content" style="height: 559.5px">
     <div class="modal-header">
+        <button type="button"
+                id="btnHome"
+                onclick="$('.btn-back').addClass('d-none')"
+                class="btn-back btn-link rounded-circle position-relative border-0 bg-white opacity-50 d-none"
+                style="width: 32px; height: 32px; margin: -8px 0 -8px -8px"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark">
+            <i class="fa-solid fa-chevron-left position-absolute" style="font-size: 16px; top: 50%; left: 50%; -ms-transform: translate(-50%, -50%); transform: translate(-50%, -50%);"></i>
+        </button>
         <h1 class="modal-title fs-5" 
             id="staticBackdropLabel" 
             style="color: rgb(5,5,5); line-height: 1">Thông tin tài khoản</h1>
@@ -86,7 +98,7 @@
                     </div>
                     <div id="FriendMessageContainer" 
                             class="rounded position-relative"
-                            style="padding: 16px 16px 48px; box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;">
+                            style="padding: 16px 16px 48px; border: 1px solid lightgray">
                         <div id="FriendMessageContent"
                                 contenteditable="true"
                                 data-placeholder="Aa"
@@ -112,7 +124,10 @@
 
             <div class="modal-footer">
                 @* Button change to Info screen *@
-                <button type="button" class="btn btn-secondary" id="btnInfo">Thông tin</button>
+                <button type="button" 
+                        onclick="$('.btn-back').removeClass('d-none')"
+                        class="btn btn-secondary" 
+                        id="btnInfo">Thông tin</button>
                 @* Kết bạn button *@
                 <button type="button" class="btn btn-primary">Kết bạn</button>
             </div>
@@ -120,22 +135,102 @@
 
         @* Secondary Screen - Profile Tab *@
         <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
-            Thông tin
+            <div class="modal-body p-0">
+                @* Tab Controller - Hidden *@
+                <ul class="nav nav-pills mb-3 d-none" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active"
+                                id="pills-home-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#pills-home"
+                                type="button"
+                                role="tab"
+                                aria-controls="pills-home"
+                                aria-selected="true">
+                            Home
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="pills-profile-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#pills-profile"
+                                type="button"
+                                role="tab"
+                                aria-controls="pills-profile"
+                                aria-selected="false">
+                            Profile
+                        </button>
+                    </li>
+                </ul>
+
+                @* Content Main Screen *@
+                <img src="@Model.CoverPicture"
+                     height="200"
+                     style="object-fit: cover; width: 100%;" />
+                <div style="padding: 16px;">
+                    <div class="bg-white"
+                         style="display: flex; margin-bottom: 48px">
+                        <div style="width: 100px; position: relative; margin-right: 16px">
+                            <img src="@Model.ProfilePicture"
+                                 class="rounded-circle;"
+                                 height="100"
+                                 style="border: 3px solid white;
+                                border-radius: 50%;
+                                background-color: white;
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                -ms-transform: translate(-50%, -50%);
+                                transform: translate(-50%, -50%);" />
+                        </div>
+                        <span class="fs-5"
+                              style="color: rgb(8,8,9)">@Model.HoVaTen</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between bg-white">
+                        <button type="button" 
+                                class="btn btn-light fw-bold lh-1" 
+                                style="width: 49%; text-transform: none; font-size: 16px; padding: 10px 12px"
+                                data-mdb-ripple-init 
+                                data-mdb-ripple-color="dark">Kết bạn</button>
+                        <button type="button" 
+                                class="btn btn-secondary fw-bold lh-1"
+                                style="width: 49%; text-transform: none; font-size: 16px; padding: 10px 12px"
+                                data-mdb-ripple-init>Nhắn tin</button>
+                    </div>
+                </div>
+                
+                <div class="border-top border-5"
+                     style="padding: 16px">
+                    <span class="fw-bold"
+                          style="font-size: 1rem;">Thông tin cá nhân</span>
+                    <div class="row" style="margin: 16px calc(-0.5* var(--mdb-gutter-x));">
+                        <div class="col-md-4" style="font-size: .9375rem; color: gray">Giới tính</div>
+                        <div class="col-md-8" style="font-size: .9375rem">@Model.GenderString</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4" style="font-size: .9375rem; color: gray">Ngày sinh</div>
+                        <div class="col-md-8" style="font-size: .9375rem">@Model.DateOfBirthString</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
     
 <script>
+    // Change To Profile Tab
     document.getElementById("btnInfo").addEventListener("click", function () {
         let profileTab = new bootstrap.Tab(document.getElementById("pills-profile-tab"));
         profileTab.show();
     });
 
-    //document.getElementById("btnFriend").addEventListener("click", function () {
-    //    let profileTab = new bootstrap.Tab(document.getElementById("pills-profile-tab"));
-    //    profileTab.show();
-    //});
+    // Chagne To Home Tab
+    document.getElementById("btnHome").addEventListener("click", function () {
+        let homeTab = new bootstrap.Tab(document.getElementById("pills-home-tab"));
+        homeTab.show();
+    });
 </script>
 
 <script>
@@ -143,29 +238,28 @@
         var FriendMessageContent = document.getElementById("FriendMessageContent");
         // Default
         FriendMessageContent.innerHTML = "Xin chào, mình là @User.Claims.FirstOrDefault(c => c.Type == "Name").Value. Kết bạn với mình nhé!"
-        $("#FriendMessageCount").html(FriendMessageContent.innerHTML.length + "/150 ký tự")
+        $("#FriendMessageCount").html(FriendMessageContent.innerText.length + "/150 ký tự")
 
-        // Message Content Input
-        FriendMessageContent.addEventListener("input", function () {
-            if (this.innerHTML === "<br>") {
-                this.innerHTML = ""
+        // Xử lý giới hạn ký tự
+        FriendMessageContent.addEventListener('input', function (e) {
+            // Nếu vượt quá giới hạn ký tự
+            if ($(this).text().length > 150) {
+                e.preventDefault();
             }
 
-            // Nếu vượt quá số ký tự cho phép, cắt bớt
-            if (FriendMessageContent.innerText.length > 150) {
-                FriendMessageContent.innerText = FriendMessageContent.innerText.substring(0, 150);
-                placeCaretAtEnd(FriendMessageContent); // Đưa con trỏ về cuối
-            }
-
-            $("#FriendMessageCount").html(this.innerHTML.length + "/150 ký tự")
+            // Cập nhật độ dài của Message
+            $("#FriendMessageCount").html($(this).text().length + "/150 ký tự")
         });
 
-        // Friend Message Container
+        // Border setting
         FriendMessageContent.addEventListener("focus", function () {
             document.getElementById("FriendMessageContainer").style.border = "1px solid var(--bs-primary)";
+            document.getElementById("FriendMessageContainer").style.boxShadow = "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px";
+
         });
         FriendMessageContent.addEventListener("blur", function () {
-            document.getElementById("FriendMessageContainer").style.border = "1px solid white";
+            document.getElementById("FriendMessageContainer").style.border = "1px solid lightgray";
+            document.getElementById("FriendMessageContainer").style.boxShadow = "none";
         });
     });
 
@@ -178,4 +272,5 @@
         sel.removeAllRanges();
         sel.addRange(range);
     }
+
 </script>

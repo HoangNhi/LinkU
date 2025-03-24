@@ -108,29 +108,32 @@
         <div>
             <button type="button"
                     class="btn btn-link d-flex align-items-center btn-Functions active"
+                    style="min-width: 100%!important"
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
                     onclick="SwitchToScreen('TabMessageList')">
-                <i class="fa-solid fa-comment icon-Functions"
+                <i class="fa-regular fa-comment icon-Functions"
                    style=""></i>
                 <span class="text-Functions">Đoạn chat</span>
             </button>
 
             <button type="button"
                     class="btn btn-link d-flex align-items-center btn-Functions"
+                    style="min-width: 100%!important"
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
                     onclick="SwitchToScreen('TabMessageWaiting')">
-                <i class="fa-solid fa-comment-dots icon-Functions"></i>
+                <i class="fa-regular fa-comment-dots icon-Functions"></i>
                 <span class="text-Functions">Tin nhắn đang chờ</span>
             </button>
 
             <button type="button"
                     class="btn btn-link d-flex align-items-center btn-Functions"
+                    style="min-width: 100%!important"
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
                     onclick="SwitchToScreen('TabContact')">
-                <i class="fa-solid fa-address-book icon-Functions"></i>
+                <i class="fa-regular fa-address-book icon-Functions"></i>
                 <span class="text-Functions">Lời mời kết nối</span>
             </button>
         </div>
@@ -223,6 +226,7 @@
             $("#Functions").width(240)
             $("#Functions").css("min-width", "240px")
             $("#ProfilePicture").width(240)
+
             const Functions = document.querySelector("#Functions")
             Functions.style.width = "240px"
             const ProfilePicture = document.querySelector("#ProfilePicture")
@@ -351,5 +355,27 @@
         } else if (screen === "TabMessageWaiting") {
             $("#MessageList").html("Tin nhắn đang chờ<br/>Tính năng đang thực hiện");
         }
+
+        changeFaRularToFaSolid(screen)
     }
+
+    function changeFaRularToFaSolid(screen) {
+        // Lấy tất cả các button
+        const buttons = document.querySelectorAll('.btn-Functions');
+
+        // Reset tất cả icon về fa-regular và xóa class active
+        buttons.forEach(btn => {
+            const icon = btn.querySelector('.icon-Functions');
+            icon.classList.remove('fa-solid');
+            icon.classList.add('fa-regular');
+            btn.classList.remove('active');
+        });
+
+        // Tìm button được click và thay đổi icon thành fa-solid
+        const clickedButton = document.querySelector(`[onclick="SwitchToScreen('${screen}')"]`);
+        const clickedIcon = clickedButton.querySelector('.icon-Functions');
+        clickedButton.classList.add('active'); // Thêm class active cho button
+        clickedIcon.classList.remove('fa-regular');
+        clickedIcon.classList.add('fa-solid');
+    } 
 </script>

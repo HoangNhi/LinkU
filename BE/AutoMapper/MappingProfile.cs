@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using ENTITIES.DbContent;
+using MODELS.FRIENDREQUEST.Dtos;
+using MODELS.FRIENDREQUEST.Requests;
 using MODELS.OTP.Dtos;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.USER.Dtos;
@@ -21,6 +23,10 @@ namespace BE.AutoMapper
 
             // RefreshToken
             CreateMap<RefreshToken, MODELRefreshToken>().ReverseMap();
+
+            // FriendRequest
+            CreateMap<FriendRequest, MODELFriendRequest>().ReverseMap();
+            CreateMap<FriendRequest, POSTFriendRequest>().ReverseMap();
         }
     }
 }

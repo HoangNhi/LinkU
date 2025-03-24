@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace FE.Controllers
 {
-    public class FriendController : Controller
+    public class FriendController : BaseController<FriendController>
     {
         private readonly ICONSUMEAPIService _consumeAPI;
 
@@ -18,11 +18,6 @@ namespace FE.Controllers
         }
 
         public IActionResult Index()
-        {
-            return View();
-        }
-
-        public IActionResult FriendRequests(GetByIdRequest request)
         {
             return View();
         }

@@ -1,0 +1,45 @@
+﻿<div class="w-100" style="background-color: rgb(245, 245, 245)">
+    @* Header *@
+    <div class="p-3 bg-white d-flex align-items-center"
+         style="max-height: 80px; border-radius: 12px; box-shadow: 0px 0px 8px rgba(52, 72, 84, .05);">
+        <img src="~/asset/Add-Friend.png"
+             width="30"
+             style="margin-right: 10px; color: black" />
+        <span class="fw-bold fs-6">Lời mời kết bạn</span>
+    </div>
+
+    <div class="p-2">
+        @* Lời mời đã nhận *@
+        <div id="ReceiveRequest"></div>
+
+        @* Lời mời đã gửi *@
+        <div id="SendRequest"></div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        getReceiveRequest();
+    });
+
+
+    function getReceiveRequest() {
+        console.log()
+        $.ajax({
+            url: '@Url.Action("GetReceiveListPaging", "FriendRequest")',
+            type: 'GET',
+            data: {
+                UserId: '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value',
+                IsSend: 'False',
+                PageIndex: 1,
+                RowPerPage: 999
+            },
+            success: function (data) {
+                $('#ReceiveRequest').html(data);
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        });
+    }
+</script>

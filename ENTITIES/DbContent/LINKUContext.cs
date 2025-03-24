@@ -13,6 +13,8 @@ public partial class LINKUContext : DbContext
 
     public virtual DbSet<Comment> Comments { get; set; }
 
+    public virtual DbSet<FriendRequest> FriendRequests { get; set; }
+
     public virtual DbSet<Friendship> Friendships { get; set; }
 
     public virtual DbSet<Like> Likes { get; set; }
@@ -58,6 +60,32 @@ public partial class LINKUContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Comment_User");
+        });
+
+        modelBuilder.Entity<FriendRequest>(entity =>
+        {
+            entity.ToTable("FriendRequest");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Message).HasMaxLength(225);
+            entity.Property(e => e.NgaySua).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayXoa).HasColumnType("datetime");
+            entity.Property(e => e.NguoiSua)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiTao)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiXoa)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.Status).HasComment("0: Chưa xác nhận, 1: Đồng ý, 2: Từ chối ");
+
+            entity.HasOne(d => d.Sender).WithMany(p => p.FriendRequests)
+                .HasForeignKey(d => d.SenderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_FriendRequest_User");
         });
 
         modelBuilder.Entity<Friendship>(entity =>

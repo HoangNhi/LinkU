@@ -66,11 +66,11 @@ namespace BE.Services.User
                 };
 
                 var result = _context.ExcuteStoredProcedure<MODELUser>("sp_USER_GetListPaging", parameters).ToList();
-                GetListPagingResponse resposeData = new GetListPagingResponse();
-                resposeData.PageIndex = request.PageIndex;
-                resposeData.Data = result;
-                resposeData.TotalRow = Convert.ToInt32(iTotalRow.Value);
-                response.Data = resposeData;
+                GetListPagingResponse responseData = new GetListPagingResponse();
+                responseData.PageIndex = request.PageIndex;
+                responseData.Data = result;
+                responseData.TotalRow = Convert.ToInt32(iTotalRow.Value);
+                response.Data = responseData;
             }
             catch (Exception ex)
             {

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BE.AutoMapper;
+using BE.Services.FriendRequest;
 using BE.Services.Mail;
 using BE.Services.Message;
 using BE.Services.MessageList;
@@ -116,6 +117,7 @@ namespace BE.Configure
             builder.Services.AddTransient<ISMSService, SMSService>();
             builder.Services.AddTransient<IOTPService, OTPService>();
             builder.Services.AddTransient<IMESSAGELISTService, MESSAGELISTService>();
+            builder.Services.AddTransient<IFRIENDREQUESTService, FRIENDREQUESTService>();
         }
     }
 }

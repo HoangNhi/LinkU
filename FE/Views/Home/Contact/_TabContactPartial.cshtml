@@ -33,6 +33,7 @@
     </button>
     <button type="button"
             class="btn btn-link d-flex align-items-center w-100"
+            onclick="showFriendRequest()"
             style="padding: 20px 10px"
             data-mdb-ripple-init
             data-mdb-ripple-color="dark">
@@ -64,3 +65,15 @@
         ">Lời mời vào nhóm</span>
     </button>
 </div>
+
+<script>
+    function showFriendRequest() {
+        $.ajax({
+            url: '@Url.Action("Index", "FriendRequest")',
+            type: 'GET',
+            success: function (data) {
+                $('#Messages').html(data);
+            }
+        });
+    }
+</script>

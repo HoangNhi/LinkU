@@ -29,5 +29,13 @@
 
         // MessageList
         public const string MESSAGELIST_SEARCH = "/MessageList/Search";
+
+        // FriendRequest
+        public const string FRIENDREQUEST_GET_LIST_PAGING = "/FriendRequest/GetListPaging";
+        public const string FRIENDREQUEST_GET_BY_ID = "/FriendRequest/GetById";
+        public const string FRIENDREQUEST_GET_BY_POST = "/FriendRequest/GetByPost";
+        public const string FRIENDREQUEST_INSERT = "/FriendRequest/Insert";
+        public const string FRIENDREQUEST_UPDATE = "/FriendRequest/Update";
+        public const string FRIENDREQUEST_DELETE = "/FriendRequest/Delete";
     }
 }

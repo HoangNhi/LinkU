@@ -8,12 +8,13 @@
     }
 </style>
 
-<div class="card text-center flex-grow-1">
+<div class="card text-center flex-grow-1"
+     style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
     <div class="card-header d-flex justify-content-between"
-         style="padding: 10px 12px; box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 4px 0px; border: 0">
+         style="padding: 10px 12px; box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px; border: 0">
         <div class="d-flex">
             <img class="rounded-circle"
-                 style="margin: 6px"
+                 style="margin: 6px; object-fit: cover"
                  width="36" height="36"
                  src='@(String.IsNullOrEmpty(Model.ProfilePicture) || String.IsNullOrEmpty(Model.ProfilePicture) ? ViewBag.BeURL + "/Files/Common/NoPicture.png" : ViewBag.BeURL + "/" + Model.ProfilePicture)' />
             <div class="d-flex align-items-center"
@@ -105,11 +106,13 @@
               left: 50%;
               transform: translate(-50%, -50%);"></i>
         </button>
-        <div style="padding: 12px;
+        <div id="Message_Container"
+             style="padding: 12px;
                     background-color: rgba(134, 142, 153, 0.1);
                     border-radius: 20px;
                     width: calc(100% - 96px);
-                    align-content: center">
+                    align-content: center;
+                    transition: box-shadow 0.2s ease">
             <div id="Message_Content"
                  contenteditable="true"
                  data-placeholder="Aa"
@@ -127,7 +130,7 @@
         </div>
         <button type="button"
                 class="btn btn-link rounded-circle position-relative align-self-end"
-                style="margin: 6px; height: 36px; width: 36px; padding: 0"
+                style="margin: 6px; height: 36px; width: 36px; padding: 0;"
                 data-mdb-ripple-init
                 data-mdb-ripple-color="dark">
             <i class="fa-solid fa-paper-plane position-absolute"
@@ -142,10 +145,21 @@
 
 <script>
     $(document).ready(function () {
-        document.getElementById("Message_Content").addEventListener("input", function () {
+        var MessageContent = document.getElementById("Message_Content");
+
+        MessageContent.addEventListener("input", function () {
             if (this.innerHTML === "<br>") {
                 this.innerHTML = ""
-            }
+            }                               
+        });
+
+        // Box-shadow setting
+        MessageContent.addEventListener("focus", function () {
+            document.getElementById("Message_Container").style.boxShadow = "rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px";
+
+        });
+        MessageContent.addEventListener("blur", function () {
+            document.getElementById("Message_Container").style.boxShadow = "none";
         });
     });
 

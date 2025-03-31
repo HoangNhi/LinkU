@@ -17,5 +17,7 @@ namespace MODELS.FRIENDREQUEST.Requests
         /// 0: Chưa xác nhận, 1: Đồng ý, 2: Từ chối 
         /// </summary>
         public int Status { get; set; } = 0;
+
+        public string? Message { get; set; }
     }
 }

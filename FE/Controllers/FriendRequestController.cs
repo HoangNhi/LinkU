@@ -33,9 +33,10 @@ namespace FE.Controllers
                     ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.FRIENDREQUEST_GET_LIST_PAGING, request, HttpAction.Post);
                     if (response.Success)
                     {
-                        var result = JsonConvert.DeserializeObject<List<MODELFriendRequest>>(response.Data.ToString());
+                        var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
+                        var resultData = JsonConvert.DeserializeObject<List<MODELFriendRequest>>(result.Data.ToString());
                         ViewBag.BeURL = _consumeAPI.GetBEUrl();
-                        return PartialView("~/Views/Home/Contact/FriendRequest/_ReceiveRequestPartial.cshtml", result);
+                        return PartialView("~/Views/Home/Contact/FriendRequest/_ReceiveRequestPartial.cshtml", resultData);
                     }
                     else
                     {

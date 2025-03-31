@@ -5,6 +5,11 @@
             $("#MessageList_Back").removeClass("d-none");
             $("#MessageList_Body").html('<div id="MessageList_SearchResult"></div>')
         }
+        $("#MessageList_SearchInput_Container").css("box-shadow", "rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px")
+    });
+
+    $("#MessageList_SearchInput").on('blur', function () {
+        $("#MessageList_SearchInput_Container").css("box-shadow", "none")
     });
 </script>
 <div class="card text-center flex-grow-1">
@@ -34,7 +39,8 @@
                 <i class="fa-solid fa-arrow-left"
                    style="color: black; font-size: 20px"></i>
             </button>
-            <div class="d-flex w-100 align-items-center"
+            <div id="MessageList_SearchInput_Container"
+                 class="d-flex w-100 align-items-center"
                  style="background-color: rgba(134, 142, 153, .1); border-radius: 50px; overflow: hidden">
                 <i class="fas fa-search"
                    style="padding: 0 4px 0 14px; line-height: 36px; background-color: rgba(0,0,0,0)"></i>

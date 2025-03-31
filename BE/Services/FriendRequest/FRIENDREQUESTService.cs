@@ -49,7 +49,7 @@ namespace BE.Services.FriendRequest
                 // Lấy thông tin user
                 result.ForEach(x =>
                 {
-                    x.User = _mapper.Map<MODELUser>(_context.Users.Find(x.ReceiverId));
+                    x.User = _mapper.Map<MODELUser>(_context.Users.Find(request.IsSend ? x.ReceiverId : x.SenderId));
                     x.User.Password = null;
                     x.User.PasswordSalt = null;
                 });

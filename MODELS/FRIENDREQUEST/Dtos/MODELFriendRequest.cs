@@ -20,12 +20,14 @@ namespace MODELS.FRIENDREQUEST.Dtos
         /// 0: Chưa xác nhận, 1: Đồng ý, 2: Từ chối 
         /// </summary>
         public int Status { get; set; }
-        
+
+        public string? Message { get; set; }
+
         public MODELUser User { get; set; }
 
 
         #region Hàm hỗ trợ
-        public int Duration => (int)((DateTime.Now - NgayTao).Value.TotalHours);
+        public string Duration => (int)((DateTime.Now - NgayTao).Value.TotalHours) >= 24 ? ((int)((DateTime.Now - NgayTao).Value.TotalHours) / 24) +  " ngày" : (int)((DateTime.Now - NgayTao).Value.TotalHours) + " giờ";
         #endregion
     }
 }

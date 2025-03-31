@@ -1,14 +1,17 @@
 ﻿<div class="w-100" style="background-color: rgb(245, 245, 245)">
     @* Header *@
     <div class="p-3 bg-white d-flex align-items-center"
-         style="max-height: 80px; border-radius: 12px; box-shadow: 0px 0px 8px rgba(52, 72, 84, .05);">
+         style="max-height: 80px; border-radius: 12px; box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
         <img src="~/asset/Add-Friend.png"
              width="30"
              style="margin-right: 10px; color: black" />
         <span class="fw-bold fs-6">Lời mời kết bạn</span>
     </div>
 
-    <div class="p-2">
+    <div class="py-3" 
+         style="overflow-y: auto; 
+                height: calc(100% - 60px);
+                scrollbar-color: rgba(0, 0, 0, 0.3) rgb(245, 245, 245);">
         @* Lời mời đã nhận *@
         <div id="ReceiveRequest"></div>
 

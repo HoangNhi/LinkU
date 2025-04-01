@@ -81,15 +81,15 @@ namespace BE.Services.FriendRequest
                 else
                 {
                     response.Data = _mapper.Map<MODELFriendRequest>(result);
-                    var test = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "name").Value;
-                    if (result.SenderId == Guid.Parse(test))
-                    {
-                        response.Data.User = _mapper.Map<MODELUser>(_context.Users.Find(result.ReceiverId));
-                    }
-                    else
-                    {
-                        response.Data.User = _mapper.Map<MODELUser>(_context.Users.Find(result.SenderId));
-                    }
+                    //var test = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "name").Value;
+                    //if (result.SenderId == Guid.Parse(test))
+                    //{
+                    //    response.Data.User = _mapper.Map<MODELUser>(_context.Users.Find(result.ReceiverId));
+                    //}
+                    //else
+                    //{
+                    //    response.Data.User = _mapper.Map<MODELUser>(_context.Users.Find(result.SenderId));
+                    //}
                     // Ẩn mật khẩu
                     response.Data.User.Password = null;
                     response.Data.User.PasswordSalt = null;
@@ -108,9 +108,10 @@ namespace BE.Services.FriendRequest
             try
             {
                 var result = new POSTFriendRequest();
-                var data = _context.FriendRequests.FindAsync(request.Id);
+                var data = _context.FriendRequests.Find(request.Id);
                 if (data == null)
                 {
+                    result.Id = Guid.NewGuid();
                     result.IsEdit = false;
                 }
                 else
@@ -118,7 +119,20 @@ namespace BE.Services.FriendRequest
                     result = _mapper.Map<POSTFriendRequest>(data);
                     result.IsEdit = true;
                 }
+
                 response.Data = result;
+
+                // Lấy thông tin userid từ token
+                var UserId = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "name").Value;
+                if (result.SenderId == Guid.Parse(UserId))
+                {
+                    response.Data.User = _mapper.Map<MODELUser>(_context.Users.Find(result.ReceiverId));
+                }
+                else
+                {
+                    var Sender = _context.Users.Find(result.SenderId);
+                    response.Data.User = _mapper.Map<MODELUser>(Sender);
+                }
             }
             catch (Exception ex)
             {

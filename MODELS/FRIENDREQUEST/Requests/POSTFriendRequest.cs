@@ -1,4 +1,5 @@
 ﻿using MODELS.BASE;
+using MODELS.USER.Dtos;
 using System.ComponentModel.DataAnnotations;
 
 namespace MODELS.FRIENDREQUEST.Requests
@@ -19,5 +20,7 @@ namespace MODELS.FRIENDREQUEST.Requests
         public int Status { get; set; } = 0;
 
         public string? Message { get; set; }
+
+        public MODELUser User { get; set; } = new MODELUser();
     }
 }

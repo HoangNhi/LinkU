@@ -1,4 +1,4 @@
-﻿@model MODELS.USER.Dtos.MODELUser
+﻿@model MODELS.FRIENDREQUEST.Requests.POSTFriendRequest;
 
 <style>
     #FriendMessageContent:empty::before {
@@ -75,13 +75,13 @@
                 </ul>
 
                 @* Content Main Screen *@
-                <img src="@Model.CoverPicture"
+                <img src="@Model.User.CoverPicture"
                      height="200"
                      style="object-fit: cover; width: 100%;"/>
                 <div style="padding: 16px">
                     <div style="display: flex; margin-bottom: 48px">
                         <div style="width: 100px; position: relative; margin-right: 16px">
-                            <img src="@Model.ProfilePicture"
+                            <img src="@Model.User.ProfilePicture"
                                  class="rounded-circle;"
                                  height="100" width="100"
                                  style="border: 3px solid white;
@@ -95,7 +95,7 @@
                                         object-fit: cover" />
                         </div>
                         <span class="fs-5"
-                              style="color: rgb(8,8,9)">@Model.HoVaTen</span>
+                              style="color: rgb(8,8,9)">@Model.User.HoVaTen</span>
                     </div>
                     <div id="FriendMessageContainer" 
                             class="rounded position-relative"
@@ -166,14 +166,14 @@
                 </ul>
 
                 @* Content Main Screen *@
-                <img src="@Model.CoverPicture"
+                <img src="@Model.User.CoverPicture"
                      height="200"
                      style="object-fit: cover; width: 100%;" />
                 <div style="padding: 16px;">
                     <div class="bg-white"
                          style="display: flex; margin-bottom: 48px">
                         <div style="width: 100px; position: relative; margin-right: 16px">
-                            <img src="@Model.ProfilePicture"
+                            <img src="@Model.User.ProfilePicture"
                                  class="rounded-circle;"
                                  height="100" width="100"
                                  style="border: 3px solid white;
@@ -187,7 +187,7 @@
                                 object-fit: cover" />
                         </div>
                         <span class="fs-5"
-                              style="color: rgb(8,8,9)">@Model.HoVaTen</span>
+                              style="color: rgb(8,8,9)">@Model.User.HoVaTen</span>
                     </div>
                     
                     <div class="d-flex justify-content-between bg-white">
@@ -209,11 +209,11 @@
                           style="font-size: 1rem;">Thông tin cá nhân</span>
                     <div class="row" style="margin: 16px calc(-0.5* var(--mdb-gutter-x));">
                         <div class="col-md-4" style="font-size: .9375rem; color: gray">Giới tính</div>
-                        <div class="col-md-8" style="font-size: .9375rem">@Model.GenderString</div>
+                        <div class="col-md-8" style="font-size: .9375rem">@Model.User.GenderString</div>
                     </div>
                     <div class="row">
                         <div class="col-md-4" style="font-size: .9375rem; color: gray">Ngày sinh</div>
-                        <div class="col-md-8" style="font-size: .9375rem">@Model.DateOfBirthString</div>
+                        <div class="col-md-8" style="font-size: .9375rem">@Model.User.DateOfBirthString</div>
                     </div>
                 </div>
             </div>

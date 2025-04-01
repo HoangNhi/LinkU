@@ -29,7 +29,7 @@
     function getReceiveRequest() {
         console.log()
         $.ajax({
-            url: '@Url.Action("GetReceiveListPaging", "FriendRequest")',
+            url: '@Url.Action("GetReceiveListPaging", "Friend")',
             type: 'GET',
             data: {
                 UserId: '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value',

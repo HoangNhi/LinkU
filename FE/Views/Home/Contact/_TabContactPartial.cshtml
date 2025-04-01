@@ -69,10 +69,29 @@
 <script>
     function showFriendRequest() {
         $.ajax({
-            url: '@Url.Action("Index", "FriendRequest")',
+            url: 'friendrequest',
             type: 'GET',
             success: function (data) {
                 $('#Messages').html(data);
+            }
+        });
+    }
+
+    function ShowPopupAddFriend(Id, Case) {
+        $.ajax({
+            url: '@Url.Action("ShowAddFriendPopup", "Friend")',
+            type: 'GET',
+            data:
+            {
+                Id: Id,
+                Case: Case
+            },
+            success: function (data) {
+                ShowModal(data, "md")
+            },
+            error: function (xhr, error) {
+                showLoading(false)
+                ShowThongBaoThatBai(error)
             }
         });
     }

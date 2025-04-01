@@ -167,11 +167,10 @@
         $.ajax({
             url: '@Url.Action("ShowAddFriendPopup", "Friend")',
             type: 'GET',
-            data: { id: '@Model.Id' },
+            data: { Id: '@Model.Id' },
             success: function (data) {
                 ShowModal(data, "md")
             }
         });
     }
-
 </script>

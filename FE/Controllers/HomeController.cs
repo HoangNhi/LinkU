@@ -15,13 +15,11 @@ namespace FE.Controllers
     public class HomeController : BaseController<HomeController>
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly ICONSUMEAPIService _consumeAPI;
         private readonly IHttpContextAccessor _contextAccessor;
 
-        public HomeController(ILogger<HomeController> logger, ICONSUMEAPIService consumeAPI, IHttpContextAccessor contextAccessor)
+        public HomeController(ILogger<HomeController> logger, ICONSUMEAPIService consumeAPI, IHttpContextAccessor contextAccessor) : base(consumeAPI)
         {
             _logger = logger;
-            _consumeAPI = consumeAPI;
             _contextAccessor = contextAccessor;
         }
 
@@ -32,7 +30,7 @@ namespace FE.Controllers
             if(response.Success)
             {
                 var user = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                user.ProfilePicture = String.IsNullOrEmpty(user.ProfilePicture) || String.IsNullOrEmpty(user.ProfilePicture) ? _consumeAPI.GetImageURL() + "/Files/Common/NoPicture.png" : _consumeAPI.GetImageURL() + "/" + user.ProfilePicture;
+                user.ProfilePicture = GetProfilePicture(user.ProfilePicture);
                 ViewBag.UserInfo = user;
             }
             else

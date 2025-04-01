@@ -1,7 +1,5 @@
 ﻿@model List<MODELS.FRIENDREQUEST.Dtos.MODELFriendRequest>
-@{
-    string BEUrl = ViewBag.BEUrl;
-}
+
 <style>
     /* Container cha */
     .grid-wrapper {
@@ -19,16 +17,16 @@
 
     /* Container Query: Khi container nhỏ hơn 735px, giảm còn 2 cột */
     @@container (max-width: 735px) {
-      .grid-container {
-        grid-template-columns: repeat(2, 1fr);
-      }
+        .grid-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
     /* Khi container nhỏ hơn 500px, còn 1 cột */
     @@container (max-width: 500px) {
-      .grid-container {
-        grid-template-columns: 1fr;
-      }
+        .grid-container {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -45,11 +43,12 @@
                 {
                     <div class="col p-0"
                          @*style="width: calc(100% / 3); max-width: 345px"*@>
-                        <div class="p-2 bg-white rounded-3" style="cursor: pointer; box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
+                        <div class="p-2 bg-white rounded-3"
+                             style="cursor: pointer; box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
                             @* Header *@
                             <div class="d-flex justify-content-between">
                                 <div class="d-flex">
-                                    <img src="@(BEUrl + req.User.ProfilePicture)"
+                                    <img src="@(req.User.ProfilePicture)"
                                          width="60" height="60"
                                          class="rounded-circle"
                                          style="object-fit: cover" />
@@ -63,7 +62,8 @@
                                         class="btn btn-link p-2 position-relative rounded-circle"
                                         style="height: 40px; width: 40px;"
                                         data-mdb-ripple-init
-                                        data-mdb-ripple-color="dark">
+                                        data-mdb-ripple-color="dark"
+                                        onclick="transToChatScreen('@req.User.Id')">
                                     <i class="fa-regular fa-comments fs-5 position-absolute"
                                        style="margin: 0; top: 50%; left: 50%; -ms-transform: translate(-50%, -50%); transform: translate(-50%, -50%); color: rgb(79, 79, 79)"></i>
                                 </button>
@@ -99,5 +99,32 @@
         </div>
     </div>
 }
+
+<script>
+    // Chuyển giao diện nhắn tin với User
+    function transToChatScreen(userId) {
+        showLoading(true)
+        $.ajax({
+            url: "@Url.Action("GetByUserId", "Message")",
+            type: "POST",
+            data: {
+                Id: userId
+            },
+            success: function (response) {
+                showLoading(false)
+                if (response.isSuccess === undefined) {
+                    $("#Messages").html(response)
+                } else {
+                    ShowThongBaoThatBai(response.message)
+                }
+            },
+            error: function (xhr, error) {
+                showLoading(false)
+                ShowThongBaoThatBai(error)
+            }
+        })
+    }
+</script>
+
 
 

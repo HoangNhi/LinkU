@@ -25,7 +25,7 @@
                 <img class="rounded-circle"
                      style="margin: 6px; object-fit: cover"
                      width="36" height="36"
-                     src='@(String.IsNullOrEmpty(user.ProfilePicture) || String.IsNullOrEmpty(user.ProfilePicture) ? ViewBag.BeURL + "/Files/Common/NoPicture.png" : ViewBag.BeURL + "/" + user.ProfilePicture)' />
+                     src='@(user.ProfilePicture)' />
                 <div class="d-flex flex-column">
                     <span style="font-size: 14px">@(string.Concat(user.HoLot, " ", user.Ten))</span>
                     @if (user.SoDienThoai != null)
@@ -56,26 +56,26 @@ else
 
 <script>
     // Chuyển giao diện nhắn tin với User
-function transToChatScreen(userId) {
-    showLoading(true)
-    $.ajax({
-        url: "@Url.Action("GetByUserId", "Message")",
-        type: "POST",
-        data: {
-            Id: userId
-        },
-        success: function (response) {
-            showLoading(false)
-            if (response.isSuccess === undefined) {
-                $("#Messages").html(response)
-            } else {
-                ShowThongBaoThatBai(response.message)
+    function transToChatScreen(userId) {
+        showLoading(true)
+        $.ajax({
+            url: "@Url.Action("GetByUserId", "Message")",
+            type: "POST",
+            data: {
+                Id: userId
+            },
+            success: function (response) {
+                showLoading(false)
+                if (response.isSuccess === undefined) {
+                    $("#Messages").html(response)
+                } else {
+                    ShowThongBaoThatBai(response.message)
+                }
+            },
+            error: function (xhr, error) {
+                showLoading(false)
+                ShowThongBaoThatBai(error)
             }
-        },
-        error: function (xhr, error) {
-            showLoading(false)
-            ShowThongBaoThatBai(error)
-        }
-    })
-}
+        })
+    }
 </script>

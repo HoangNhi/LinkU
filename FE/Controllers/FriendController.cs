@@ -10,11 +10,8 @@ namespace FE.Controllers
 {
     public class FriendController : BaseController<FriendController>
     {
-        private readonly ICONSUMEAPIService _consumeAPI;
-
-        public FriendController(ICONSUMEAPIService consumeAPI)
+        public FriendController(ICONSUMEAPIService consumeAPI) : base(consumeAPI)
         {
-            _consumeAPI = consumeAPI;
         }
 
         public IActionResult Index()
@@ -33,8 +30,8 @@ namespace FE.Controllers
                     if (response.Success)
                     {
                         var result = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                        result.ProfilePicture = String.IsNullOrEmpty(result.ProfilePicture) || String.IsNullOrEmpty(result.ProfilePicture) ? _consumeAPI.GetImageURL() + "/Files/Common/NoPicture.png" : _consumeAPI.GetImageURL() + "/" + result.ProfilePicture;
-                        result.CoverPicture = String.IsNullOrEmpty(result.CoverPicture) || String.IsNullOrEmpty(result.CoverPicture) ? _consumeAPI.GetImageURL() + "/Files/Common/CoverPicture.jpg" : _consumeAPI.GetImageURL() + "/" + result.CoverPicture;
+                        result.ProfilePicture = GetProfilePicture(result.ProfilePicture);
+                        result.CoverPicture = GetCoverPicture(result.CoverPicture);
                         return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml", result);
                     }
                     else
@@ -49,7 +46,7 @@ namespace FE.Controllers
             }
             catch (Exception ex)
             {
-                string message = "Lỗi đăng ký: " + ex.Message;
+                string message = "Lỗi hệ thống: " + ex.Message;
                 return Json(new { IsSuccess = false, Message = message, Data = "" });
             }
         }

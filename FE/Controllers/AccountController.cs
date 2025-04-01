@@ -1,27 +1,24 @@
-﻿using FE.Services;
+﻿using FE.Constant;
+using FE.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MODELS.USER.Requests;
-using MODELS.COMMON;
-using FE.Constant;
 using MODELS.BASE;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
+using MODELS.COMMON;
+using MODELS.OTP.Requests;
+using MODELS.USER.Dtos;
+using MODELS.USER.Requests;
 using Newtonsoft.Json;
 using System.Security.Claims;
-using MODELS.USER.Dtos;
-using Microsoft.AspNetCore.Authentication.Google;
-using MODELS.OTP.Requests;
-using MODELS.MESSAGELIST.Dtos;
 
 namespace FE.Controllers
 {
     public class AccountController : BaseController<AccountController>
     {
-        private readonly ICONSUMEAPIService _consumeAPI;
-        public AccountController(ICONSUMEAPIService consumeAPI)
+        public AccountController(ICONSUMEAPIService consumeAPI) : base(consumeAPI)
         {
-            _consumeAPI = consumeAPI;
         }
 
         [AllowAnonymous]
@@ -198,7 +195,7 @@ namespace FE.Controllers
                 }
                 else
                 {
-                    if(response.Message == "AccountNotExist")
+                    if (response.Message == "AccountNotExist")
                     {
                         return RedirectToAction("GoogleRegister", new { Username = Username });
                     }
@@ -266,7 +263,7 @@ namespace FE.Controllers
         {
             try
             {
-                ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_SENDOTP, new UsernameRequest { Username = Username}, HttpAction.Post);
+                ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_SENDOTP, new UsernameRequest { Username = Username }, HttpAction.Post);
                 if (response.Success)
                 {
                     return PartialView("~/Views/Account/VerifyOTP.cshtml", new VerifyOTPRequest { Username = Username });

@@ -12,11 +12,9 @@ namespace FE.Controllers
 {
     public class MessageListController : BaseController<MessageListController>
     {
-        private readonly ICONSUMEAPIService _consumeAPI;
 
-        public MessageListController(ICONSUMEAPIService consumeAPI)
+        public MessageListController(ICONSUMEAPIService consumeAPI) : base(consumeAPI)
         {
-            _consumeAPI = consumeAPI;
         }
 
         public IActionResult Index()
@@ -35,7 +33,10 @@ namespace FE.Controllers
                     if (response.Success)
                     {
                         var result = JsonConvert.DeserializeObject<MODELMessageList_Search>(response.Data.ToString());
-                        ViewBag.BeURL = _consumeAPI.GetImageURL();
+                        foreach (var item in result.Users)
+                        {
+                            item.ProfilePicture = GetProfilePicture(item.ProfilePicture);
+                        }
                         return PartialView("~/Views/Home/MessageList/_SearchResultPartial.cshtml", result);
                     }
                     else

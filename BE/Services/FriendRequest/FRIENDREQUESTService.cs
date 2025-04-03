@@ -81,15 +81,6 @@ namespace BE.Services.FriendRequest
                 else
                 {
                     response.Data = _mapper.Map<MODELFriendRequest>(result);
-                    //var test = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "name").Value;
-                    //if (result.SenderId == Guid.Parse(test))
-                    //{
-                    //    response.Data.User = _mapper.Map<MODELUser>(_context.Users.Find(result.ReceiverId));
-                    //}
-                    //else
-                    //{
-                    //    response.Data.User = _mapper.Map<MODELUser>(_context.Users.Find(result.SenderId));
-                    //}
                     // Ẩn mật khẩu
                     response.Data.User.Password = null;
                     response.Data.User.PasswordSalt = null;

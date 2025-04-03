@@ -28,7 +28,7 @@ namespace FE.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_GET_BY_ID, request, HttpAction.Post);
+                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, request, HttpAction.Post);
                     if (response.Success)
                     {
                         var result = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());

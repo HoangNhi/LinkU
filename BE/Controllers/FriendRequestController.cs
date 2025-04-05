@@ -13,12 +13,13 @@ namespace BE.Controllers
     public class FriendRequestController : BaseController<FriendRequestController>
     {
         private readonly IFRIENDREQUESTService _service;
-        
+
         public FriendRequestController(IFRIENDREQUESTService service)
         {
             _service = service;
         }
 
+        // Base
         [HttpPost]
         public ActionResult<ApiResponse> GetListPaging(POSTFriendRequestGetListPagingRequest request)
         {
@@ -152,6 +153,32 @@ namespace BE.Controllers
                 if (request != null && ModelState.IsValid)
                 {
                     var response = _service.Delete(request);
+                    if (response.Error)
+                    {
+                        throw new Exception(response.Message);
+                    }
+                    return Ok(new ApiResponse(response.Data));
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
+
+        // Kiểm tra
+        [HttpPost]
+        public ActionResult<ApiResponse> GetFriendRequestStatus(GetByIdRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    var response = _service.GetFriendRequestStatus(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);

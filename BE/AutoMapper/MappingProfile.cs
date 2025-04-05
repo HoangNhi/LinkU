@@ -2,6 +2,8 @@
 using ENTITIES.DbContent;
 using MODELS.FRIENDREQUEST.Dtos;
 using MODELS.FRIENDREQUEST.Requests;
+using MODELS.FRIENDSHIP.Dtos;
+using MODELS.FRIENDSHIP.Requests;
 using MODELS.OTP.Dtos;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.USER.Dtos;
@@ -27,6 +29,10 @@ namespace BE.AutoMapper
             // FriendRequest
             CreateMap<FriendRequest, MODELFriendRequest>().ReverseMap();
             CreateMap<FriendRequest, POSTFriendRequest>().ReverseMap();
+
+            // Friendship
+            CreateMap<Friendship, MODELFriendship>().ReverseMap();
+            CreateMap<Friendship, POSTFriendshipRequest>().ReverseMap();
         }
     }
 }

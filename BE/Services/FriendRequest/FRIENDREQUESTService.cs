@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using BE.Helpers;
+using BE.Services.FriendShip;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
 using MODELS.FRIENDREQUEST.Dtos;
 using MODELS.FRIENDREQUEST.Requests;
 using MODELS.USER.Dtos;
+using MODELS.FRIENDSHIP.Requests;
 
 namespace BE.Services.FriendRequest
 {
@@ -14,12 +16,14 @@ namespace BE.Services.FriendRequest
         private readonly LINKUContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IFRIENDSHIPService _friendshipService;
 
-        public FRIENDREQUESTService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor)
+        public FRIENDREQUESTService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IFRIENDSHIPService friendshipService)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
+            _friendshipService = friendshipService;
         }
 
         public BaseResponse<GetListPagingResponse> GetListPaging(POSTFriendRequestGetListPagingRequest request)
@@ -138,10 +142,10 @@ namespace BE.Services.FriendRequest
             var response = new BaseResponse<MODELFriendRequest>();
             try
             {
-                var checkExist = _context.FriendRequests.Any(x => (x.SenderId == request.SenderId
+                var checkExist = _context.FriendRequests.Any(x => ((x.SenderId == request.SenderId
                                                             && x.ReceiverId == request.ReceiverId)
                                                             || (x.SenderId == request.ReceiverId
-                                                            && x.ReceiverId == request.SenderId)
+                                                            && x.ReceiverId == request.SenderId))
                                                             && x.Status == 0
                                                             && !x.IsDeleted);
                 if (checkExist)
@@ -198,12 +202,29 @@ namespace BE.Services.FriendRequest
                 }
                 else
                 {
-                    _mapper.Map(request, update);
+                    update.Status = request.Status;
                     update.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
                     update.NgaySua = DateTime.Now;
 
                     // Cập nhật dữ liệu
                     _context.FriendRequests.Update(update);
+
+                    // Tạo dữ liệu FriendShip
+                    if(update.Status == 1)
+                    {
+                        var result = _friendshipService.Insert(new POSTFriendshipRequest
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId1 = update.SenderId,
+                            UserId2 = update.ReceiverId,
+                        });
+
+                        if (result.Error)
+                        {
+                            throw new Exception(result.Message);
+                        }
+                    }
+                    // Lưu dữ liệu
                     _context.SaveChanges();
 
                     response.Data = _mapper.Map<MODELFriendRequest>(update);
@@ -237,6 +258,62 @@ namespace BE.Services.FriendRequest
                     _context.FriendRequests.Update(delete);
                     _context.SaveChanges();
                     response.Data = "Xóa dữ liệu thành công";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Kiểm tra trạng thái kết bạn
+        /// </summary>
+        /// <param name="request">Id người cần kiểm tra</param>
+        /// <returns></returns>
+        public BaseResponse<MODELFriendStatus> GetFriendRequestStatus(GetByIdRequest request)
+        {
+            var response = new BaseResponse<MODELFriendStatus>();
+            try
+            {
+                // UserId từ token
+                var UserId = Guid.Parse(_contextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "name").Value);
+                // Kiểm tra đã kết bạn hay chưa
+                var checkFriendShip = _context.Friendships
+                    .Any(x => ((x.UserId1 == UserId && x.UserId2 == request.Id)
+                            || (x.UserId1 == request.Id && x.UserId2 == UserId))
+                            && !x.IsDeleted && x.IsActived);
+                if (checkFriendShip)
+                {
+                    response.Data = new MODELFriendStatus()
+                    {
+                        IsFriend = true,
+                    };
+                }
+                else
+                {
+                    var result = new MODELFriendStatus()
+                    {
+                        IsFriend = false,
+                    };
+                    // Kiểm tra đã gửi yêu cầu kết bạn hay chưa
+                    var checkSendRequest = _context.FriendRequests
+                                           .FirstOrDefault(x => ((x.SenderId == UserId && x.ReceiverId == request.Id)
+                                           || (x.SenderId == request.Id && x.ReceiverId == UserId))
+                                           && !x.IsDeleted && x.Status == 0);
+                    if (checkSendRequest != null)
+                    {
+                        result.Id = checkSendRequest.Id;
+                        result.IsSentRequest = true;
+                        result.IsMyRequest = checkSendRequest.SenderId == UserId;
+                    }
+                    else
+                    {
+                        result.IsSentRequest = false;
+                    }
+                    response.Data = result;
                 }
             }
             catch (Exception ex)

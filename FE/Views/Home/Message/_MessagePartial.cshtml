@@ -61,37 +61,12 @@
             </button>
         </div>
     </div>
+
     <div class="card-body p-0">
-        @* Kết bạn - START *@
-        <div class="bg-body-secondary rounded-4"
-             style="margin: 8px;
-                    padding: 8px 14px;
-                    display: flex;
-                    color: black;
-                    justify-content: space-between;
-                    align-items: center;
-                    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;">
-            <span style="font-size: 14px;
-                         font-weight: 400;
-                         text-align: start">
-                <i class="fa-solid fa-user-plus" style="padding-right: 4px"></i>
-                Gửi yêu cầu kết bạn tới người này
-            </span>
-            <button type="button"
-                    class="btn btn-light bg-white"
-                    style="text-transform: unset;
-                           font-size: 14px;
-                           font-weight: 700;
-                           padding: 4px 12px;
-                           color: black"
-                    data-mdb-ripple-init
-                    data-mdb-ripple-color="dark"
-                    onclick="ShowPopupAddFriend()">
-                Gửi kết bạn
-            </button>
-        </div>
-        @* Kết bạn - END *@
+        <div id="FriendStatus"></div>
+        <div id="MessageContainer"></div>
     </div>
+
     <div class="card-footer d-flex border-0"
          style="padding: 12px 8px">
         <button type="button"
@@ -145,12 +120,14 @@
 
 <script>
     $(document).ready(function () {
+        GetFriendRequestStatus();
+
         var MessageContent = document.getElementById("Message_Content");
 
         MessageContent.addEventListener("input", function () {
             if (this.innerHTML === "<br>") {
                 this.innerHTML = ""
-            }                               
+            }
         });
 
         // Box-shadow setting
@@ -170,6 +147,17 @@
             data: { Id: '@Model.Id' },
             success: function (data) {
                 ShowModal(data, "md")
+            }
+        });
+    }
+
+    function GetFriendRequestStatus() {
+        $.ajax({
+            url: '@Url.Action("GetFriendRequestStatus", "Message")',
+            type: 'GET',
+            data: { Id: '@Model.Id' },
+            success: function (data) {
+                $("#FriendStatus").html(data)
             }
         });
     }

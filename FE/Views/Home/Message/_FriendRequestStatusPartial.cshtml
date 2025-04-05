@@ -1,0 +1,130 @@
+﻿@model MODELS.FRIENDREQUEST.Dtos.MODELFriendStatus
+
+@if (!Model.IsFriend)
+{
+    if (!Model.IsSentRequest)
+    {
+
+        @* Kết bạn - START *@
+        <div class="bg-body-secondary rounded-4"
+             style="margin: 8px;
+            padding: 8px 14px;
+            display: flex;
+            color: black;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;">
+            <span style="font-size: 14px;
+                 font-weight: 400;
+                 text-align: start">
+                <i class="fa-solid fa-user-plus" style="padding-right: 4px"></i>
+                Gửi yêu cầu kết bạn tới người này
+            </span>
+            <button type="button"
+                    class="btn btn-light bg-white"
+                    style="text-transform: unset;
+                   font-size: 14px;
+                   font-weight: 700;
+                   padding: 4px 12px;
+                   color: black"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark"
+                    onclick="ShowPopupAddFriend()">
+                Gửi kết bạn
+            </button>
+        </div>
+        @* Kết bạn - END *@
+    }
+    else
+    {
+        if (Model.IsMyRequest)
+        {
+            <div class="bg-body-secondary rounded-4"
+                 style="margin: 8px;
+                        padding: 8px 14px;
+                        display: flex;
+                        color: black;
+                        justify-content: space-between;
+                        align-items: center;
+                        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;">
+                <span style="font-size: 14px;
+                 font-weight: 400;
+                 text-align: start">
+                    <i class="fa-solid fa-user-plus" style="padding-right: 4px"></i>
+                    Bạn đã gửi yêu cầu kết bạn và đang chờ người này đồng ý
+                </span>
+            </div>
+        }
+        else
+        {
+            <div class="bg-body-secondary rounded-4"
+                 style="margin: 8px;
+                        padding: 8px 14px;
+                        display: flex;
+                        color: black;
+                        justify-content: space-between;
+                        align-items: center;
+                        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;">
+                <span style="font-size: 14px;
+                             font-weight: 400;
+                             text-align: start">
+                    <i class="fa-solid fa-user-plus" style="padding-right: 4px"></i>
+                    Người này đã gửi yêu cầu kết bạn tới bạn
+                </span>
+                <div>
+                    <button type="button"
+                            class="btn btn-primary text-white"
+                            style="text-transform: unset;
+                                   font-size: 14px;
+                                   font-weight: 700;
+                                   padding: 4px 12px;
+                                   color: black"
+                            data-mdb-ripple-init
+                            data-mdb-ripple-color="dark"
+                            onclick="updateFriendRequest('@Model.Id', 1)">
+                        Đồng ý
+                    </button>
+                    <button type="button"
+                            class="btn btn-light bg-white"
+                            style="text-transform: unset;
+                                   font-size: 14px;
+                                   font-weight: 700;
+                                   padding: 4px 12px;
+                                   color: black"
+                            data-mdb-ripple-init
+                            data-mdb-ripple-color="dark"
+                            onclick="updateFriendRequest('@Model.Id', 2)">
+                        Từ chối
+                    </button>
+                </div>
+            </div>
+        }
+    }
+}
+
+<script>
+    // Accept friend request
+    function updateFriendRequest(id, status) {
+        showLoading(true);
+        $.ajax({
+            url: '@Url.Action("UpdateFriendRequest", "Friend")',
+            type: 'POST',
+            data: {
+                Id: id,
+                status: status
+            },
+            success: function (data) {
+                if (data.isSuccess) {
+                    CloseModal()
+                    GetFriendRequestStatus()
+                } else {
+                    ShowThongBaoThatBai(data.message)
+                }
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        });
+        showLoading(false);
+    }
+</script>

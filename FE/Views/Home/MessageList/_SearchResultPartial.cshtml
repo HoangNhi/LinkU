@@ -52,30 +52,3 @@ else
 {
     <span style="font-size: 14px; font-weight: 600; color:black">Không tìm thấy kết quả nào</span>
 }
-
-
-<script>
-    // Chuyển giao diện nhắn tin với User
-    function transToChatScreen(userId) {
-        showLoading(true)
-        $.ajax({
-            url: "@Url.Action("GetByUserId", "Message")",
-            type: "POST",
-            data: {
-                Id: userId
-            },
-            success: function (response) {
-                showLoading(false)
-                if (response.isSuccess === undefined) {
-                    $("#Messages").html(response)
-                } else {
-                    ShowThongBaoThatBai(response.message)
-                }
-            },
-            error: function (xhr, error) {
-                showLoading(false)
-                ShowThongBaoThatBai(error)
-            }
-        })
-    }
-</script>

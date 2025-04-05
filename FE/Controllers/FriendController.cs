@@ -57,6 +57,34 @@ namespace FE.Controllers
             }
         }
 
+        public IActionResult UpdateFriendRequest(POSTFriendRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.FRIENDREQUEST_UPDATE, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        var result = JsonConvert.DeserializeObject<MODELFriendRequest>(response.Data.ToString());
+                        return Json(new { IsSuccess = true, Message = "", Data = "" });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
         #endregion
 
         /// <summary>
@@ -79,6 +107,22 @@ namespace FE.Controllers
                     ApiResponse response;
                     switch (Case)
                     {
+                        case 1:
+                            response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, request, HttpAction.Post);
+                            if (response.Success)
+                            {
+                                var User = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                                User.ProfilePicture = GetProfilePicture(User.ProfilePicture);
+                                User.CoverPicture = GetCoverPicture(User.CoverPicture);
+
+                                var result = new POSTFriendRequest();
+                                result.User = User;
+                                return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml", result);
+                            }
+                            else
+                            {
+                                throw new Exception(response.Message);
+                            }
                         case 2:
                             response = _consumeAPI.ExcuteAPI(URL_API.FRIENDREQUEST_GET_BY_POST, request, HttpAction.Post);
                             if (response.Success)
@@ -96,21 +140,7 @@ namespace FE.Controllers
                         case 3:
                             return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml");
                         default:
-                            response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, request, HttpAction.Post);
-                            if (response.Success)
-                            {
-                                var User = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                                User.ProfilePicture = GetProfilePicture(User.ProfilePicture);
-                                User.CoverPicture = GetCoverPicture(User.CoverPicture);
-
-                                var result = new POSTFriendRequest();
-                                result.User = User;
-                                return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml", result);
-                            }
-                            else
-                            {
-                                throw new Exception(response.Message);
-                            }
+                            throw new Exception("Không tìm thấy trường hợp hiển thị popup");
                     }
                 }
                 else
@@ -119,6 +149,36 @@ namespace FE.Controllers
                 }
             }
             catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult CreateFriendRequest(POSTFriendRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.FRIENDREQUEST_INSERT, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        var result = JsonConvert.DeserializeObject<MODELFriendRequest>(response.Data.ToString());
+                        return Json(new { IsSuccess = true, Message = "Gửi lời mời kết bạn thành công", Data = "" });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch(Exception ex)
             {
                 string message = "Lỗi hệ thống: " + ex.Message;
                 return Json(new { IsSuccess = false, Message = message, Data = "" });

@@ -30,104 +30,122 @@
     }
 </style>
 
-<p class="mb-3">Lời mời đã nhận@(Model.Count > 0 ? $" ({Model.Count})" : "")</p>
-
 @if (Model.Count > 0)
 {
+    //Header
+    <p class="mb-3">Lời mời đã nhận@(Model.Count > 0 ? $" ({Model.Count})" : "")</p>
+
     <div class="grid-wrapper">
         <div class="m-0 mb-3 grid-container"
              style="overflow-x: hidden">
-            @for (int i = 0; i < 10; i++)
+            @foreach (var req in Model)
             {
-                @foreach (var req in Model)
-                {
-                    <div class="col p-0"
-                         @*style="width: calc(100% / 3); max-width: 345px"*@>
-                        <div onclick="ShowPopupAddFriend('@req.Id', 2)"
-                            class="p-2 bg-white rounded-3"
-                            style="cursor: pointer; box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
-                            @* Header *@
-                            <div class="d-flex justify-content-between">
-                                <div class="d-flex">
-                                    <img src="@(req.User.ProfilePicture)"
-                                         width="60" height="60"
-                                         class="rounded-circle"
-                                         style="object-fit: cover" />
-                                    <div class="d-flex flex-column ms-2">
-                                        <span class="fw-bold fs-6">@req.User.HoVaTen</span>
-                                        <span class="text-muted" style="font-weight: 400">@req.Duration</span>
-                                    </div>
+                <div class="col p-0"
+                     @*style="width: calc(100% / 3); max-width: 345px"*@>
+                    <div onclick="ShowPopupAddFriend('@req.Id', 2)"
+                         class="p-2 bg-white rounded-3"
+                         style="cursor: pointer; box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
+                        @* Header *@
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex">
+                                <img src="@(req.User.ProfilePicture)"
+                                     width="60" height="60"
+                                     class="rounded-circle"
+                                     style="object-fit: cover" />
+                                <div class="d-flex flex-column ms-2">
+                                    <span class="fw-bold fs-6">@req.User.HoVaTen</span>
+                                    <span class="text-muted" style="font-weight: 400">@req.DurationText</span>
                                 </div>
-
-                                <button type="button"
-                                        class="btn btn-link p-2 position-relative rounded-circle"
-                                        style="height: 40px; width: 40px;"
-                                        data-mdb-ripple-init
-                                        data-mdb-ripple-color="dark"
-                                        onclick="transToChatScreen('@req.User.Id')">
-                                    <i class="fa-regular fa-comments fs-5 position-absolute"
-                                       style="margin: 0; top: 50%; left: 50%; -ms-transform: translate(-50%, -50%); transform: translate(-50%, -50%); color: rgb(79, 79, 79)"></i>
-                                </button>
                             </div>
 
-                            @* Body *@
-                            <div class="p-2 my-3 rounded-2 fw-normal"
-                                 style="background-color: rgb(245, 245, 245);
-                        box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px; ">
-                                @req.Message
-                            </div>
+                            <button type="button"
+                                    class="btn btn-link p-2 position-relative rounded-circle"
+                                    style="height: 40px; width: 40px;"
+                                    data-mdb-ripple-init
+                                    data-mdb-ripple-color="dark"
+                                    onclick="transToChatScreen('@req.User.Id')">
+                                <i class="fa-regular fa-comments fs-5 position-absolute"
+                                   style="margin: 0; top: 50%; left: 50%; -ms-transform: translate(-50%, -50%); transform: translate(-50%, -50%); color: rgb(79, 79, 79)"></i>
+                            </button>
+                        </div>
 
-                            @* Footer *@
-                            <div class="d-flex justify-content-between">
-                                <button type="button"
-                                        class="btn btn-light"
-                                        style="width: 48%; font-weight: 600"
-                                        data-mdb-ripple-init>
-                                    Từ chối
-                                </button>
+                        @* Body *@
+                        <div class="p-2 my-3 rounded-2 fw-normal"
+                             style="background-color: rgb(245, 245, 245);
+                                    box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+                                    height: 70px">
+                            @req.Message
+                        </div>
 
-                                <button type="button"
-                                        class="btn  btn-secondary"
-                                        style="width: 48%; font-weight: 600"
-                                        data-mdb-ripple-init>
-                                    Đồng ý
-                                </button>
-                            </div>
+                        @* Footer *@
+                        <div class="d-flex justify-content-between">
+                            <button type="button"
+                                    onclick="event.stopPropagation();
+                                            updateFriendRequest('@req.Id', 2);
+                                            showFriendRequest()"
+                                    class="btn btn-light"
+                                    style="width: 48%; font-weight: 600"
+                                    data-mdb-ripple-init>
+                                Từ chối
+                            </button>
+
+                            <button type="button"
+                                    onclick="event.stopPropagation();
+                                            updateFriendRequest('@req.Id', 1);
+                                            showFriendRequest()"
+                                    class="btn  btn-secondary"
+                                    style="width: 48%; font-weight: 600"
+                                    data-mdb-ripple-init>
+                                Đồng ý
+                            </button>
                         </div>
                     </div>
-                }
+                </div>
             }
         </div>
     </div>
 }
+else
+{
+    <div style="background-image: url('/asset/FriendRequestEmpty.png'); 
+                background-size: contain; 
+                background-repeat: no-repeat;
+                background-position: center; 
+                height: 200px;
+                position: relative"
+    >
+        <span style="position: absolute; 
+                     justify-self: anchor-center;
+                     top: 160px;">
+            Bạn không có lời mời nào
+        </span>
+    </div>
+}
 
 <script>
-    // Chuyển giao diện nhắn tin với User
-    function transToChatScreen(userId) {
-        event.stopPropagation(); // Ngăn sự kiện click lan lên div
-        showLoading(true)
+    function updateFriendRequest(id, status) {
+        showLoading(true);
         $.ajax({
-            url: "@Url.Action("GetByUserId", "Message")",
-            type: "POST",
+            url: '@Url.Action("UpdateFriendRequest", "Friend")',
+            type: 'POST',
             data: {
-                Id: userId
+                Id: id,
+                status: status
             },
-            success: function (response) {
-                showLoading(false)
-                if (response.isSuccess === undefined) {
-                    $("#Messages").html(response)
+            success: function (data) {
+                if (!data.isSuccess) {
+                    ShowThongBaoThatBai(data.message)
                 } else {
-                    ShowThongBaoThatBai(response.message)
+                    CloseModal()
+                    showFriendRequest()
                 }
             },
             error: function (xhr, error) {
-                showLoading(false)
                 ShowThongBaoThatBai(error)
             }
-        })
+        });
+        showLoading(false);
     }
-
-    
 </script>
 
 

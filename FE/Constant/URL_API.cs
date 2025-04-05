@@ -37,5 +37,6 @@
         public const string FRIENDREQUEST_INSERT = "/FriendRequest/Insert";
         public const string FRIENDREQUEST_UPDATE = "/FriendRequest/Update";
         public const string FRIENDREQUEST_DELETE = "/FriendRequest/Delete";
+        public const string FRIENDREQUEST_GETFRIENDREQUESTSTATUS = "/FriendRequest/GetFriendRequestStatus";
     }
 }

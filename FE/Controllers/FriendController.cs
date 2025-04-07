@@ -23,7 +23,7 @@ namespace FE.Controllers
             return PartialView("~/Views/Home/Contact/FriendRequest/_TabFriendRequestPartial.cshtml");
         }
 
-        public IActionResult GetReceiveListPaging(POSTFriendRequestGetListPagingRequest request)
+        public IActionResult GetListPaging(POSTFriendRequestGetListPagingRequest request)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace FE.Controllers
                         {
                             item.User.ProfilePicture = GetProfilePicture(item.User.ProfilePicture);
                         }
-                        return PartialView("~/Views/Home/Contact/FriendRequest/_ReceiveRequestPartial.cshtml", resultData);
+                        return PartialView($"~/Views/Home/Contact/FriendRequest/{(!request.IsSend ? "_ReceiveRequestPartial" : "_SentRequestPartial")}.cshtml", resultData);
                     }
                     else
                     {
@@ -105,42 +105,39 @@ namespace FE.Controllers
                 {
                     ViewBag.Case = Case;
                     ApiResponse response;
-                    switch (Case)
+                    if(Case == 1)
                     {
-                        case 1:
-                            response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, request, HttpAction.Post);
-                            if (response.Success)
-                            {
-                                var User = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                                User.ProfilePicture = GetProfilePicture(User.ProfilePicture);
-                                User.CoverPicture = GetCoverPicture(User.CoverPicture);
+                        response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, request, HttpAction.Post);
+                        if (response.Success)
+                        {
+                            var User = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                            User.ProfilePicture = GetProfilePicture(User.ProfilePicture);
+                            User.CoverPicture = GetCoverPicture(User.CoverPicture);
 
-                                var result = new POSTFriendRequest();
-                                result.User = User;
-                                return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml", result);
-                            }
-                            else
-                            {
-                                throw new Exception(response.Message);
-                            }
-                        case 2:
-                            response = _consumeAPI.ExcuteAPI(URL_API.FRIENDREQUEST_GET_BY_POST, request, HttpAction.Post);
-                            if (response.Success)
-                            {
-                                var result = JsonConvert.DeserializeObject<POSTFriendRequest>(response.Data.ToString());
-                                result.User.ProfilePicture = GetProfilePicture(result.User.ProfilePicture);
-                                result.User.CoverPicture = GetCoverPicture(result.User.CoverPicture);
+                            var result = new POSTFriendRequest();
+                            result.User = User;
+                            return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml", result);
+                        }
+                        else
+                        {
+                            throw new Exception(response.Message);
+                        }
+                    }
+                    else // Case 2, 3
+                    {
+                        response = _consumeAPI.ExcuteAPI(URL_API.FRIENDREQUEST_GET_BY_POST, request, HttpAction.Post);
+                        if (response.Success)
+                        {
+                            var result = JsonConvert.DeserializeObject<POSTFriendRequest>(response.Data.ToString());
+                            result.User.ProfilePicture = GetProfilePicture(result.User.ProfilePicture);
+                            result.User.CoverPicture = GetCoverPicture(result.User.CoverPicture);
 
-                                return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml", result);
-                            }
-                            else
-                            {
-                                throw new Exception(response.Message);
-                            }
-                        case 3:
-                            return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml");
-                        default:
-                            throw new Exception("Không tìm thấy trường hợp hiển thị popup");
+                            return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml", result);
+                        }
+                        else
+                        {
+                            throw new Exception(response.Message);
+                        }
                     }
                 }
                 else
@@ -179,6 +176,35 @@ namespace FE.Controllers
                 }
             }
             catch(Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteFriendRequest(GetByIdRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.FRIENDREQUEST_DELETE, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        return Json(new { IsSuccess = true, Message = "", Data = "" });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
             {
                 string message = "Lỗi hệ thống: " + ex.Message;
                 return Json(new { IsSuccess = false, Message = message, Data = "" });

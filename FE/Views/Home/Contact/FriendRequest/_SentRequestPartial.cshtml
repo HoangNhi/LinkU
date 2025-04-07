@@ -33,7 +33,7 @@
 @if (Model.Count > 0)
 {
     //Header
-    <p class="mb-3">Lời mời đã nhận@(Model.Count > 0 ? $" ({Model.Count})" : "")</p>
+    <p class="mb-3">Lời mời đã gửi@(Model.Count > 0 ? $" ({Model.Count})" : "")</p>
 
     <div class="grid-wrapper">
         <div class="m-0 mb-3 grid-container"
@@ -42,7 +42,7 @@
             {
                 <div class="col p-0"
                      @*style="width: calc(100% / 3); max-width: 345px"*@>
-                    <div onclick="ShowPopupAddFriend('@req.Id', 2)"
+                    <div onclick="ShowPopupAddFriend('@req.Id', 3)"
                          class="p-2 bg-white rounded-3"
                          style="cursor: pointer; box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
                         @* Header *@
@@ -80,23 +80,11 @@
                         @* Footer *@
                         <div class="d-flex justify-content-between">
                             <button type="button"
-                                    onclick="event.stopPropagation();
-                                            updateFriendRequest('@req.Id', 2);
-                                            showFriendRequest()"
+                                    onclick="deleteFriendRequest('@req.Id')"
                                     class="btn btn-light fs-6"
-                                    style="width: 48%; font-weight: 600"
+                                    style="width: 100%; font-weight: 600"
                                     data-mdb-ripple-init>
-                                Từ chối
-                            </button>
-
-                            <button type="button"
-                                    onclick="event.stopPropagation();
-                                            updateFriendRequest('@req.Id', 1);
-                                            showFriendRequest()"
-                                    class="btn  btn-secondary fs-6"
-                                    style="width: 48%; font-weight: 600"
-                                    data-mdb-ripple-init>
-                                Đồng ý
+                                Thu hồi lời mời
                             </button>
                         </div>
                     </div>
@@ -105,48 +93,6 @@
         </div>
     </div>
 }
-else
-{
-    <div style="background-image: url('/asset/FriendRequestEmpty.png'); 
-                background-size: contain; 
-                background-repeat: no-repeat;
-                background-position: center; 
-                height: 200px;
-                position: relative"
-    >
-        <span style="position: absolute; 
-                     justify-self: anchor-center;
-                     top: 160px;">
-            Bạn không có lời mời nào
-        </span>
-    </div>
-}
-
-<script>
-    function updateFriendRequest(id, status) {
-        showLoading(true);
-        $.ajax({
-            url: '@Url.Action("UpdateFriendRequest", "Friend")',
-            type: 'POST',
-            data: {
-                Id: id,
-                status: status
-            },
-            success: function (data) {
-                if (!data.isSuccess) {
-                    ShowThongBaoThatBai(data.message)
-                } else {
-                    CloseModal()
-                    showFriendRequest()
-                }
-            },
-            error: function (xhr, error) {
-                ShowThongBaoThatBai(error)
-            }
-        });
-        showLoading(false);
-    }
-</script>
 
 
 

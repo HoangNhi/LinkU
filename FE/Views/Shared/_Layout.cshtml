@@ -23,18 +23,6 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <!-- Signalr -->
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
-
-    <style>
-        body {
-            background-color: #f2f4f7;
-            font-weight: 500;
-            color: black
-        }
-
-        .toast:not(.show) {
-            display: block;
-        }
-    </style>
 </head>
 <body>
     <div style="margin: 16px 0; padding: 0px 16px;">
@@ -115,6 +103,31 @@
                 ShowThongBaoThatBai(error)
             }
         })
+    }
+
+    // Xóa lời mời kết bạn
+    function deleteFriendRequest(id) {
+        event.stopPropagation();
+        showLoading(true);
+        $.ajax({
+            url: '@Url.Action("DeleteFriendRequest", "Friend")',
+            type: 'POST',
+            data: {
+                Id: id,
+            },
+            success: function (data) {
+                if (!data.isSuccess) {
+                    ShowThongBaoThatBai(data.message)
+                } else {
+                    CloseModal()
+                    showFriendRequest()
+                }
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        });
+        showLoading(false);
     }
 </script>
 </body>

@@ -68,7 +68,7 @@
 
 <script>
     function showFriendRequest() {
-        showLoading(true)
+        showLoadingElement(true, "Messages")
         $.ajax({
             url: 'friendrequest',
             type: 'GET',
@@ -79,7 +79,7 @@
                 ShowThongBaoThatBai(error)
             }
         });
-        showLoading(false)
+        showLoadingElement(false, "Messages")
     }
 
     function ShowPopupAddFriend(Id, Case) {

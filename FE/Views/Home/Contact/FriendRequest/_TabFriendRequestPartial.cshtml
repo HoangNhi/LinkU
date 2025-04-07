@@ -22,23 +22,27 @@
 
 <script>
     $(document).ready(function () {
-        getReceiveRequest();
+        getFriendRequest('False');
+        getFriendRequest('True');
     });
 
 
-    function getReceiveRequest() {
-        console.log()
+    function getFriendRequest(isSend) {
         $.ajax({
-            url: '@Url.Action("GetReceiveListPaging", "Friend")',
+            url: '@Url.Action("GetListPaging", "Friend")',
             type: 'GET',
             data: {
                 UserId: '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value',
-                IsSend: 'False',
+                IsSend: isSend,
                 PageIndex: 1,
                 RowPerPage: 999
             },
             success: function (data) {
-                $('#ReceiveRequest').html(data);
+                if (isSend == 'False') {
+                    $('#ReceiveRequest').html(data);
+                } else {
+                    $('#SendRequest').html(data);
+                }
             },
             error: function (xhr, error) {
                 ShowThongBaoThatBai(error)

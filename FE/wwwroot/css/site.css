@@ -173,3 +173,25 @@ p {
     border: 0 !important;
     justify-content: center;
 }
+
+body {
+    background-color: #f2f4f7;
+    font-weight: 500;
+    color: black;
+}
+
+.toast:not(.show) {
+    display: block;
+}
+
+.btn{
+    text-transform: none;
+    line-height: 1;
+    font-weight: 600
+}
+
+.btn-light {
+    --mdb-btn-bg: #eeeeee;
+    --mdb-btn-hover-bg: #7f848740;
+}
+

@@ -71,26 +71,18 @@
                     <i class="fa-solid fa-user-plus" style="padding-right: 4px"></i>
                     Người này đã gửi yêu cầu kết bạn tới bạn
                 </span>
-                <div>
+                <div class="d-flex">
                     <button type="button"
-                            class="btn btn-primary text-white"
-                            style="text-transform: unset;
-                                   font-size: 14px;
-                                   font-weight: 700;
-                                   padding: 4px 12px;
-                                   color: black"
+                            class="btn btn-primary text-white mx-2"
+                            style="color: black; overflow: hidden; white-space: nowrap"
                             data-mdb-ripple-init
                             data-mdb-ripple-color="dark"
                             onclick="updateFriendRequest('@Model.Id', 1)">
                         Đồng ý
                     </button>
                     <button type="button"
-                            class="btn btn-light bg-white"
-                            style="text-transform: unset;
-                                   font-size: 14px;
-                                   font-weight: 700;
-                                   padding: 4px 12px;
-                                   color: black"
+                            class="btn btn-light"
+                            style="color: black; background-color: white; overflow: hidden; white-space: nowrap"
                             data-mdb-ripple-init
                             data-mdb-ripple-color="dark"
                             onclick="updateFriendRequest('@Model.Id', 2)">

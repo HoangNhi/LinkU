@@ -14,38 +14,37 @@
     if (Model.Users.Count() > 0)
     {
         foreach (MODELS.USER.Dtos.MODELUser user in Model.Users)
-        {
+            {
             <button id="btnMessageList_Search"
                     type="button"
-                    class="d-flex w-100 btn btn-link"
-                    style="text-align: start; text-transform: none; padding: 8px; align-items: center; color: inherit"
+                    class="d-flex w-100 btn btn-link p-0 mb-2"
+                    style="text-align: start; align-items: center; color: inherit"
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
                     onclick="transToChatScreen('@user.Id')">
                 <img class="rounded-circle"
                      style="margin: 6px; object-fit: cover"
-                     width="36" height="36"
+                     width="48" height="48"
                      src='@(user.ProfilePicture)' />
                 <div class="d-flex flex-column">
-                    <span style="font-size: 14px">@(string.Concat(user.HoLot, " ", user.Ten))</span>
+                    <span class="fs-6" style="line-height: 1.5">@(string.Concat(user.HoLot, " ", user.Ten))</span>
                     @if (user.SoDienThoai != null)
                     {
-                        //<span style="font-size: 14px">Số điện thoại: @user.SoDienThoai</span>
-                        <span style="font-size: 14px">
+                        <span class="fs-6" style="line-break: anywhere; line-height: 1.5">
                             <i class="fa-solid fa-phone"></i>
                             <span class="text-primary-emphasis">@user.SoDienThoai</span>
                         </span>
                     }
                     else
                     {
-                        <span style="font-size: 14px">
+                        <span class="fs-6" style="line-break: anywhere; line-height: 1.5">
                             <i class="fa-solid fa-envelope"></i>
                             <span class="text-primary-emphasis">@user.Email</span>
                         </span>
                     }
                 </div>
             </button>
-        }
+            }
     }
 }
 else

@@ -6,7 +6,7 @@ namespace BE.Services.Message
 {
     public interface IMESSAGEService
     {
-        BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request);
+        BaseResponse<GetListPagingResponse> GetListPaging(PostMessageGetListPagingRequest request);
         BaseResponse<MODELMessage> GetById(GetByIdRequest request);
         BaseResponse<PostMessageRequest> GetByPost(GetByIdRequest request);
         BaseResponse<MODELMessage> Insert(PostMessageRequest request);

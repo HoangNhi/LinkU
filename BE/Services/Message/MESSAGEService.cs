@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BE.Helpers;
+using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
@@ -14,15 +15,17 @@ namespace BE.Services.Message
         private readonly LINKUContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IUSERService _userService;
 
-        public MESSAGEService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor)
+        public MESSAGEService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IUSERService userService)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
+            _userService = userService;
         }
 
-        public BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request)
+        public BaseResponse<GetListPagingResponse> GetListPaging(PostMessageGetListPagingRequest request)
         {
             var response = new BaseResponse<GetListPagingResponse>();
             try
@@ -34,19 +37,27 @@ namespace BE.Services.Message
                     Direction = System.Data.ParameterDirection.Output
                 };
 
-
                 var parameters = new[]
                 {
                     new SqlParameter("@iTextSearch", request.TextSearch),
                     new SqlParameter("@iPageIndex", request.PageIndex - 1),
                     new SqlParameter("@iRowsPerPage", request.RowPerPage),
+                    new SqlParameter("@iCurrentId", request.CurrentId),
+                    new SqlParameter("@iFriendId", request.FriendId),
                     iTotalRow
                 };
 
-                var result = _context.ExcuteStoredProcedure<MODELMessage>("sp_MESSAGE_GetListPaging", parameters).ToList();
+                var Messages = _context.ExcuteStoredProcedure<MODELMessage>("sp_MESSAGE_GetListPaging", parameters).ToList();
+                var res = new MODELMessageGetListPaging()
+                {
+                    Messages = Messages,
+                    CurrentUser = _userService.GetById(new GetByIdRequest() { Id = request.CurrentId }).Data,
+                    FriendUser = _userService.GetById(new GetByIdRequest() { Id = request.FriendId }).Data
+                };
+
                 GetListPagingResponse resposeData = new GetListPagingResponse();
                 resposeData.PageIndex = request.PageIndex;
-                resposeData.Data = result;
+                resposeData.Data = res;
                 resposeData.TotalRow = Convert.ToInt32(iTotalRow.Value);
                 response.Data = resposeData;
             }
@@ -111,11 +122,18 @@ namespace BE.Services.Message
             var response = new BaseResponse<MODELMessage>();
             try
             {
+                if (request.Content == "")
+                {
+                    throw new Exception("Nội dung không được để trống");
+                }
+
                 var add = _mapper.Map<ENTITIES.DbContent.Message>(request);
                 add.Id = request.Id == Guid.Empty ? Guid.NewGuid() : request.Id;
-                add.NguoiTao = _contextAccessor.HttpContext.User.Identity.Name;
+
+                var Sender = _context.Users.Find(request.SenderId);
+                add.NguoiTao = Sender.Username;
                 add.NgayTao = DateTime.Now;
-                add.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
+                add.NguoiSua = Sender.Username;
                 add.NgaySua = DateTime.Now;
 
                 // Lưu dữ liệu

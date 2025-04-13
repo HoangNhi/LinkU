@@ -1,0 +1,167 @@
+﻿@model MODELS.MESSAGE.Dtos.MODELMessageGetListPaging
+@{
+    var StyleMessage = new Dictionary<bool, string>()
+    {
+        {true, "MyMessage" },
+        {false, "OtherMessage" },
+    };
+}
+<style>
+    /* Container cha */
+    .wrapper {
+        container-type: inline-size; /* Theo dõi chiều rộng của container */
+        height: 100%;
+        width: 100%;
+        place-content: end;
+    }
+
+    .profile-card {
+        width: 400px;
+        justify-self: center;
+        overflow: hidden;
+        box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+    }
+
+    .MyMessage {
+        background-color: #543310;
+        color: white;
+        place-self: flex-end
+    }
+
+    .OtherMessage {
+        background-color: rgba(134, 142, 153, 0.3);
+        color: black;
+    }
+
+    /* Container Query */
+    /* Khi container nhỏ hơn 420px*/
+    @@container (max-width: 420px) {
+        .profile-card{
+            width: 360px
+        }
+    }
+
+    /* Khi container nhỏ hơn 380px*/
+    /* Khi container nhỏ hơn 420px*/
+    @@container (max-width: 380px) {
+        .profile-card {
+            width: 300px
+        }
+
+        .FirstMessageSuggestion{
+            display: none
+        }
+    }
+</style>
+
+<div class="wrapper">
+    @if (Model.Messages.Count == 0)
+    {
+        <div class="profile-card rounded-5 mb-5">
+            <div class="p-3 d-flex" style="">
+                <img class="rounded-circle"
+                     src="@Model.FriendUser.ProfilePicture"
+                     style="min-width: 80px; width: 80px; height: 80px; object-fit: cover;"/>
+                <div class="d-flex flex-column text-start ms-3 justify-content-center">
+                    <span class="fw-bold fs-5">@Model.FriendUser.HoVaTen</span>
+                    <span class="fs-6 FirstMessageSuggestion" style="font-weight: 400">Hãy gửi tin nhắn đầu tiên để bắt đầu cuộc trò chuyện</span>
+                </div>
+            </div>
+            <img src="@Model.FriendUser.CoverPicture"
+                 height="200"
+                 style="object-fit: cover; width: 100%;" />
+        </div>
+    }
+    else
+    {
+        <div id="ChatContainer" class="container">
+            @for(int i = Model.Messages.Count - 1; i >= 0; i--)
+            {
+                if (i == (Model.Messages.Count - 1))
+                {
+                      <div class="lh-1 py-3"
+                           style="font-size: 12px">@Model.Messages[Model.Messages.Count - 1].GetDateTime()</div>
+                }
+                else
+                {
+                    // Nếu thời gian tin nhắn cách nhau quá 30 phút thì sẽ hiển thị thời gian
+                    if ((Model.Messages[i].NgayTao - Model.Messages[i + 1].NgayTao).Minutes > 30)
+                    {
+                        <div class="lh-1 py-3"
+                             style="font-size: 12px">@Model.Messages[i].GetDateTime()</div>
+                    }
+                    else
+                    {
+                        <div class="d-none">@Model.Messages[i].GetDateTime()</div>
+                    }
+                }
+                <div class="row align-items-center @(Model.Messages[i].SenderId == Model.CurrentUser.Id ? "flex-row-reverse" : "")" style="margin-bottom: 12px;">
+                    <div style="width: 48px; display: @(Model.Messages[i].SenderId == Model.CurrentUser.Id ? "none" : "auto")">
+                        <img class="rounded-circle"
+                             src="@(Model.Messages[i].SenderId == Model.CurrentUser.Id ? Model.CurrentUser.ProfilePicture : Model.FriendUser.ProfilePicture)"
+                             style="height: 38px; width: 38px" />
+
+                    </div>
+                    <div style="width: 70%;">
+                        <p class="m-0 @StyleMessage[Model.Messages[i].SenderId == Model.CurrentUser.Id]"
+                           style="font-size: 14px; 
+                                  width: fit-content; 
+                                  padding: 8px 12px; 
+                                  border-radius: 18px; 
+                                  text-align: justify; 
+                                  font-weight: 400;
+                                  box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
+                            @Model.Messages[i].Content
+                        </p>
+                    </div>
+                    <div style="width: calc(30% - 48px)"></div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    window.onload = scrollToBottom();
+
+    function scrollToBottom() {
+        const chatBox = document.getElementById("MessageWrapper");
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Hàm nhận tin nhắn từ server
+    connection.on("ReceivePrivateMessage", function (sender, message) {
+        appendMessage(sender, message);
+        scrollToBottom()
+    });
+
+    // Append tin nhắn
+    function appendMessage(sender, message) {
+        debugger;
+        const div = document.createElement("div");
+        div.innerHTML = `<div class="row align-items-center ${sender === '@Model.CurrentUser.Id' ? "flex-row-reverse" : ""}" style="margin-bottom: 12px;">
+                            <div style="width: 48px; display: ${sender === '@Model.CurrentUser.Id' ? "none" : "auto"}">
+                                <img class="rounded-circle"
+                                     src="${sender === '@Model.CurrentUser.Id' ? '@Model.CurrentUser.ProfilePicture' : '@Model.FriendUser.ProfilePicture'}"
+                                     style="height: 38px; width: 38px" />
+
+                            </div>
+                            <div style="width: 70%;">
+                                <p class="m-0 ${sender === '@Model.CurrentUser.Id' ? '@StyleMessage[true]' : '@StyleMessage[false]'}"
+                                   style="font-size: 14px;
+                                          width: fit-content;
+                                          padding: 8px 12px;
+                                          border-radius: 18px;
+                                          text-align: justify;
+                                          font-weight: 400;
+                                          box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
+                                      ${message}
+                                </p>
+                            </div>
+                            <div style="width: calc(30% - 48px)"></div>
+                        </div>`;
+        document.getElementById("ChatContainer").appendChild(div);
+    }
+</script>
+
+

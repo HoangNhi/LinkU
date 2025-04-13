@@ -32,14 +32,13 @@
     @* Thông báo - alert *@
     <div id="ThongBao-container" class="toast-container"></div>
 
-    <div class="modal fade" 
-         id="modal-default" 
-         tabindex="-1" 
-         aria-labelledby="staticBackdropLabel" 
+    <div class="modal fade"
+         id="modal-default"
+         tabindex="-1"
+         aria-labelledby="staticBackdropLabel"
          aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" 
-             id='modalContainer'
-             >
+        <div class="modal-dialog modal-dialog-centered"
+             id='modalContainer'>
         </div>
     </div>
 
@@ -47,88 +46,87 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.1.0/mdb.umd.min.js"></script>
+
+    <!-- Custom js -->
     <script src="~/js/site.js" asp-append-version="true"></script>
+
     <!-- Script Show Loading -->
     <script src="https://malsup.github.io/jquery.blockUI.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     @section Scripts {
         <partial name="_ValidationScriptsPartial" />
     }
-<script>
-    // Kết nối tới Hub SignalR từ API
-    const connection = new signalR.HubConnectionBuilder()
-        .withUrl("https://localhost:7181/messageHub") // URL API SignalR hub
-        .build();
 
-    // Hàm nhận tin nhắn từ server
-    connection.on("ReceiveMessage", function (user, message) {
-        console.log("ReceiveMessage: " + user + " - " + message);
-    });
+    <script>
+        // Kết nối tới Hub SignalR từ API
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('https://localhost:7181/messageHub?userid=@(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value)') // URL API SignalR hub
+            .build();
 
-    // Kết nối tới Hub
-    connection.start().then(function () {
-        console.log("Connected to SignalR Hub");
-    }).catch(function (err) {
-        console.error(err.toString());
-    });
+        // Kết nối tới Hub
+        connection.start();
 
-    // Send message
-    function sendMessage() {
-        connection.invoke("SendMessage", "Hoàng Nhi", "Xin chào").catch(function (err) {
-            console.error(err.toString());
-        });
-    }
-
-    // Chuyển giao diện nhắn tin với User
-    function transToChatScreen(userId) {
-        event.stopPropagation(); // Ngăn sự kiện click lan lên div
-        showLoading(true)
-        $.ajax({
-            url: "@Url.Action("TransToChatScreen", "Message")",
-            type: "POST",
-            data: {
-                Id: userId
-            },
-            success: function (response) {
-                showLoading(false)
-                if (response.isSuccess === undefined) {
-                    CloseModal()
-                    $("#Messages").html(response)
-                } else {
-                    ShowThongBaoThatBai(response.message)
-                }
-            },
-            error: function (xhr, error) {
-                showLoading(false)
-                ShowThongBaoThatBai(error)
+        // Send message
+        function sendMessage(receiverId) {
+            if ($('#Message_Content').text() === '') {
+                e.preventdefault()
             }
-        })
-    }
+            connection.invoke("SendPrivateMessage", '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value', receiverId, $('#Message_Content').text());
+            $('#Message_Content').html('')
+        }
+    </script>
 
-    // Xóa lời mời kết bạn
-    function deleteFriendRequest(id) {
-        event.stopPropagation();
-        showLoading(true);
-        $.ajax({
-            url: '@Url.Action("DeleteFriendRequest", "Friend")',
-            type: 'POST',
-            data: {
-                Id: id,
-            },
-            success: function (data) {
-                if (!data.isSuccess) {
-                    ShowThongBaoThatBai(data.message)
-                } else {
-                    CloseModal()
-                    showFriendRequest()
+    <script>
+        // Chuyển giao diện nhắn tin với User
+        function transToChatScreen(userId) {
+            event.stopPropagation(); // Ngăn sự kiện click lan lên div
+            showLoading(true)
+            $.ajax({
+                url: "@Url.Action("TransToChatScreen", "Message")",
+                type: "POST",
+                data: {
+                    Id: userId
+                },
+                success: function (response) {
+                    showLoading(false)
+                    if (response.isSuccess === undefined) {
+                        CloseModal()
+                        $("#Messages").html(response)
+                    } else {
+                        ShowThongBaoThatBai(response.message)
+                    }
+                },
+                error: function (xhr, error) {
+                    showLoading(false)
+                    ShowThongBaoThatBai(error)
                 }
-            },
-            error: function (xhr, error) {
-                ShowThongBaoThatBai(error)
-            }
-        });
-        showLoading(false);
-    }
-</script>
+            })
+        }
+
+        // Xóa lời mời kết bạn
+        function deleteFriendRequest(id) {
+            event.stopPropagation();
+            showLoading(true);
+            $.ajax({
+                url: '@Url.Action("DeleteFriendRequest", "Friend")',
+                type: 'POST',
+                data: {
+                    Id: id,
+                },
+                success: function (data) {
+                    if (!data.isSuccess) {
+                        ShowThongBaoThatBai(data.message)
+                    } else {
+                        CloseModal()
+                        showFriendRequest()
+                    }
+                },
+                error: function (xhr, error) {
+                    ShowThongBaoThatBai(error)
+                }
+            });
+            showLoading(false);
+        }
+    </script>
 </body>
 </html>

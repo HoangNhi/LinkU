@@ -22,7 +22,7 @@ namespace MODELS.MESSAGE.Requests
         [Required(AllowEmptyStrings = false, ErrorMessage = "Nội dung không được để trống")]
         public string Content { get; set; } = null!;
 
-        public bool IsCall { get; set; }
+        public bool IsCall { get; set; } = false;
     }
 
     public class PostMessageRequestValidator : AbstractValidator<PostMessageRequest>

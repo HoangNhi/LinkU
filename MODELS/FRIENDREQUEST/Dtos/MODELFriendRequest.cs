@@ -27,7 +27,7 @@ namespace MODELS.FRIENDREQUEST.Dtos
 
 
         #region Hàm hỗ trợ
-        public int? Duration => NgayTao != null ? (int)((DateTime.Now - NgayTao).Value.TotalHours) : null;
+        public int? Duration => (int)((DateTime.Now - NgayTao).TotalHours);
         public string DurationText => Duration switch
         {
             >= 24 => $"{Duration / 24} ngày",

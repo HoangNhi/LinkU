@@ -18,7 +18,7 @@ namespace BE.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ApiResponse> GetListPaging(GetListPagingRequest request)
+        public ActionResult<ApiResponse> GetListPaging(PostMessageGetListPagingRequest request)
         {
             try
             {

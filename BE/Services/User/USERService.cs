@@ -94,6 +94,8 @@ namespace BE.Services.User
                 else
                 {
                     result = _mapper.Map<MODELUser>(data);
+                    result.Password = "";
+                    result.PasswordSalt = "";
                 }
                 response.Data = result;
             }

@@ -4,6 +4,8 @@ using MODELS.FRIENDREQUEST.Dtos;
 using MODELS.FRIENDREQUEST.Requests;
 using MODELS.FRIENDSHIP.Dtos;
 using MODELS.FRIENDSHIP.Requests;
+using MODELS.MESSAGE.Dtos;
+using MODELS.MESSAGE.Requests;
 using MODELS.OTP.Dtos;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.USER.Dtos;
@@ -33,6 +35,10 @@ namespace BE.AutoMapper
             // Friendship
             CreateMap<Friendship, MODELFriendship>().ReverseMap();
             CreateMap<Friendship, POSTFriendshipRequest>().ReverseMap();
+
+            // Message
+            CreateMap<Message, MODELMessage>().ReverseMap();
+            CreateMap<Message, PostMessageRequest>().ReverseMap();
         }
     }
 }

@@ -107,8 +107,8 @@
             },
             success: function (data) {
                 if (data.isSuccess) {
-                    CloseModal()
-                    GetFriendRequestStatus()
+                    // Gửi yêu cầu cập nhật FriendRequest
+                    connection.invoke("UpdateFriendRequest", id);
                 } else {
                     ShowThongBaoThatBai(data.message)
                 }

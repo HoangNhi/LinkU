@@ -137,7 +137,8 @@ else
                     ShowThongBaoThatBai(data.message)
                 } else {
                     CloseModal()
-                    showFriendRequest()
+                    // Gửi yêu cầu cập nhật FriendRequest
+                    connection.invoke("UpdateFriendRequest", id);
                 }
             },
             error: function (xhr, error) {

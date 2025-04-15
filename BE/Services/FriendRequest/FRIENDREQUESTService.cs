@@ -85,9 +85,6 @@ namespace BE.Services.FriendRequest
                 else
                 {
                     response.Data = _mapper.Map<MODELFriendRequest>(result);
-                    // Ẩn mật khẩu
-                    response.Data.User.Password = null;
-                    response.Data.User.PasswordSalt = null;
                 }
             }
             catch (Exception ex)

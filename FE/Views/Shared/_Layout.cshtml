@@ -69,11 +69,26 @@
         // Send message
         function sendMessage(receiverId) {
             if ($('#Message_Content').text() === '') {
-                e.preventdefault()
+                return;
             }
-            connection.invoke("SendPrivateMessage", '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value', receiverId, $('#Message_Content').text());
+            connection.invoke("SendPrivateMessage", '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value', receiverId, document.getElementById('Message_Content').innerHTML.trim());
             $('#Message_Content').html('')
         }
+
+        // Hàm nhận yêu cầu kết bạn từ server
+        connection.off("UpdateFriendRequest");
+        connection.on("UpdateFriendRequest", function () {
+            // Cập nhật _FriendRequestStatusPartial.cshtml
+            if (typeof GetFriendRequestStatus === "function") {
+                GetFriendRequestStatus()
+                return;
+            }
+
+            // Cập nhật _TabFriendRequestPartial.cshtml
+            if (typeof showFriendRequest === "function") {
+                showFriendRequest()
+            }
+        });
     </script>
 
     <script>
@@ -118,7 +133,8 @@
                         ShowThongBaoThatBai(data.message)
                     } else {
                         CloseModal()
-                        showFriendRequest()
+                        // Gửi yêu cầu cập nhật FriendRequest
+                        connection.invoke("UpdateFriendRequest", id);
                     }
                 },
                 error: function (xhr, error) {

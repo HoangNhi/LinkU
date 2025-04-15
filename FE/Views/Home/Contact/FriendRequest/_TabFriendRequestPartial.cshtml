@@ -21,8 +21,11 @@
 </div>
 
 <script>
+    GetFriendRequestStatus = null
     $(document).ready(function () {
+        // Gọi hàm để lấy danh sách lời mời kết bạn
         getFriendRequest('False');
+        // Gọi hàm để lấy danh sách lời mời đã gửi
         getFriendRequest('True');
     });
 

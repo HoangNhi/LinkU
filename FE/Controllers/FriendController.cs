@@ -115,6 +115,7 @@ namespace FE.Controllers
                             User.CoverPicture = GetCoverPicture(User.CoverPicture);
 
                             var result = new POSTFriendRequest();
+                            result.Id = Guid.NewGuid();
                             result.User = User;
                             return PartialView("~/Views/Home/Friend/PopupAddFriend.cshtml", result);
                         }

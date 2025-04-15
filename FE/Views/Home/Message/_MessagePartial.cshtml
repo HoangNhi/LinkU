@@ -9,13 +9,13 @@
 
     #MessageContainer{
         display: flex;
-        margin-top: 22px
+        height: 100%
     }
 </style>
 
 <div class="card text-center flex-grow-1"
      style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
-    <div class="card-header d-flex justify-content-between"
+    <div class="card-header d-flex justify-content-between position-relative"
          style="padding: 10px 12px; box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px; border: 0">
         <div class="d-flex">
             <img class="rounded-circle"
@@ -67,7 +67,7 @@
         </div>
     </div>
 
-    <div id="MessageWrapper" class="card-body p-0 position-relative" style="height: calc(100% - 136px); overflow: auto">
+    <div id="MessageWrapper" class="card-body p-0" style="height: calc(100% - 136px); overflow: auto">
         <div id="FriendStatus" class="position-absolute position-absolute w-100"></div>
         <div id="MessageContainer"></div>
     </div>
@@ -108,7 +108,8 @@
                         overflow-y: auto;
                         overflow-x: hidden"></div>
         </div>
-        <button type="button"
+        <button id="btnSendMessage"
+                type="button"
                 onclick="sendMessage('@Model.Id')"
                 class="btn btn-link rounded-circle position-relative align-self-end"
                 style="margin: 6px; height: 36px; width: 36px; padding: 0;"
@@ -163,6 +164,18 @@
             selection.collapseToEnd();
         });
 
+        document.getElementById('Message_Content').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                if (e.shiftKey) {
+                    // Người dùng nhấn Shift + Enter -> xuống dòng (mặc định)
+                    return;
+                } else {
+                    // Chỉ nhấn Enter -> gửi tin nhắn
+                    e.preventDefault();
+                    sendMessage('@Model.Id');
+                }
+            }
+        });
     });
 
     function ShowPopupAddFriend() {
@@ -199,7 +212,6 @@
             },
             success: function (data) {
                 $("#MessageContainer").html(data)
-                //scrollToBottom()
             }
         });
     }

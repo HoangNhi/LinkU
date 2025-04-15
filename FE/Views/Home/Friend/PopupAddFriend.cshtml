@@ -326,8 +326,9 @@
             success: function (data) {
                 if (data.isSuccess) {
                     CloseModal()
-                    GetFriendRequestStatus()
                     ShowThongBaoThanhCong(data.message)
+                    // Gửi yêu cầu UpdateFriendRequest để làm mới giao diện người gửi và người nhận
+                    connection.invoke("UpdateFriendRequest", '@Model.Id');
                 } else {
                     ShowThongBaoThatBai("Gửi lời mời kết bạn thành công")
                 }

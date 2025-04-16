@@ -60,11 +60,28 @@
     <script>
         // Kết nối tới Hub SignalR từ API
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl('https://localhost:7181/messageHub?userid=@(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value)') // URL API SignalR hub
-            .build();
+                                    .withUrl('https://localhost:7181/messageHub?userid=@(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value)') // URL API SignalR hub
+                                    .withAutomaticReconnect()
+                                    .build();
 
-        // Kết nối tới Hub
-        connection.start();
+        // Hàm Start SignalR
+        async function start() {
+            try {
+                await connection.start();
+                console.log("SignalR Connected.");
+            } catch (err) {
+                console.log(err);
+                setTimeout(start, 5000);
+            }
+        };
+
+        // Tự động kết nối lại
+        connection.onclose(async () => {
+            await start();
+        });
+
+        // Start the connection.
+        start();
 
         // Send message
         function sendMessage(receiverId) {

@@ -1,5 +1,5 @@
 ﻿@model MODELS.USER.Dtos.MODELUser
-
+@* Style _MessagePartial.cshtml *@
 <style>
     #Message_Content:empty::before {
         content: attr(data-placeholder);
@@ -7,11 +7,61 @@
         pointer-events: none;
     }
 
-    #MessageContainer{
+    #MessageContainer {
         display: flex;
         height: 100%
     }
 </style>
+
+@* Style _MessageContainerPartial *@
+<style>
+    /* Container cha */
+    .wrapper {
+        container-type: inline-size; /* Theo dõi chiều rộng của container */
+        height: 100%;
+        width: 100%;
+        place-content: end;
+    }
+
+    .profile-card {
+        width: 400px;
+        justify-self: center;
+        overflow: hidden;
+        box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+    }
+
+    .MyMessage {
+        background-color: #543310;
+        color: white;
+        place-self: flex-end
+    }
+
+    .OtherMessage {
+        background-color: rgba(134, 142, 153, 0.3);
+        color: black;
+    }
+
+    /* Container Query */
+    /* Khi container nhỏ hơn 420px*/
+    @@container (max-width: 420px) {
+        .profile-card {
+            width: 360px
+        }
+    }
+
+    /* Khi container nhỏ hơn 380px*/
+    /* Khi container nhỏ hơn 420px*/
+    @@container (max-width: 380px) {
+        .profile-card {
+            width: 300px
+        }
+
+        .FirstMessageSuggestion {
+            display: none
+        }
+    }
+</style>
+
 
 <div class="card text-center flex-grow-1"
      style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
@@ -69,7 +119,11 @@
 
     <div id="MessageWrapper" class="card-body p-0" style="height: calc(100% - 136px); overflow: auto">
         <div id="FriendStatus" class="position-absolute position-absolute w-100"></div>
-        <div id="MessageContainer"></div>
+        <div id="MessageContainer">
+            <div class="wrapper">
+                <div id="ChatContainer" class="container"></div>
+            </div>
+        </div>
     </div>
 
     <div class="card-footer d-flex border-0"
@@ -125,7 +179,13 @@
     </div>
 </div>
 
+@* Script _MessagePartial *@
 <script>
+    var currentPage = 1;
+    var isLoading = false;
+    // Biến kiểm tra đã lấy hết dữ liệu trong db hay chưa
+    var isDone = false;
+
     $(document).ready(function () {
         GetFriendRequestStatus();
         GetMessage()
@@ -178,6 +238,18 @@
         });
     });
 
+    var ChatBox = document.getElementById('MessageWrapper');
+    // Lắng nghe sự kiện cuộn
+    ChatBox.addEventListener('scroll', () => {
+        const scrollTop = ChatBox.scrollTop;
+        const windowHeight = ChatBox.scrollHeight;
+        const docHeight = ChatBox.clientHeight;
+
+        if (scrollTop === 0) {
+            GetMessage();
+        }
+    });
+
     function ShowPopupAddFriend() {
         $.ajax({
             url: '@Url.Action("ShowAddFriendPopup", "Friend")',
@@ -201,17 +273,132 @@
     }
 
     function GetMessage() {
+        if (isDone) return
+        if (isLoading) return;
+        isLoading = true;
+
+        var location = ChatBox.scrollHeight
         $.ajax({
             url: '@Url.Action("GetListPaging", "Message")',
             type: 'POST',
             data: {
                 CurrentId: '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value',
                 FriendId: '@Model.Id',
-                PageIndex: 1,
+                PageIndex: currentPage,
                 RowPerPage: 15
             },
             success: function (data) {
-                $("#MessageContainer").html(data)
+                if (data.trim() !== '') {
+                    document.getElementById('ChatContainer').insertAdjacentHTML('afterbegin', data);
+                    filterTimeDivs();
+                    if (currentPage === 1) {
+                        scrollToBottom();
+                    } else {
+                        ChatBox.scrollTop = ChatBox.scrollHeight - location;
+                    }
+                    currentPage++;
+                    isLoading = false;
+                } else {
+                    isDone = true;
+                }
+            }
+        });
+    }
+</script>
+
+@* Script _MessageContainerPartial *@
+<script>
+    function scrollToBottom() {
+        const chatBox = document.getElementById("MessageWrapper");
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Hàm nhận tin nhắn từ server
+    connection.off("ReceivePrivateMessage");
+    connection.on("ReceivePrivateMessage", function (sender, message, ngaytao) {
+        appendMessage(sender, message, ngaytao);
+        scrollToBottom()
+    });
+
+    // Append tin nhắn
+    function appendMessage(sender, message, ngaytao) {
+        // Ẩn profile card
+        const profileCard = document.querySelector('.profile-card');
+        if (profileCard) {
+            profileCard.style.display = 'none';
+        }
+
+        // Tạo tin nhắn
+        const div = document.createElement("div");
+        div.innerHTML = `
+                        <div class="lh-1 py-3"
+                            style="font-size: 12px">${ngaytao}</div>
+                        <div class="row align-items-center ${sender === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? "flex-row-reverse" : ""}" style="margin-bottom: 12px;">
+                            <div style="width: 48px; display: ${sender === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? "none" : "auto"}">
+                                <img class="rounded-circle"
+                                     src="@Model.ProfilePicture"
+                                     style="height: 38px; width: 38px" />
+
+                            </div>
+                            <div style="width: 70%;">
+                                <p class="m-0 ${sender === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? 'MyMessage' : 'OtherMessage'}"
+                                   style="font-size: 14px;
+                                          width: fit-content;
+                                          padding: 8px 12px;
+                                          border-radius: 18px;
+                                          text-align: justify;
+                                          font-weight: 400;
+                                          box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
+                                      ${message}
+                                </p>
+                            </div>
+                            <div style="width: calc(30% - 48px)"></div>
+                        </div>`;
+        document.getElementById("ChatContainer").appendChild(div);
+
+        // Gọi lại hàm xử lý display thời gian tạo tin nhắn
+        filterTimeDivs();
+    }
+</script>
+
+@* Script xử lý hiển thị thời gian *@
+<script>
+    function parseVietnameseDate(dateStr) {
+        const regex = /(\d{2}):(\d{2}) (\d{2}) tháng (\d{2}), (\d{4})/;
+        const match = dateStr.match(regex);
+        if (!match) return null;
+
+        const [_, hour, minute, day, month, year] = match.map(Number);
+        return new Date(year, month - 1, day, hour, minute);
+    }
+
+    // Hàm hiển thị thời gian tin nhắn
+    // Nếu 2 tin nhắn cách nhau hơn 30 phút sẽ hiển thị thời gian
+    // Thời gian sẽ được so sánh với tin nhắn trước đó
+    function filterTimeDivs() {
+        const container = document.getElementById("ChatContainer");
+        const timeDivs = Array.from(container.querySelectorAll("div.lh-1.py-3"));
+
+        let prevTime = null;
+
+        timeDivs.forEach((div, index) => {
+            const currentTime = parseVietnameseDate(div.textContent.trim());
+
+            if (!currentTime) return;
+
+            if (index === 0) {
+                div.style.display = "block";
+                prevTime = currentTime;
+                return;
+            }
+
+            const diffMinutes = (currentTime - prevTime) / 1000 / 60;
+
+            if (diffMinutes >= 30) {
+                div.style.display = "block";
+                prevTime = currentTime;
+            } else {
+                div.style.display = "none";
             }
         });
     }

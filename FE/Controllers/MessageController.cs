@@ -96,12 +96,13 @@ namespace FE.Controllers
                         var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
                         var DataResult = JsonConvert.DeserializeObject<MODELMessageGetListPaging>(result.Data.ToString());
 
+                        result.Data = DataResult;
                         DataResult.CurrentUser.ProfilePicture = GetProfilePicture(DataResult.CurrentUser.ProfilePicture);
                         DataResult.CurrentUser.CoverPicture = GetCoverPicture(DataResult.CurrentUser.CoverPicture);
                         DataResult.FriendUser.ProfilePicture = GetProfilePicture(DataResult.FriendUser.ProfilePicture);
                         DataResult.FriendUser.CoverPicture = GetCoverPicture(DataResult.FriendUser.CoverPicture);
 
-                        return PartialView("~/Views/Home/Message/_MessageContainerPartial.cshtml", DataResult);
+                        return PartialView("~/Views/Home/Message/_MessageContainerPartial.cshtml", result);
                     }
                     else
                     {

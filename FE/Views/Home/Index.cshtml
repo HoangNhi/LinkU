@@ -138,7 +138,9 @@
         <div id="ProfilePicture"
              style="padding-top: 12px; bottom: 12px; width: 100%; max-width: 240px; background-color: rgb(245, 245, 245)"
              class="d-flex align-items-center position-fixed">
-            <button type="button"
+            <button tabindex="0"
+                    type="button"
+                    id="BtnProfilePicture"
                     class="btn btn-link btn-ProfilePicture"
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
@@ -183,15 +185,40 @@
     </div>
 </div>
 
-
 <script>
+    var BtnPopover;
     $(document).ready(function () {
         // Thay đổi giao diện khi lần đầu truy cập vào trang
         changeWidthFocusScreen();
 
         // Mặc định là MessageList
         SwitchToScreen('TabMessageList')
+
+        var btn = document.getElementById('BtnProfilePicture');
+        $.get("@Url.Action("ConfigProfile", "Home")", function (data) {
+
+            BtnPopover = new mdb.Popover(btn, {
+                sanitize: false,
+                html: true,
+                content: data,
+                placement: 'top',
+                container: 'body',
+                trigger: 'manual',
+                offset: [120, 8]
+            });
+        });  
+
+        btn.addEventListener('click', () =>
+        {
+            BtnPopover.toggle()
+        })
+
     });
+    @*document.addEventListener('DOMContentLoaded', function ()
+    {
+
+    })*@
+
 
     // Hiển thị
     $(window).on('resize', function () {
@@ -374,5 +401,11 @@
         clickedButton.classList.add('active'); // Thêm class active cho button
         clickedIcon.classList.remove('fa-regular');
         clickedIcon.classList.add('fa-solid');
-    } 
+    }
+
+    function showInforModal() {
+        $.get('@Url.Action("ShowPersonalInfoModal", "Home")', function (data) {
+            ShowModal(data, "md")
+        });
+    }
 </script>

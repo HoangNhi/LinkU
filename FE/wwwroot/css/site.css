@@ -177,7 +177,6 @@ p {
 body {
     background-color: #f2f4f7;
     font-weight: 500;
-    color: black;
 }
 
 .toast:not(.show) {
@@ -193,5 +192,26 @@ body {
 .btn-light {
     --mdb-btn-bg: #eeeeee;
     --mdb-btn-hover-bg: #7f848740;
+}
+
+.popover-body{
+    padding: 0;
+}
+
+.popover {
+    width: 100%;
+    box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
+    color: black
+}
+
+div{
+    overflow:visible!important;
+}
+
+.hr {
+    width: calc(100% - 2rem);
+    background-color: unset!important;
+    border: 2px solid var(--bs-gray-400);
+    place-self: center;
 }
 

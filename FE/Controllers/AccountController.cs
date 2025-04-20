@@ -340,8 +340,7 @@ namespace FE.Controllers
             }
         }
 
-        [HttpGet]
-        [AllowAnonymous]
+        [HttpPost]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

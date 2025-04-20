@@ -52,5 +52,28 @@ namespace FE.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+        #region ConfigProfile Popover
+        public IActionResult ConfigProfile()
+        {
+            return PartialView("~/Views/Shared/ConfigProfile/_ConfigProfilePopoverPartial.cshtml");
+        }
+
+        public IActionResult ShowPersonalInfoModal()
+        {
+            // Lấy thông tin user
+            ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, new GetByIdRequest { Id = Guid.Parse(_consumeAPI.GetUserId()) }, HttpAction.Post);
+            if (response.Success)
+            {
+                var user = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                user.ProfilePicture = GetProfilePicture(user.ProfilePicture);
+                user.CoverPicture = GetCoverPicture(user.CoverPicture);
+                return PartialView("~/Views/Shared/ConfigProfile/_PeronalInforPartial.cshtml", user);
+            }
+            else
+            {
+                return View("~/Views/Shared/Error.cshtml", new ErrorViewModel { Message = response.Message });
+            }
+        }
+        #endregion
     }
 }

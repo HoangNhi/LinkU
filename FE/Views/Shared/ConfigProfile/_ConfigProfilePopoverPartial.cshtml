@@ -1,0 +1,22 @@
+﻿<div class="d-flex flex-column align-items-start py-2 px-1">
+    <button type="button"
+            onclick="BtnPopover.toggle();showInforModal()"
+            class="btn btn-link w-100 text-start text-black p-3"
+            data-mdb-ripple-init
+            data-mdb-ripple-color="dark">
+        <i class="fs-6 fa-regular fa-user w-25"></i>
+        <span class="fs-6 fw-normal w-75">Thông tin cá nhân</span>
+    </button>
+
+    <hr class="hr my-2" />
+
+    <form class="w-100" action="@Url.Action("Logout", "Account")" method="post">
+        <button type="submit"
+                class="btn btn-link text-danger w-100 text-start p-3"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="danger">
+            <i class="fs-6 fa-solid fa-arrow-right-from-bracket w-25"></i>
+            <span class="fs-6 fw-normal w-75">Đăng xuất</span>
+        </button>
+    </form>
+</div>

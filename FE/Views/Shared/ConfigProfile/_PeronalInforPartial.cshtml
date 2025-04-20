@@ -1,0 +1,171 @@
+﻿@model MODELS.USER.Dtos.MODELUser
+
+<style>
+    .btn-close:hover,
+    .btn-back:hover {
+        background-color: var(--bs-secondary-bg) !important;
+        opacity: 1 !important;
+        color: black !important;
+    }
+
+    .btn-back {
+        width: 32px;
+        height: 32px;
+        margin: -8px 0 -8px -8px;
+    }
+
+    .btn-back i {
+        font-size: 16px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .modal-title {
+        color: rgb(5, 5, 5);
+        line-height: 1;
+    }
+
+    .profile-picture {
+        border: 3px solid white;
+        border-radius: 50%;
+        background-color: white;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        object-fit: cover;
+    }
+
+    .user-info {
+        display: flex;
+        margin-bottom: 48px;
+    }
+
+    .user-info img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .user-info span {
+        color: rgb(8, 8, 9);
+    }
+
+    .modal-footer button {
+        width: 100%;
+    }
+</style>
+
+<div class="modal-content">
+    <div class="modal-header">
+        <button type="button"
+                id="btnHome"
+                onclick="$('.btn-back').addClass('d-none')"
+                class="btn-back btn-link rounded-circle position-relative border-0 bg-white opacity-50 d-none"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">Thông tin tài khoản</h1>
+        <button type="button"
+                class="btn-close btn-link rounded-circle"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark">
+        </button>
+    </div>
+
+    <div class="tab-content h-100" id="pills-tabContent">
+        <!-- Main Screen -->
+        <div class="tab-pane fade show active d-flex flex-column justify-content-between h-100" 
+             id="pills-home" 
+             role="tabpanel" 
+             aria-labelledby="pills-home-tab" 
+             tabindex="0">
+            <div class="modal-body p-0">
+                <!-- Cover, Profile picture and Name -->
+                <img src="@Model.CoverPicture" height="200" style="object-fit: cover; width: 100%;" />
+                <div class="p-3 pb-0">
+                    <div class="user-info">
+                        <div class="position-relative me-3" style="width: 100px">
+                            <img src="@Model.ProfilePicture" class="profile-picture" />
+                        </div>
+                        <span class="fs-5">@Model.HoVaTen</span>
+                    </div>
+                </div>
+
+                <hr class="hr m-0 w-100 border-5"/>
+
+                <div class="container p-3 pb-0">
+                    <div class="row mb-3">
+                        <div class="col-12 fw-bold text-black">Thông tin cá nhân</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            Giới tính
+                        </div>
+                        <div class="col-8 text-black">
+                            @Model.GenderString
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            Ngày sinh
+                        </div>
+                        <div class="col-8 text-black">
+                            @Model.DateOfBirthString
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.SoDienThoai))
+                    {
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                Số điện thoại
+                            </div>
+                            <div class="col-8 text-black">
+                                @Model.SoDienThoai
+                            </div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                Email
+                            </div>
+                            <div class="col-8 text-black">
+                                @Model.Email
+                            </div>
+                        </div>
+                    }
+                </div>
+
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" 
+                        class="btn btn-link fs-6 text-black fw-normal" 
+                        data-mdb-ripple-init data-mdb-ripple-color="dark"
+                        >
+                    <i class="fa-regular fa-pen-to-square"></i> Cập nhật
+                </button>
+            </div>
+        </div>
+
+        <!-- Update Profile Screen -->
+        <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
+            <div class="modal-body p-0">
+                <img src="@Model.CoverPicture" height="200" style="object-fit: cover; width: 100%;" />
+                <div style="padding: 16px;">
+                    <div class="user-info bg-white">
+                        <div style="position: relative;">
+                            <img src="@Model.ProfilePicture" class="profile-picture" />
+                        </div>
+                        <span class="fs-5">@Model.HoVaTen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

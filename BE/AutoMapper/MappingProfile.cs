@@ -21,6 +21,7 @@ namespace BE.AutoMapper
             CreateMap<User, MODELUser>().ReverseMap();
             CreateMap<User, PostUserRequest>().ReverseMap();
             CreateMap<User, RegisterRequest>().ReverseMap();
+            CreateMap<User, PostUpdateUserInforRequest>().ReverseMap();
 
             // OTP
             CreateMap<OTP, MODELOTP>().ReverseMap();

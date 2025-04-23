@@ -122,13 +122,13 @@ namespace BE.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ApiResponse> Update(PostUserRequest request)
+        public ActionResult<ApiResponse> UpdateInfor(PostUpdateUserInforRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.Update(request);
+                    var response = _service.UpdateInfor(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);

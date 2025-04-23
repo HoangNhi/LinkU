@@ -1,0 +1,53 @@
+﻿@model MODELS.USER.Dtos.MODELUser
+
+<button tabindex="0"
+        type="button"
+        id="BtnProfilePicture"
+        class="btn btn-link btn-ProfilePicture"
+        data-mdb-ripple-init
+        data-mdb-ripple-color="dark"
+        style="padding: 6px; width: 80%; text-align: left; display: flex; align-items: center">
+    <img id="Img-ProfilePicture"
+         class="rounded-circle"
+         src="@Model.ProfilePicture"
+         width="32" height="32"
+         style="margin: 0 6px; object-fit: cover" />
+    <span id="Name-ProfilePicture"
+          style="text-transform: none; font-size: 14px; font-weight: 500; color: black">@Model.Ten</span>
+</button>
+<div id="SideNav"
+        style="width: 20%; text-align: center">
+    <button type="button"
+            class="btn btn-light rounded-circle"
+            data-mdb-ripple-init
+            data-mdb-ripple-color="dark"
+            style="padding: 9px"
+            onclick="ChangeWidthSideNav()">
+        <img src="~/asset/hide.png"
+                width="20" height="20" />
+    </button>
+</div>
+
+<script>
+    $(document).ready(function ()
+    {
+        var btn = document.getElementById('BtnProfilePicture');
+        $.get("@Url.Action("ConfigProfile", "Home")", function (data) {
+
+            BtnPopover = new mdb.Popover(btn, {
+                sanitize: false,
+                html: true,
+                content: data,
+                placement: 'top',
+                container: 'body',
+                trigger: 'manual',
+                offset: [120, 8]
+            });
+        });
+
+        btn.addEventListener('click', () =>
+        {
+            BtnPopover.toggle()
+        })
+    })
+</script>

@@ -1,4 +1,12 @@
-﻿@model MODELS.USER.Dtos.MODELUser
+﻿@using Newtonsoft.Json;
+@model MODELS.USER.Requests.PostUpdateUserInforRequest
+
+@{ 
+    string ModelJson()
+    {
+        return JsonConvert.SerializeObject(Model);
+    }
+}
 
 <style>
     .btn-close:hover,
@@ -14,13 +22,13 @@
         margin: -8px 0 -8px -8px;
     }
 
-    .btn-back i {
-        font-size: 16px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
+        .btn-back i {
+            font-size: 16px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
 
     .modal-title {
         color: rgb(5, 5, 5);
@@ -43,48 +51,94 @@
         margin-bottom: 48px;
     }
 
-    .user-info img {
-        width: 100px;
-        height: 100px;
+        .user-info img {
+            width: 100px;
+            height: 100px;
+        }
+
+        .user-info span {
+            color: rgb(8, 8, 9);
+        }
+
+    .ui-datepicker-month,
+    .ui-datepicker-year {
+        padding: .32rem .75rem;
+        border: 1px solid rgb(189, 189, 189);
+        border-radius: 10px;
+        color: white;
+        background-color: #393E46;
     }
 
-    .user-info span {
-        color: rgb(8, 8, 9);
+    .ui-datepicker-month {
+        margin-right: 10px;
     }
 
-    .modal-footer button {
-        width: 100%;
+    .ui-datepicker-month:focus,
+    .ui-datepicker-year:focus {
+        /*        border-color: #3b71ca;*/
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+    }
+
+    .link-underline-opacity-75-hover:hover {
+        text-decoration: underline;
+        text-decoration-color: #473c38 !important;
+        color: #473c38
+    }
+
+    @@media (width <= 768px) {
+        .mt-bp-md-3 {
+            margin-top: 1rem !important
+        }
     }
 </style>
 
 <div class="modal-content">
-    <div class="modal-header">
-        <button type="button"
-                id="btnHome"
-                onclick="$('.btn-back').addClass('d-none')"
-                class="btn-back btn-link rounded-circle position-relative border-0 bg-white opacity-50 d-none"
-                data-mdb-ripple-init
-                data-mdb-ripple-color="dark">
-            <i class="fa-solid fa-chevron-left"></i>
-        </button>
-        <h1 class="modal-title fs-5" id="staticBackdropLabel">Thông tin tài khoản</h1>
-        <button type="button"
-                class="btn-close btn-link rounded-circle"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-                data-mdb-ripple-init
-                data-mdb-ripple-color="dark">
-        </button>
-    </div>
-
     <div class="tab-content h-100" id="pills-tabContent">
         <!-- Main Screen -->
-        <div class="tab-pane fade show active d-flex flex-column justify-content-between h-100" 
-             id="pills-home" 
-             role="tabpanel" 
-             aria-labelledby="pills-home-tab" 
+        <div class="tab-pane fade show active flex-column justify-content-between h-100"
+             id="pills-profile"
+             role="tabpanel"
+             aria-labelledby="pills-profile-tab"
              tabindex="0">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Thông tin tài khoản</h1>
+                <button type="button"
+                        class="btn-close btn-link rounded-circle"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                        data-mdb-ripple-init
+                        data-mdb-ripple-color="dark">
+                </button>
+            </div>
             <div class="modal-body p-0">
+                @* Tab Controller - Hidden *@
+                <ul class="nav nav-pills mb-3 d-none" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active"
+                                id="pills-profile-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#pills-profile"
+                                type="button"
+                                role="tab"
+                                aria-controls="pills-profile"
+                                aria-selected="true">
+                            Profile
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="pills-update-profile-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#pills-update-profile"
+                                type="button"
+                                role="tab"
+                                aria-controls="pills-update-profile"
+                                aria-selected="false">
+                            Update Profile
+                        </button>
+                    </li>
+                </ul>
+
                 <!-- Cover, Profile picture and Name -->
                 <img src="@Model.CoverPicture" height="200" style="object-fit: cover; width: 100%;" />
                 <div class="p-3 pb-0">
@@ -96,7 +150,7 @@
                     </div>
                 </div>
 
-                <hr class="hr m-0 w-100 border-5"/>
+                <hr class="hr m-0 w-100 border-5" />
 
                 <div class="container p-3 pb-0">
                     <div class="row mb-3">
@@ -141,31 +195,77 @@
                         </div>
                     }
                 </div>
-
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" 
-                        class="btn btn-link fs-6 text-black fw-normal" 
-                        data-mdb-ripple-init data-mdb-ripple-color="dark"
-                        >
+                <button type="button"
+                        onclick="$('.btn-back').removeClass('d-none')"
+                        id="BtnUpdateProfile"
+                        class="btn btn-link fs-6 text-black w-100"
+                        data-mdb-ripple-init data-mdb-ripple-color="dark">
                     <i class="fa-regular fa-pen-to-square"></i> Cập nhật
                 </button>
             </div>
         </div>
 
         <!-- Update Profile Screen -->
-        <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
-            <div class="modal-body p-0">
-                <img src="@Model.CoverPicture" height="200" style="object-fit: cover; width: 100%;" />
-                <div style="padding: 16px;">
-                    <div class="user-info bg-white">
-                        <div style="position: relative;">
-                            <img src="@Model.ProfilePicture" class="profile-picture" />
-                        </div>
-                        <span class="fs-5">@Model.HoVaTen</span>
-                    </div>
-                </div>
-            </div>
+        <div class="tab-pane fade"
+             id="pills-update-profile"
+             role="tabpanel"
+             aria-labelledby="pills-update-profile-tab"
+             tabindex="0">
+            @* _UpdateProfilePartial.cshtml *@
         </div>
     </div>
 </div>
+
+@* Chuyển tab *@
+<script>
+    $(document).ready(function () {
+        // Change To Profile Tab
+        document.getElementById("BtnUpdateProfile").addEventListener("click", function () {
+            RenderUpdateProfile();
+            let updateProfileTab = new bootstrap.Tab(document.getElementById("pills-update-profile-tab"));
+            updateProfileTab.show();
+        });
+    });
+
+    function RenderUpdateProfile() {
+        $.ajax({
+            url: "@Url.Action("GetUpdateProfile", "Home")",
+            type: "GET",
+            data: {
+                request: '@ModelJson()'
+            },
+            success: function (data) {
+                $('#pills-update-profile').html(data);
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        })
+    }
+
+    function UpdateProfile() {
+        var data = $("#frmUpdateProfile").serialize();
+        showLoading(true)
+        $.ajax({
+            url: "@Url.Action("UpdatePersonalInfo", "Home")",
+            type: "POST",
+            data: data,
+            success: function (response) {
+                showLoading(false)
+                if (response.isSuccess) {
+                    ShowThongBaoThanhCong("Cập nhật thành công")
+                    GetProfilePicture();
+                    showInforModal();
+
+                } else {
+                    ShowThongBaoThatBai(response.message)
+                }
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        })
+    }
+</script>

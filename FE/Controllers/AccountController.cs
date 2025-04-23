@@ -26,7 +26,177 @@ namespace FE.Controllers
         {
             return RedirectToAction("Login");
         }
+        #region Register
+        [AllowAnonymous]
+        public IActionResult Register()
+        {
+            ViewData["Title"] = "Đăng ký";
 
+            return View("~/Views/Account/Register.cshtml", new RegisterRequest());
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public IActionResult Register(RegisterRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_REGISTER, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        return Json(new { IsSuccess = true, Message = "Đăng ký thành công", Data = "" });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi đăng ký: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        [AllowAnonymous]
+        public IActionResult GoogleRegister(string Username)
+        {
+            ViewData["Title"] = "Thông tin tài khoản";
+            return View("~/Views/Account/GoogleRegister.cshtml", new RegisterRequest { Username = Username, IsGoogle = true });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult GoogleRegister(RegisterRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_REGISTER, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        SetClaimLogin(response.Data.ToString());
+                        return Json(new { IsSuccess = true, Message = "Cập nhật dữ liệu thành công", Data = "" });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi cập nhật thông tin: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+        #endregion
+
+        #region Forgot Password
+        [AllowAnonymous]
+        public IActionResult ForgetPassword()
+        {
+            ViewData["Title"] = "Quên mật khẩu";
+            return View("~/Views/Account/ForgetPassword.cshtml", new UsernameRequest());
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public IActionResult SendOTP(string Username)
+        {
+            try
+            {
+                ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_SENDOTP, new UsernameRequest { Username = Username }, HttpAction.Post);
+                if (response.Success)
+                {
+                    return PartialView("~/Views/Account/VerifyOTP.cshtml", new VerifyOTPRequest { Username = Username });
+                }
+                else
+                {
+                    throw new Exception(response.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi cập nhật thông tin: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public IActionResult VerifyOTP(VerifyOTPRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_VERIFYOTP, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        return PartialView("~/Views/Account/ChangePassword.cshtml", new ChangePasswordRequest { Token = response.Data.ToString() });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public ActionResult ChangePassword(ChangePasswordRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_CHANGEPASSWORD, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        return Json(new { IsSuccess = true, Message = "Đổi mật khẩu thành công", Data = "" });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+        #endregion
+
+        #region Login/LogOut
         [AllowAnonymous]
         public IActionResult Login(string userName = "")
         {
@@ -118,44 +288,6 @@ namespace FE.Controllers
             }
         }
 
-        [AllowAnonymous]
-        public IActionResult Register()
-        {
-            ViewData["Title"] = "Đăng ký";
-
-            return View("~/Views/Account/Register.cshtml", new RegisterRequest());
-        }
-
-        [AllowAnonymous]
-        [HttpPost]
-        public IActionResult Register(RegisterRequest request)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_REGISTER, request, HttpAction.Post);
-                    if (response.Success)
-                    {
-                        return Json(new { IsSuccess = true, Message = "Đăng ký thành công", Data = "" });
-                    }
-                    else
-                    {
-                        throw new Exception(response.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
-                }
-            }
-            catch (Exception ex)
-            {
-                string message = "Lỗi đăng ký: " + ex.Message;
-                return Json(new { IsSuccess = false, Message = message, Data = "" });
-            }
-        }
-
         [HttpGet]
         [AllowAnonymous]
         public IActionResult SigninGoogle()
@@ -171,8 +303,12 @@ namespace FE.Controllers
             try
             {
                 var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                // Xóa cookie hiện tại
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                if (result == null || !result.Succeeded)
+                {
+                    // Xóa cookie hiện tại
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    return RedirectToAction("Login");
+                }
 
                 // Đăng nhập thành công sẽ lấy được các claim như: email, name, ...
                 var claimsGoogle = result.Principal.Identities
@@ -212,140 +348,14 @@ namespace FE.Controllers
             }
         }
 
-        [AllowAnonymous]
-        public IActionResult GoogleRegister(string Username)
-        {
-            ViewData["Title"] = "Thông tin tài khoản";
-            return View("~/Views/Account/GoogleRegister.cshtml", new RegisterRequest { Username = Username, IsGoogle = true });
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        public IActionResult GoogleRegister(RegisterRequest request)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_REGISTER, request, HttpAction.Post);
-                    if (response.Success)
-                    {
-                        SetClaimLogin(response.Data.ToString());
-                        return Json(new { IsSuccess = true, Message = "Cập nhật dữ liệu thành công", Data = "" });
-                    }
-                    else
-                    {
-                        throw new Exception(response.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
-                }
-            }
-            catch (Exception ex)
-            {
-                string message = "Lỗi cập nhật thông tin: " + ex.Message;
-                return Json(new { IsSuccess = false, Message = message, Data = "" });
-            }
-        }
-
-        [AllowAnonymous]
-        public IActionResult ForgetPassword()
-        {
-            ViewData["Title"] = "Quên mật khẩu";
-            return View("~/Views/Account/ForgetPassword.cshtml", new UsernameRequest());
-        }
-
-        [AllowAnonymous]
-        [HttpPost]
-        public IActionResult SendOTP(string Username)
-        {
-            try
-            {
-                ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_SENDOTP, new UsernameRequest { Username = Username }, HttpAction.Post);
-                if (response.Success)
-                {
-                    return PartialView("~/Views/Account/VerifyOTP.cshtml", new VerifyOTPRequest { Username = Username });
-                }
-                else
-                {
-                    throw new Exception(response.Message);
-                }
-            }
-            catch (Exception ex)
-            {
-                string message = "Lỗi cập nhật thông tin: " + ex.Message;
-                return Json(new { IsSuccess = false, Message = message, Data = "" });
-            }
-        }
-
-        [AllowAnonymous]
-        [HttpPost]
-        public IActionResult VerifyOTP(VerifyOTPRequest request)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_VERIFYOTP, request, HttpAction.Post);
-                    if (response.Success)
-                    {
-                        return PartialView("~/Views/Account/ChangePassword.cshtml", new ChangePasswordRequest { Token = response.Data.ToString() });
-                    }
-                    else
-                    {
-                        throw new Exception(response.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
-                }
-            }
-            catch (Exception ex)
-            {
-                string message = "Lỗi: " + ex.Message;
-                return Json(new { IsSuccess = false, Message = message, Data = "" });
-            }
-        }
-
-        [AllowAnonymous]
-        [HttpPost]
-        public ActionResult ChangePassword(ChangePasswordRequest request)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_CHANGEPASSWORD, request, HttpAction.Post);
-                    if (response.Success)
-                    {
-                        return Json(new { IsSuccess = true, Message = "Đổi mật khẩu thành công", Data = "" });
-                    }
-                    else
-                    {
-                        throw new Exception(response.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
-                }
-            }
-            catch (Exception ex)
-            {
-                string message = "Lỗi: " + ex.Message;
-                return Json(new { IsSuccess = false, Message = message, Data = "" });
-            }
-        }
-
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }
+
+        #endregion
 
         #region Private Method
         private async void SetClaimLogin(string ResponseData)

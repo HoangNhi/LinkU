@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 namespace FE.Configure
 {
@@ -10,7 +11,6 @@ namespace FE.Configure
             .AddCookie(options =>
             {
                 options.Cookie.HttpOnly = true;
-                options.Cookie.SameSite = SameSiteMode.Strict;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.IsEssential = true;
                 options.ExpireTimeSpan = TimeSpan.FromDays(MODELS.COMMON.CommonConst.ExpireRefreshToken);

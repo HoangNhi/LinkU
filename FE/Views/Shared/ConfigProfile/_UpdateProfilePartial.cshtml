@@ -1,0 +1,108 @@
+﻿@model MODELS.USER.Requests.PostUpdateUserInforRequest
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmUpdateProfile" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <div class="modal-header">
+        <button type="button"
+                class="btn-back btnHome btn-link rounded-circle position-relative border-0 bg-white opacity-50"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <h1 class="modal-title fs-5">Cập nhật thông tin cá nhân</h1>
+        <button type="button"
+                class="btn-close btn-link rounded-circle"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark">
+        </button>
+    </div>
+
+    <div class="modal-body p-3">
+        <div class="mb-3">
+            <p class="mb-1">Tên hiển thị</p>
+            @Html.TextBoxFor(m => m.HoVaTen, new { @class = "form-control", style = "" })
+            @Html.ValidationMessageFor(model => model.HoVaTen, "", new { @class = "text-danger", @style = "align-self: start;" })
+        </div>
+
+
+        <div class="mb-3">
+            <p class="mb-1">Giới tính</p>
+            <div class="d-flex">
+                <select class="form-select"
+                        style="padding: .32rem .75rem; font-size: 1rem;
+                               font-weight: 400; line-height: 24px; color: #4f4f4f; border: 1px solid rgb(189, 189, 189)"
+                        asp-for="Gender">
+                    <option value="">- Giới tính -</option>
+                    <option value="1">Nam</option>
+                    <option value="0">Nữ</option>
+                </select>
+            </div>
+            @Html.ValidationMessageFor(model => model.Gender, "", new { @class = "text-danger", @style = "align-self: start;" })
+        </div>
+
+        <div class="">
+            <p class="mb-1">Ngày sinh</p>
+            <input type="text"
+                   asp-for="DateOfBirth"
+                   autocomplete="off"
+                   class="form-control bg-white"
+                   readonly
+                   value="">
+            @Html.ValidationMessageFor(model => model.DateOfBirth, "", new { @class = "text-danger", @style = "align-self: start;" })
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-light fs-6 btnHome" data-mdb-ripple-init data-mdb-ripple-color="dark">Hủy</button>
+        <button type="submit" class="btn btn-primary fs-6" data-mdb-ripple-init>Cập nhật</button>
+    </div>
+}
+
+<script>
+    $(document).ready(function ()
+    {
+        // Chagne To Home Tab
+        document.querySelectorAll(".btnHome").forEach(el => el.addEventListener("click", function () {
+            let profileTab = new bootstrap.Tab(document.getElementById("pills-profile-tab"));
+            profileTab.show();
+        }))
+
+        // Set datepicker for DateOfBirth
+        $("#DateOfBirth").datepicker({
+            dateFormat: "dd-mm-yy",
+            duration: "fast",
+            changeMonth: true,
+            changeYear: true
+        });
+
+        if ($("#DateOfBirth").val() === "") {
+            $("#DateOfBirth").datepicker("setDate", new Date('@Model.DateOfBirth.Year', '@(Model.DateOfBirth.Month - 1)', '@Model.DateOfBirth.Day'));
+        }
+
+        // Remove validation
+        var form = $("#frmUpdateProfile")
+            .removeData("validator")
+            .removeData("unobtrusiveValidation");
+
+        // Re validate
+        jQuery.validator.unobtrusive.parse(form);
+
+        $("#frmUpdateProfile").submit(async function (event) {
+            event.preventDefault();
+            if ($("#frmUpdateProfile").valid()) {
+                UpdateProfile();
+            }
+        });
+    })
+</script>
+
+@* Cài đặt thời gian Việt Nam *@
+<script>
+    $.datepicker.setDefaults(
+        $.extend(
+            $.datepicker.regional['vi']
+        )
+    );
+</script>

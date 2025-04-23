@@ -107,21 +107,21 @@ namespace BE.Services.User
             return response;
         }
 
-        public BaseResponse<PostUserRequest> GetByPost(GetByIdRequest request)
+        public BaseResponse<PostUpdateUserInforRequest> GetByPost(GetByIdRequest request)
         {
-            var response = new BaseResponse<PostUserRequest>();
+            var response = new BaseResponse<PostUpdateUserInforRequest>();
             try
             {
-                var result = new PostUserRequest();
-                var data = _context.Users.FindAsync(request.Id);
+                var result = new PostUpdateUserInforRequest();
+                var data = _context.Users.Find(request.Id);
                 if (data == null)
                 {
                     result.IsEdit = false;
                 }
                 else
                 {
-                    result = _mapper.Map<PostUserRequest>(data);
-                    result.Password = "Abc@123";
+                    result = _mapper.Map<PostUpdateUserInforRequest>(data);
+                    result.HoVaTen = data.HoLot + " " + data.Ten;
                     result.IsEdit = true;
                 }
                 response.Data = result;
@@ -189,61 +189,102 @@ namespace BE.Services.User
             return response;
         }
 
-        public BaseResponse<MODELUser> Update(PostUserRequest request)
+        //public BaseResponse<MODELUser> Update(PostUserRequest request)
+        //{
+        //    var response = new BaseResponse<MODELUser>();
+        //    try
+        //    {
+        //        var checkUsernameExist = _context.Users.Where(x => x.Username == request.Username);
+        //        if (checkUsernameExist.Any())
+        //        {
+        //            throw new Exception("Tên tài khoản đã tồn tại");
+        //        }
+
+        //        var checkEmailExist = _context.Users.Where(x => x.Email == request.Email);
+        //        if (checkEmailExist.Any())
+        //        {
+        //            throw new Exception("Email đã tồn tại");
+        //        }
+
+        //        var checkPhoneExist = _context.Users.Where(x => x.SoDienThoai == request.SoDienThoai);
+        //        if (checkPhoneExist.Any())
+        //        {
+        //            throw new Exception("Số điện thoại đã tồn tại");
+        //        }
+
+        //        if (!CommonFunc.IsValidEmail(request.Email))
+        //            throw new Exception("Email không đúng định dạng");
+
+        //        if (!CommonFunc.IsValidPhone(request.SoDienThoai))
+        //            throw new Exception("Số điện thoại không đúng định dạng");
+
+        //        var update = _context.Users.Find(request.Id);
+        //        if (update == null)
+        //        {
+        //            throw new Exception("Không tìm thấy dữ liệu");
+        //        }
+        //        else
+        //        {
+        //            _mapper.Map(request, update);
+        //            if (request.Password != "Abc@123")
+        //            {
+        //                update.Password = Encrypt_DecryptHelper.EncodePassword(request.Password, update.PasswordSalt);
+        //            }
+
+        //            update.ProfilePicture = UploadPicture(request.FolderUpload, update.ProfilePicture, "Files/User/ProfilePicture");
+        //            update.CoverPicture = UploadPicture(request.FolderUploadCoverPicture, update.CoverPicture, "Files/User/CoverPicture");
+        //            update.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
+        //            update.NgaySua = DateTime.Now;
+
+        //            // Lưu dữ liệu
+        //            _context.Users.Update(update);
+        //            _context.SaveChanges();
+
+        //            response.Data = _mapper.Map<MODELUser>(update);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response.Error = true;
+        //        response.Message = ex.Message;
+        //    }
+        //    return response;
+        //}
+
+        public BaseResponse<MODELUser> UpdateInfor(PostUpdateUserInforRequest request)
         {
             var response = new BaseResponse<MODELUser>();
             try
             {
-                var checkUsernameExist = _context.Users.Where(x => x.Username == request.Username);
-                if (checkUsernameExist.Any())
-                {
-                    throw new Exception("Tên tài khoản đã tồn tại");
-                }
-
-                var checkEmailExist = _context.Users.Where(x => x.Email == request.Email);
-                if (checkEmailExist.Any())
-                {
-                    throw new Exception("Email đã tồn tại");
-                }
-
-                var checkPhoneExist = _context.Users.Where(x => x.SoDienThoai == request.SoDienThoai);
-                if (checkPhoneExist.Any())
-                {
-                    throw new Exception("Số điện thoại đã tồn tại");
-                }
-
-                if (!CommonFunc.IsValidEmail(request.Email))
-                    throw new Exception("Email không đúng định dạng");
-
-                if (!CommonFunc.IsValidPhone(request.SoDienThoai))
-                    throw new Exception("Số điện thoại không đúng định dạng");
-
                 var update = _context.Users.Find(request.Id);
-                if (update == null)
+                if (update == null) 
                 {
                     throw new Exception("Không tìm thấy dữ liệu");
                 }
                 else
                 {
-                    _mapper.Map(request, update);
-                    if (request.Password != "Abc@123")
-                    {
-                        update.Password = Encrypt_DecryptHelper.EncodePassword(request.Password, update.PasswordSalt);
-                    }
+                    // Họ và tên
+                    var nameParts = request.HoVaTen.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    update.HoLot = string.Join(" ", nameParts.Take(nameParts.Length - 1));
+                    update.Ten = nameParts.Last();
 
-                    update.ProfilePicture = UploadPicture(request.FolderUpload, update.ProfilePicture, "Files/User/ProfilePicture");
-                    update.CoverPicture = UploadPicture(request.FolderUploadCoverPicture, update.CoverPicture, "Files/User/CoverPicture");
-                    update.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
+                    // Ngày sinh và giới tính
+                    update.DateOfBirth = request.DateOfBirth;
+                    update.Gender = request.Gender;
+
+                    // Thông tin khác
                     update.NgaySua = DateTime.Now;
+                    update.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
 
                     // Lưu dữ liệu
                     _context.Users.Update(update);
                     _context.SaveChanges();
 
+                    // Trả về dữ liệu
                     response.Data = _mapper.Map<MODELUser>(update);
                 }
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 response.Error = true;
                 response.Message = ex.Message;

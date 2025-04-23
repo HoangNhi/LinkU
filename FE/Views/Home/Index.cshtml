@@ -1,6 +1,5 @@
 ﻿@{
     ViewData["Title"] = "Trang chủ";
-    MODELS.USER.Dtos.MODELUser User = ViewBag.UserInfo;
 }
 
 <style>
@@ -138,33 +137,7 @@
         <div id="ProfilePicture"
              style="padding-top: 12px; bottom: 12px; width: 100%; max-width: 240px; background-color: rgb(245, 245, 245)"
              class="d-flex align-items-center position-fixed">
-            <button tabindex="0"
-                    type="button"
-                    id="BtnProfilePicture"
-                    class="btn btn-link btn-ProfilePicture"
-                    data-mdb-ripple-init
-                    data-mdb-ripple-color="dark"
-                    style="padding: 6px; width: 80%; text-align: left; display: flex; align-items: center">
-                <img id="Img-ProfilePicture"
-                     class="rounded-circle"
-                     src="@User.ProfilePicture"
-                     width="32" height="32"
-                     style="margin: 0 6px; object-fit: cover" />
-                <span id="Name-ProfilePicture"
-                      style="text-transform: none; font-size: 14px; font-weight: 500; color: black">@User.Ten</span>
-            </button>
-            <div id="SideNav"
-                    style="width: 20%; text-align: center">
-                <button type="button"
-                        class="btn btn-light rounded-circle"
-                        data-mdb-ripple-init
-                        data-mdb-ripple-color="dark"
-                        style="padding: 9px"
-                        onclick="ChangeWidthSideNav()">
-                    <img src="~/asset/hide.png"
-                            width="20" height="20" />
-                </button>
-            </div>
+            @* ~/Views/Shared/ConfigProfile/_ProfilePicture.cshtml *@
         </div>
     </div>
 
@@ -188,37 +161,13 @@
 <script>
     var BtnPopover;
     $(document).ready(function () {
+        GetProfilePicture();
         // Thay đổi giao diện khi lần đầu truy cập vào trang
         changeWidthFocusScreen();
 
         // Mặc định là MessageList
         SwitchToScreen('TabMessageList')
-
-        var btn = document.getElementById('BtnProfilePicture');
-        $.get("@Url.Action("ConfigProfile", "Home")", function (data) {
-
-            BtnPopover = new mdb.Popover(btn, {
-                sanitize: false,
-                html: true,
-                content: data,
-                placement: 'top',
-                container: 'body',
-                trigger: 'manual',
-                offset: [120, 8]
-            });
-        });  
-
-        btn.addEventListener('click', () =>
-        {
-            BtnPopover.toggle()
-        })
-
     });
-    @*document.addEventListener('DOMContentLoaded', function ()
-    {
-
-    })*@
-
 
     // Hiển thị
     $(window).on('resize', function () {
@@ -237,7 +186,14 @@
             // Thêm class .active cho button vừa được click
             button.classList.add('active');
         });
-    });
+    })
+
+    // Render ProfilePicture
+    function GetProfilePicture() {
+        $.get("@Url.Action("GetConfigProfile", "Home")", function (data) { 
+            $("#ProfilePicture").html(data)
+        });
+    }
 
     function ChangeWidthSideNav() {
         const width = $("#Functions").width()

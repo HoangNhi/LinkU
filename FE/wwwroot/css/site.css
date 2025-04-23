@@ -205,7 +205,7 @@ body {
 }
 
 div{
-    overflow:visible!important;
+    overflow:visible;
 }
 
 .hr {

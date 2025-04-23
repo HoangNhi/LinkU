@@ -7,7 +7,7 @@
         public const string USER_GET_BY_ID = "/User/GetById";
         public const string USER_GET_BY_POST = "/User/GetByPost";
         public const string USER_INSERT = "/User/Insert";
-        public const string USER_UPDATE = "/User/Update";
+        public const string USER_UPDATE_INFOR = "/User/UpdateInfor";
         public const string USER_DELETE_LIST = "/User/DeleteList";
         public const string USER_LOGIN = "/User/Login";
         public const string USER_REGISTER = "/User/Register";

@@ -7,8 +7,10 @@ using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MESSAGE.Dtos;
 using MODELS.USER.Dtos;
+using MODELS.USER.Requests;
 using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Net;
 
 namespace FE.Controllers
 {
@@ -40,6 +42,23 @@ namespace FE.Controllers
             return View();
         }
 
+        public IActionResult GetConfigProfile()
+        {
+            // Lấy thông tin user
+            ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, new GetByIdRequest { Id = Guid.Parse(_consumeAPI.GetUserId()) }, HttpAction.Post);
+            if (response.Success)
+            {
+                var user = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                user.ProfilePicture = GetProfilePicture(user.ProfilePicture);
+
+                return PartialView("~/Views/Shared/ConfigProfile/_ProfilePicture.cshtml", user);
+            }
+            else
+            {
+                return View("~/Views/Shared/Error.cshtml", new ErrorViewModel { Message = response.Message });
+            }
+        }
+
         public IActionResult Privacy()
         {
             return View();
@@ -61,10 +80,10 @@ namespace FE.Controllers
         public IActionResult ShowPersonalInfoModal()
         {
             // Lấy thông tin user
-            ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, new GetByIdRequest { Id = Guid.Parse(_consumeAPI.GetUserId()) }, HttpAction.Post);
+            ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_POST, new GetByIdRequest { Id = Guid.Parse(_consumeAPI.GetUserId()) }, HttpAction.Post);
             if (response.Success)
             {
-                var user = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                var user = JsonConvert.DeserializeObject<PostUpdateUserInforRequest>(response.Data.ToString());
                 user.ProfilePicture = GetProfilePicture(user.ProfilePicture);
                 user.CoverPicture = GetCoverPicture(user.CoverPicture);
                 return PartialView("~/Views/Shared/ConfigProfile/_PeronalInforPartial.cshtml", user);
@@ -72,6 +91,41 @@ namespace FE.Controllers
             else
             {
                 return View("~/Views/Shared/Error.cshtml", new ErrorViewModel { Message = response.Message });
+            }
+        }
+
+        public IActionResult GetUpdateProfile(string request)
+        {
+            string decodedJson = WebUtility.HtmlDecode(request);
+            var user = JsonConvert.DeserializeObject<PostUpdateUserInforRequest>(decodedJson);
+            return PartialView("~/Views/Shared/ConfigProfile/_UpdateProfilePartial.cshtml", user);
+        }
+
+        public IActionResult UpdatePersonalInfo(PostUpdateUserInforRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.USER_UPDATE_INFOR, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        return Json(new { IsSuccess = true, Message = "Cập nhật thành công", Data = "" });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
             }
         }
         #endregion

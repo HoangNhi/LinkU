@@ -18,5 +18,11 @@ namespace MODELS.COMMON
         /// Thời hạn đổi mật khẩu sau khi xác thực OTP là 10 phút
         /// </summary>
         public static int ExpireChangePassword = 10;
+
+        /// <summary>
+        /// Các định dạng file được phép upload
+        /// Các trường hợp Upload: Profile Picture, Cover Picture, ChatImage, ChatFile
+        /// </summary>
+        public static string[] AllowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "application/pdf" };
     }
 }

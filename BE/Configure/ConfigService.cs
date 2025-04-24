@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using Azure.Storage.Blobs;
 using BE.AutoMapper;
 using BE.Services.FriendRequest;
 using BE.Services.FriendShip;
 using BE.Services.Mail;
+using BE.Services.MediaFile;
 using BE.Services.Message;
 using BE.Services.MessageList;
 using BE.Services.OTP;
@@ -12,6 +14,8 @@ using ENTITIES.DbContent;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using MODELS.USER.Requests;
 
@@ -29,9 +33,12 @@ namespace BE.Configure
             builder.Services.AddDbContext<LINKUContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("LinkU"))
-                       // Hiển thị log SQL
+                // Hiển thị log SQL
                        .EnableSensitiveDataLogging();
             });
+
+            // Cấu hình Azure Blob Storage
+            builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration["AzureBlobStorage:ConnectionString"]));
 
             // Thêm AutoMapper
             var mappigConfig = new MapperConfiguration(mc =>
@@ -120,6 +127,7 @@ namespace BE.Configure
             builder.Services.AddTransient<IMESSAGELISTService, MESSAGELISTService>();
             builder.Services.AddTransient<IFRIENDREQUESTService, FRIENDREQUESTService>();
             builder.Services.AddTransient<IFRIENDSHIPService, FIRENDSHIPService>();
+            builder.Services.AddScoped<IMEDIAFILEService, MEDIAFILEService>();
         }
     }
 }

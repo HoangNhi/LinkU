@@ -38,5 +38,8 @@
         public const string FRIENDREQUEST_UPDATE = "/FriendRequest/Update";
         public const string FRIENDREQUEST_DELETE = "/FriendRequest/Delete";
         public const string FRIENDREQUEST_GETFRIENDREQUESTSTATUS = "/FriendRequest/GetFriendRequestStatus";
+
+        // Home
+        public const string HOME_UPLOAD = "/Home/Upload";
     }
 }

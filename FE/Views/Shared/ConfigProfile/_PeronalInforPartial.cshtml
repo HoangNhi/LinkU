@@ -90,6 +90,16 @@
             margin-top: 1rem !important
         }
     }
+
+    .btn.btn-light:hover {
+        --mdb-btn-hover-bg: var(--mdb-gray-500);
+        --mdb-btn-hover-color: white
+    }
+
+    .btn-light:focus {
+        background-color: var(--mdb-btn-bg)
+    }
+
 </style>
 
 <div class="modal-content">
@@ -137,14 +147,50 @@
                             Update Profile
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="pills-update-profile-picture-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#pills-update-profile-picture"
+                                type="button"
+                                role="tab"
+                                aria-controls="pills-update-profile-picture"
+                                aria-selected="false">
+                            Update Profile Picture
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="pills-update-cover-picture-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#pills-update-cover-picture"
+                                type="button"
+                                role="tab"
+                                aria-controls="pills-update-cover-picture"
+                                aria-selected="false">
+                            Update Cover Picture
+                        </button>
+                    </li>
                 </ul>
 
                 <!-- Cover, Profile picture and Name -->
-                <img src="@Model.CoverPicture" height="200" style="object-fit: cover; width: 100%;" />
+                <img src="@Model.CoverPicture" 
+                     height="200"
+                     onclick="ShowLightBox(this.src)" 
+                     style="object-fit: cover; width: 100%;" />
                 <div class="p-3 pb-0">
                     <div class="user-info">
                         <div class="position-relative me-3" style="width: 100px">
-                            <img src="@Model.ProfilePicture" class="profile-picture" />
+                            <img src="@Model.ProfilePicture" 
+                                 class="profile-picture"
+                                 onclick="ShowLightBox(this.src)"/>
+                            <button id="BtnUpdateProfilePicture"
+                                    type="button" 
+                                    class="position-absolute rounded-circle btn btn-light p-2" 
+                                    style="right: 0; bottom: -30px; outline: none"
+                                    data-mdb-ripple-init data-mdb-ripple-color="dark">
+                                <i class="fa-solid fa-camera-retro"></i>
+                            </button>
                         </div>
                         <span class="fs-5">@Model.HoVaTen</span>
                     </div>
@@ -215,6 +261,24 @@
              tabindex="0">
             @* _UpdateProfilePartial.cshtml *@
         </div>
+
+        <!-- Update Profile Picture Screen -->
+        <div class="tab-pane fade"
+             id="pills-update-profile-picture"
+             role="tabpanel"
+             aria-labelledby="pills-update-profile-picture-tab"
+             tabindex="0">
+            @* _UpdateProfilePicturePartial.cshtml *@
+        </div>
+
+        <!-- Update Cover Picture Screen -->
+        <div class="tab-pane fade"
+             id="pills-update-cover-picture"
+             role="tabpanel"
+             aria-labelledby="pills-update-cover-picture-tab"
+             tabindex="0">
+            @* _UpdateCoverPicturePartial.cshtml *@
+        </div>
     </div>
 </div>
 
@@ -226,6 +290,11 @@
             RenderUpdateProfile();
             let updateProfileTab = new bootstrap.Tab(document.getElementById("pills-update-profile-tab"));
             updateProfileTab.show();
+        });
+
+        document.getElementById("BtnUpdateProfilePicture").addEventListener("click", function () {
+            let updateProfilePictureTab = new bootstrap.Tab(document.getElementById("pills-update-profile-picture-tab"));
+            updateProfilePictureTab.show(); 
         });
     });
 

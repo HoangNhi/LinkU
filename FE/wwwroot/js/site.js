@@ -119,3 +119,23 @@ function ShowModal(html, size) {
 function CloseModal() {
     $('#modal-default').modal('hide');
 }
+
+function ShowLightBox(src) {
+    // Set Background
+    const lightboxModal = $("#lightboxModal"),
+        modalImg = $("#modal-image"),
+        backgroudBlur = $("#background-blur");
+
+    // Set Background Blur
+    backgroudBlur.css("background-image",  `url(${src})`)
+
+    // Set content
+    modalImg.css("background-image", `url(${src})`);
+
+    // Show LightBox
+    lightboxModal.modal('show')
+}
+
+function CloseLightBox() {
+    $("#lightboxModal").modal('hide')
+}

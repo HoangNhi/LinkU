@@ -19,6 +19,8 @@ public partial class LINKUContext : DbContext
 
     public virtual DbSet<Like> Likes { get; set; }
 
+    public virtual DbSet<MediaFile> MediaFiles { get; set; }
+
     public virtual DbSet<Message> Messages { get; set; }
 
     public virtual DbSet<OTP> OTPs { get; set; }
@@ -150,6 +152,39 @@ public partial class LINKUContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Like_User");
+        });
+
+        modelBuilder.Entity<MediaFile>(entity =>
+        {
+            entity.HasNoKey();
+
+            entity.HasIndex(e => e.Id, "IX_MediaFiles");
+
+            entity.Property(e => e.FileName).HasMaxLength(255);
+            entity.Property(e => e.FileType).HasComment("Enum: 1 - ProfilePicture, 2 -  CoverPicture, 3 - ChatImage, 4 - ChatFile");
+            entity.Property(e => e.NgaySua).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayXoa).HasColumnType("datetime");
+            entity.Property(e => e.NguoiSua)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiTao)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiXoa)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.Url)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Message).WithMany()
+                .HasForeignKey(d => d.MessageId)
+                .HasConstraintName("FK_MediaFiles_Message");
+
+            entity.HasOne(d => d.Owner).WithMany()
+                .HasForeignKey(d => d.OwnerId)
+                .HasConstraintName("FK_MediaFiles_User");
         });
 
         modelBuilder.Entity<Message>(entity =>

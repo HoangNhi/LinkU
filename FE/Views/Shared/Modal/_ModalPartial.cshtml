@@ -1,0 +1,41 @@
+﻿@* Thông báo - alert *@
+<div id="ThongBao-container" class="toast-container"></div>
+
+<!-- Modal -->
+<div class="modal fade"
+     id="modal-default"
+     tabindex="-1"
+     aria-labelledby="staticBackdropLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"
+         id='modalContainer'>
+    </div>
+</div>
+
+<!-- LightBox -->
+<div class="modal fade" id="lightboxModal"
+     tabindex="-1"
+     aria-hidden="true">
+    <div id="background-blur" class="position-absolute vw-100 vh-100"
+         style="background-repeat: no-repeat; background-size: cover; background-position: center; filter: blur(8px) brightness(60%)">
+    </div>
+    <div class="position-absolute"
+         style="right: 30px; top: 30px">
+        <button type="button" 
+                class="btn btn-dark rounded-circle p-4 position-relative" 
+                data-mdb-ripple-init>
+            <i class="fa-solid fa-download position-absolute"
+               style="top: 50%; left: 50%; -ms-transform: translate(-50%, -50%); transform: translate(-50%, -50%);"></i>
+        </button>
+        <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id="modal-image" class="modal-content bg-transparent border-0"
+             style="box-shadow: none !important;
+                    height: calc(100vh - var(--mdb-modal-margin) * 2);
+                    background-repeat: no-repeat;
+                    background-size: contain;
+                    background-position: center; ">
+        </div>
+    </div>
+</div>

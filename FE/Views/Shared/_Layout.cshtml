@@ -37,39 +37,7 @@
         @RenderBody()
     </div>
 
-    @* Thông báo - alert *@
-    <div id="ThongBao-container" class="toast-container"></div>
-
-    <!-- Modal -->
-    <div class="modal fade"
-         id="modal-default"
-         tabindex="-1"
-         aria-labelledby="staticBackdropLabel"
-         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered"
-             id='modalContainer'>
-        </div>
-    </div>
-
-    <!-- LightBox -->
-    <div class="modal fade" id="lightboxModal" 
-         tabindex="-1" 
-         aria-hidden="true" 
-         data-bs-keyboard="false" data-bs-backdrop="static">
-        <div id="background-blur" class="position-absolute vw-100 vh-100"
-             style="background-repeat: no-repeat; background-size: cover; background-position: center; filter: blur(10px)"
-             >
-        </div>
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div id="modal-image" class="modal-content bg-transparent border-0" 
-                 style="box-shadow: none !important; 
-                        height: calc(100vh - var(--mdb-modal-margin) * 4); 
-                        background-repeat: no-repeat; 
-                        background-size: contain; 
-                        background-position: center; ">
-            </div>
-        </div>
-    </div>
+    @Html.Partial("~/Views/Shared/Modal/_ModalPartial.cshtml")
 
     <!-- Popover -->
     <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>

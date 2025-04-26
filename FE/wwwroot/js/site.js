@@ -120,17 +120,50 @@ function CloseModal() {
     $('#modal-default').modal('hide');
 }
 
+let DownloadLightBox;
+
 function ShowLightBox(src) {
     // Set Background
     const lightboxModal = $("#lightboxModal"),
         modalImg = $("#modal-image"),
-        backgroudBlur = $("#background-blur");
+        backgroudBlur = $("#background-blur"),
+        modalDialog = $("#lightboxModal .modal-dialog"),
+        downloadButton = $("#lightboxModal #modal-option #BtnDownload");
 
     // Set Background Blur
     backgroudBlur.css("background-image",  `url(${src})`)
 
     // Set content
     modalImg.css("background-image", `url(${src})`);
+
+    // Set Width Modal
+    const img = new Image();
+    img.src = src;
+
+    img.onload = function () {
+        if (img.naturalWidth > img.naturalHeight) {
+            modalDialog.addClass("modal-xl")
+        } else {
+            modalDialog.removeClass("modal-xl")
+        }
+    };
+
+    // Set download link
+    //DownloadLightBox = function () {
+    //    fetch(src, { mode: 'no-cors' })
+    //        .then(response => response.blob())
+    //        .then(blob => {
+    //            const url = URL.createObjectURL(blob);
+    //            const a = document.createElement('a');
+    //            a.href = url;
+    //            a.download = 'my-image.jpg';
+    //            document.body.appendChild(a);
+    //            a.click();
+    //            a.remove();
+    //            URL.revokeObjectURL(url);
+    //        })
+    //        .catch(error => console.error('Tải ảnh thất bại:', error));
+    //}
 
     // Show LightBox
     lightboxModal.modal('show')

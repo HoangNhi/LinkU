@@ -13,29 +13,39 @@
 </div>
 
 <!-- LightBox -->
-<div class="modal fade" id="lightboxModal"
-     tabindex="-1"
-     aria-hidden="true">
-    <div id="background-blur" class="position-absolute vw-100 vh-100"
-         style="background-repeat: no-repeat; background-size: cover; background-position: center; filter: blur(8px) brightness(60%)">
-    </div>
-    <div class="position-absolute"
-         style="right: 30px; top: 30px">
-        <button type="button" 
-                class="btn btn-dark rounded-circle p-4 position-relative" 
-                data-mdb-ripple-init>
-            <i class="fa-solid fa-download position-absolute"
-               style="top: 50%; left: 50%; -ms-transform: translate(-50%, -50%); transform: translate(-50%, -50%);"></i>
-        </button>
-        <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
-    </div>
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div id="modal-image" class="modal-content bg-transparent border-0"
-             style="box-shadow: none !important;
-                    height: calc(100vh - var(--mdb-modal-margin) * 2);
+<div class="modal fade" id="lightboxModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div id="modal-image"
+             class="modal-content align-items-center"
+             style="height: 100vh;
+                    background-color: unset;
+                    box-shadow: none;
+                    max-height: calc(100vh - var(--mdb-modal-margin) * 4);
                     background-repeat: no-repeat;
                     background-size: contain;
-                    background-position: center; ">
+                    background-position: center;
+                    z-index: 1">
         </div>
+        <div id="background-blur" class="position-absolute-center vw-100 vh-100"
+             style="background-repeat: no-repeat;
+                    background-size: cover;
+                    background-position: center;
+                    filter: blur(8px) brightness(60%)">
+        </div>
+    </div>
+
+    <div id="modal-option" class="position-absolute" style="z-index: 1; top: 30px; right: 30px">
+        <button onclick="DownloadLightBox()"
+                type="button" 
+                id="BtnDownload" 
+                class="btn btn-dark rounded-circle p-4 position-relative" 
+                data-mdb-ripple-init>
+            <i class="fa-solid fa-file-arrow-down fs-3 position-absolute-center"></i>
+        </button>
+        <button type="button" onclick="CloseLightBox()" 
+                class="btn btn-dark rounded-circle p-4 position-relative" 
+                data-mdb-ripple-init>
+            <i class="fa-solid fa-xmark fs-3 position-absolute-center"></i>
+        </button>
     </div>
 </div>

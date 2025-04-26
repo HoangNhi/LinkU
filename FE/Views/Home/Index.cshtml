@@ -162,11 +162,6 @@
     var BtnPopover;
     $(document).ready(function () {
         GetProfilePicture();
-        // Thay đổi giao diện khi lần đầu truy cập vào trang
-        changeWidthFocusScreen();
-
-        // Mặc định là MessageList
-        SwitchToScreen('TabMessageList')
     });
 
     // Hiển thị
@@ -192,6 +187,11 @@
     function GetProfilePicture() {
         $.get("@Url.Action("GetConfigProfile", "Home")", function (data) { 
             $("#ProfilePicture").html(data)
+            // Thay đổi giao diện khi lần đầu truy cập vào trang
+            changeWidthFocusScreen();
+
+            // Mặc định là MessageList
+            SwitchToScreen('TabMessageList')
         });
     }
 

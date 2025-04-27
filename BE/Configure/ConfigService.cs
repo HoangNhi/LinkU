@@ -38,7 +38,7 @@ namespace BE.Configure
             });
 
             // Cấu hình Azure Blob Storage
-            builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration["AzureBlobStorage:ConnectionString"]));
+            builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration["AzureBlobStorage:ConectionString"]));
 
             // Thêm AutoMapper
             var mappigConfig = new MapperConfiguration(mc =>

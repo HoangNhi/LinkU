@@ -16,6 +16,26 @@ namespace BE.Controllers
             _mediaFileService = mediaFileService;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Download(string fileName)
+        {
+            try
+            {
+                // 1. Kiểm tra null
+                if (string.IsNullOrEmpty(fileName))
+                    throw new Exception("File không hợp lệ hoặc không có dữ liệu.");
+                // 2. Tải file
+                var response = await _mediaFileService.DownloadFileAsync(fileName);
+                if (response.Error)
+                    throw new Exception(response.Message);
+                return response.Data;
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<ApiResponse>> Upload(IFormFile file)
         {

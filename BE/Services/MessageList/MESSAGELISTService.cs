@@ -33,6 +33,7 @@ namespace BE.Services.MessageList
             try
             {
                 var UserId = Guid.Parse(_contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "name").Value);
+                // Tìm kiếm người dùng theo số điện thoại hoặc email
                 var users = _context.Users.Where(u => u.IsDeleted == false 
                                                 && (u.SoDienThoai.Equals(request.TextSearch) || u.Email.Equals(request.TextSearch))
                                                 && u.Id != UserId) // Không trả về User hiện tại
@@ -43,10 +44,22 @@ namespace BE.Services.MessageList
                                                 Ten = x.Ten,
                                                 Email = x.Email,
                                                 SoDienThoai = x.SoDienThoai,
-                                                ProfilePicture = x.ProfilePicture
                                             })
                                           .OrderBy(x => string.Concat(x.HoLot, " ", x.Ten))
                                           .ToList();
+                // Lấy ảnh đại diện của người dùng
+                foreach (var user in users)
+                {
+                    var ProfilePicture = _context.MediaFiles
+                                                 .FirstOrDefault(m => m.OwnerId == user.Id
+                                                                && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
+                                                                && !m.IsDeleted && m.IsActive);
+                    if (ProfilePicture != null)
+                    {
+                        user.ProfilePicture = ProfilePicture.Url;
+                    }
+                }
+
                 response.Data = new MODELMessageList_Search
                 {
                     Users = users

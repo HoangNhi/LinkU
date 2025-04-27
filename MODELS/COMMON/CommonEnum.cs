@@ -13,4 +13,12 @@ namespace MODELS.COMMON
         Delete,
         Get
     }
+
+    public enum MediaFileType
+    {
+        ProfilePicture,
+        CoverPicture,
+        ChatImage,
+        ChatFile
+    }
 }

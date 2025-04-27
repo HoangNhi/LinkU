@@ -41,5 +41,6 @@
 
         // Home
         public const string HOME_UPLOAD = "/Home/Upload";
+        public const string HOME_DOWNLOAD = "/Home/Download";
     }
 }

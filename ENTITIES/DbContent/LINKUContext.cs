@@ -330,7 +330,6 @@ public partial class LINKUContext : DbContext
             entity.ToTable("User");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CoverPicture).HasMaxLength(200);
             entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
             entity.Property(e => e.Email)
                 .HasMaxLength(256)
@@ -355,7 +354,6 @@ public partial class LINKUContext : DbContext
             entity.Property(e => e.PasswordSalt)
                 .HasMaxLength(256)
                 .IsUnicode(false);
-            entity.Property(e => e.ProfilePicture).HasMaxLength(200);
             entity.Property(e => e.SoDienThoai)
                 .HasMaxLength(15)
                 .IsUnicode(false);

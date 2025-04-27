@@ -1,6 +1,7 @@
 ﻿using FE.Constant;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.REFRESHTOKEN.Requests;
@@ -120,7 +121,7 @@ namespace FE.Services
             }
             return response;
         }
-        public async Task<ApiResponse> ExecuteAPIResponse(Task<HttpResponseMessage> responseTask)
+        private async Task<ApiResponse> ExecuteAPIResponse(Task<HttpResponseMessage> responseTask)
         {
             ApiResponse response = new ApiResponse();
 
@@ -161,30 +162,7 @@ namespace FE.Services
                 if (responseAPI.Success)
                 {
                     // Lưu lại token mới
-                    var resultData = JsonConvert.DeserializeObject<MODELUser>(responseAPI.Data.ToString());
-                    var claims = new List<Claim>();
-
-                    claims.Add(new Claim("UserId", GetUserId()));
-                    claims.Add(new Claim("Name", GetName()));
-                    claims.Add(new Claim("AccessToken", resultData.AccessToken));
-                    claims.Add(new Claim("RefreshToken", resultData.RefreshToken));
-
-                    // Create the identity from the user info
-                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    // Create the principal
-                    var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-                    // Remove old token in cookie
-                    await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-                    // Save token in cookie
-                    await _httpContextAccessor.HttpContext.SignInAsync(claimsPrincipal, new AuthenticationProperties
-                    {
-                        IsPersistent = true, // Giữ cookie sau khi trình duyệt đóng
-                    });
-
-                    _httpContextAccessor.HttpContext.User = claimsPrincipal;
-
+                    await UpdateToken(responseAPI);
                     // Re-call API
                     using (var client = new HttpClient())
                     {
@@ -206,6 +184,73 @@ namespace FE.Services
                 response.Message = "Lỗi hệ thống";
             }
             return response;
+        }
+        public async Task<IActionResult> ExecuteFileDownloadAPI(string action, string fileName)
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(GetBEUrl());
+                    client.Timeout = TimeSpan.FromMinutes(5);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken("AccessToken"));
+
+                    var response = await client.GetAsync($"{action}?fileName={fileName}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var stream = await response.Content.ReadAsStreamAsync();
+                        var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+                        var downloadFileName = response.Content.Headers.ContentDisposition?.FileNameStar ?? fileName;
+
+                        return new FileStreamResult(stream, contentType)
+                        {
+                            FileDownloadName = downloadFileName,
+                        };
+                    }
+                    else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        // Call Refresh Token
+                        ApiResponse responseAPI = ExcuteAPIWithoutToken(URL_API.USER_REFRESH_TOKEN, new RefreshTokenRequest { Token = GetToken("RefreshToken") }, HttpAction.Post);
+                        if (responseAPI.Success)
+                        {
+                            // Lưu lại token mới
+                            await UpdateToken(responseAPI);
+
+                            // Re-call API
+                            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken("AccessToken"));
+                            response = await client.GetAsync($"{action}?fileName={fileName}");
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var stream = await response.Content.ReadAsStreamAsync();
+                                var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+                                var downloadFileName = response.Content.Headers.ContentDisposition?.FileNameStar ?? fileName;
+
+                                return new FileStreamResult(stream, contentType)
+                                {
+                                    FileDownloadName = downloadFileName
+                                };
+                            }
+                        }
+                        else
+                        {
+                            await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                            return new RedirectResult("/Account/Login");
+                        }
+                    }
+
+                    return new BadRequestResult();
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ContentResult
+                {
+                    Content = $"Lỗi hệ thống: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
         }
 
         #region Helper Method
@@ -229,10 +274,37 @@ namespace FE.Services
         {
             return _httpContextAccessor.HttpContext.User.Claims.Where(x => x.Type == "Name").FirstOrDefault().Value.ToString();
         }
+        private async Task UpdateToken(ApiResponse responseAPI)
+        {
+            // Lưu lại token mới
+            var resultData = JsonConvert.DeserializeObject<MODELUser>(responseAPI.Data.ToString());
+            var claims = new List<Claim>();
+
+            claims.Add(new Claim("UserId", GetUserId()));
+            claims.Add(new Claim("Name", GetName()));
+            claims.Add(new Claim("AccessToken", resultData.AccessToken));
+            claims.Add(new Claim("RefreshToken", resultData.RefreshToken));
+
+            // Create the identity from the user info
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            // Create the principal
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+            // Remove old token in cookie
+            await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            // Save token in cookie
+            await _httpContextAccessor.HttpContext.SignInAsync(claimsPrincipal, new AuthenticationProperties
+            {
+                IsPersistent = true, // Giữ cookie sau khi trình duyệt đóng
+            });
+
+            _httpContextAccessor.HttpContext.User = claimsPrincipal;
+        }
 
         // Tạo 1 HTTP Request message từ request cũ
         // Error: The request message was already sent. Cannot send the same request message multiple times.
-        public async Task<HttpRequestMessage> CreateRequestMessage(HttpRequestMessage originalRequest)
+        private async Task<HttpRequestMessage> CreateRequestMessage(HttpRequestMessage originalRequest)
         {
             // Tạo một request mới từ request cũ
             var newRequest = new HttpRequestMessage(originalRequest.Method, originalRequest.RequestUri);

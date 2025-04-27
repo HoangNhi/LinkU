@@ -1,7 +1,11 @@
-﻿namespace BE.Services.MediaFile
+﻿using Microsoft.AspNetCore.Mvc;
+using MODELS.BASE;
+
+namespace BE.Services.MediaFile
 {
     public interface IMEDIAFILEService
     {
-        Task<string> UploadFileAsync(IFormFile file);
+        Task<BaseResponse<FileStreamResult>> DownloadFileAsync(string fileName);
+        Task<BaseResponse<string>> UploadFileAsync(IFormFile file);
     }
 }

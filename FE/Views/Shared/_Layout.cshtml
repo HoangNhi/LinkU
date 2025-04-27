@@ -53,7 +53,6 @@
     <script src="https://unpkg.com/filepond/dist/filepond.min.js"></script>
     <!-- FilePond plugins -->
     <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-zoom/dist/filepond-plugin-image-zoom.min.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     @section Scripts {
@@ -169,7 +168,6 @@
     <script>
         FilePond.registerPlugin(
             FilePondPluginImagePreview,
-            FilePondPluginImageZoom,
             FilePondPluginFileValidateSize
         );
     </script>

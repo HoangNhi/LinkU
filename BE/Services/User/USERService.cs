@@ -94,6 +94,25 @@ namespace BE.Services.User
                 else
                 {
                     result = _mapper.Map<MODELUser>(data);
+
+                    var ProfilePicture = _context.MediaFiles
+                                                 .FirstOrDefault(m => m.OwnerId == result.Id
+                                                                && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
+                                                                && !m.IsDeleted && m.IsActive);
+                    if (ProfilePicture != null)
+                    {
+                        result.ProfilePicture = ProfilePicture.Url;
+                    }
+
+                    var CoverPicture = _context.MediaFiles
+                                                 .FirstOrDefault(m => m.OwnerId == result.Id
+                                                                && m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture
+                                                               && !m.IsDeleted && m.IsActive);
+                    if (CoverPicture != null)
+                    {
+                        result.CoverPicture = CoverPicture.Url;
+                    }
+
                     result.Password = "";
                     result.PasswordSalt = "";
                 }
@@ -123,6 +142,24 @@ namespace BE.Services.User
                     result = _mapper.Map<PostUpdateUserInforRequest>(data);
                     result.HoVaTen = data.HoLot + " " + data.Ten;
                     result.IsEdit = true;
+
+                    var ProfilePicture = _context.MediaFiles
+                                                 .FirstOrDefault(m => m.OwnerId == result.Id
+                                                                && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
+                                                                && !m.IsDeleted && m.IsActive);
+                    if(ProfilePicture != null)
+                    {
+                        result.ProfilePicture = ProfilePicture.Url;
+                    }
+
+                    var CoverPicture = _context.MediaFiles
+                                                 .FirstOrDefault(m => m.OwnerId == result.Id
+                                                                && m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture
+                                                               && !m.IsDeleted && m.IsActive);
+                    if (CoverPicture != null)
+                    {
+                        result.CoverPicture = CoverPicture.Url;
+                    }
                 }
                 response.Data = result;
             }
@@ -167,8 +204,8 @@ namespace BE.Services.User
                 add.Id = request.Id == Guid.Empty ? Guid.NewGuid() : request.Id;
                 add.PasswordSalt = Encrypt_DecryptHelper.GenerateSalt();
                 add.Password = Encrypt_DecryptHelper.EncodePassword(request.Password, add.PasswordSalt);
-                add.ProfilePicture = UploadPicture(request.FolderUpload, "", "Files/User/ProfilePicture");
-                add.CoverPicture = UploadPicture(request.FolderUploadCoverPicture, "", "Files/User/CoverPicture");
+                //add.ProfilePicture = UploadPicture(request.FolderUpload, "", "Files/User/ProfilePicture");
+                //add.CoverPicture = UploadPicture(request.FolderUploadCoverPicture, "", "Files/User/CoverPicture");
                 add.NguoiTao = _contextAccessor.HttpContext.User.Identity.Name;
                 add.NgayTao = DateTime.Now;
                 add.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;

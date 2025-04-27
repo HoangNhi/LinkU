@@ -120,8 +120,6 @@ function CloseModal() {
     $('#modal-default').modal('hide');
 }
 
-let DownloadLightBox;
-
 function ShowLightBox(src) {
     // Set Background
     const lightboxModal = $("#lightboxModal"),
@@ -148,22 +146,8 @@ function ShowLightBox(src) {
         }
     };
 
-    // Set download link
-    //DownloadLightBox = function () {
-    //    fetch(src, { mode: 'no-cors' })
-    //        .then(response => response.blob())
-    //        .then(blob => {
-    //            const url = URL.createObjectURL(blob);
-    //            const a = document.createElement('a');
-    //            a.href = url;
-    //            a.download = 'my-image.jpg';
-    //            document.body.appendChild(a);
-    //            a.click();
-    //            a.remove();
-    //            URL.revokeObjectURL(url);
-    //        })
-    //        .catch(error => console.error('Tải ảnh thất bại:', error));
-    //}
+    var uriDownload = `/Home/DownloadFile?fileName=${src.split('/').pop()}`;
+    downloadButton.attr("href", uriDownload)
 
     // Show LightBox
     lightboxModal.modal('show')

@@ -71,6 +71,16 @@ namespace FE.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+        public async Task<IActionResult> DownloadFile(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return BadRequest("Tên file không hợp lệ.");
+            }
+
+            return await _consumeAPI.ExecuteFileDownloadAPI(URL_API.HOME_DOWNLOAD, fileName);
+        }
+
         #region ConfigProfile Popover
         public IActionResult ConfigProfile()
         {
@@ -94,6 +104,7 @@ namespace FE.Controllers
             }
         }
 
+        // Update Profile Tab - Start
         public IActionResult GetUpdateProfile(string request)
         {
             string decodedJson = WebUtility.HtmlDecode(request);
@@ -128,6 +139,40 @@ namespace FE.Controllers
                 return Json(new { IsSuccess = false, Message = message, Data = "" });
             }
         }
+        // Update Profile Tab - End
+
+        // Update Profile Picture - Start
+        public IActionResult GetUpdateProfilePicture(GetByIdRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        var result = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                        result.ProfilePicture = GetProfilePicture(result.ProfilePicture);
+                        return PartialView("~/Views/Home/Message/_MessagePartial.cshtml", result);
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        // Update Profile Picture - End
         #endregion
     }
 }

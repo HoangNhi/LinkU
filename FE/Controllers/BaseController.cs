@@ -16,11 +16,11 @@ namespace FE.Controllers
         #region User Common
         public string GetProfilePicture(string profilePicture)
         {
-            return String.IsNullOrEmpty(profilePicture) || String.IsNullOrEmpty(profilePicture) ? _consumeAPI.GetImageURL() + "/Files/Common/NoPicture.png" : _consumeAPI.GetImageURL() + "/" + profilePicture;
+            return String.IsNullOrEmpty(profilePicture) || String.IsNullOrEmpty(profilePicture) ? "https://linku.blob.core.windows.net/mediafiles/NoProfilePicture" : profilePicture;
         }
         public string GetCoverPicture(string coverPicture)
         {
-            return String.IsNullOrEmpty(coverPicture) || String.IsNullOrEmpty(coverPicture) ? _consumeAPI.GetImageURL() + "/Files/Common/CoverPicture.jpg" : _consumeAPI.GetImageURL() + "/" + coverPicture;
+            return String.IsNullOrEmpty(coverPicture) || String.IsNullOrEmpty(coverPicture) ? "https://linku.blob.core.windows.net/mediafiles/NoCoverPicture" : coverPicture;
         }
         #endregion
     }

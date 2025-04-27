@@ -29,10 +29,6 @@ public partial class User
 
     public string? Bio { get; set; }
 
-    public string? ProfilePicture { get; set; }
-
-    public string? CoverPicture { get; set; }
-
     public bool IsGoogle { get; set; }
 
     public DateTime NgayTao { get; set; }

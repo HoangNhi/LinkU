@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using MODELS.SMS.Dtos;
-using System.Threading.Tasks;
 
 namespace BE.Services.SMS
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ENTITIES.DbContent;
+﻿namespace ENTITIES.DbContent;
 
 public partial class User
 {
@@ -56,6 +53,8 @@ public partial class User
     public virtual ICollection<Friendship> FriendshipUserId2Navigations { get; set; } = new List<Friendship>();
 
     public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
+
+    public virtual ICollection<MediaFile> MediaFiles { get; set; } = new List<MediaFile>();
 
     public virtual ICollection<Message> MessageReceivers { get; set; } = new List<Message>();
 

@@ -7,11 +7,8 @@ using MODELS.COMMON;
 using MODELS.REFRESHTOKEN.Requests;
 using MODELS.USER.Dtos;
 using Newtonsoft.Json;
-using System;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 
@@ -251,6 +248,31 @@ namespace FE.Services
                     StatusCode = 500
                 };
             }
+        }
+        public async Task<ApiResponse> PostFormDataAPI(string action, System.Net.Http.MultipartFormDataContent content)
+        {
+            ApiResponse response = new ApiResponse();
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(GetBEUrl());
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken("AccessToken"));
+
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("multipart/form-data"));
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    var responseTask = client.PostAsync(action, content);
+                    responseTask.Wait();
+                    response = await ExecuteAPIResponse(responseTask);
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Lỗi hệ thống: " + ex.Message;
+            }
+
+            return response;
         }
 
         #region Helper Method

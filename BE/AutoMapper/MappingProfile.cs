@@ -4,6 +4,8 @@ using MODELS.FRIENDREQUEST.Dtos;
 using MODELS.FRIENDREQUEST.Requests;
 using MODELS.FRIENDSHIP.Dtos;
 using MODELS.FRIENDSHIP.Requests;
+using MODELS.MEDIAFILE.Dtos;
+using MODELS.MEDIAFILE.Requests;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
 using MODELS.OTP.Dtos;
@@ -15,7 +17,7 @@ namespace BE.AutoMapper
 {
     public class MappingProfile : Profile
     {
-        public MappingProfile() 
+        public MappingProfile()
         {
             // User
             CreateMap<User, MODELUser>().ReverseMap();
@@ -40,6 +42,10 @@ namespace BE.AutoMapper
             // Message
             CreateMap<Message, MODELMessage>().ReverseMap();
             CreateMap<Message, PostMessageRequest>().ReverseMap();
+
+            // MediaFile
+            CreateMap<MediaFile, MODELMediaFile>().ReverseMap();
+            CreateMap<MediaFile, POSTMediaFileRequest>().ReverseMap();
         }
     }
 }

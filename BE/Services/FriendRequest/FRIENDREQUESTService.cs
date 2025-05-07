@@ -6,8 +6,8 @@ using Microsoft.Data.SqlClient;
 using MODELS.BASE;
 using MODELS.FRIENDREQUEST.Dtos;
 using MODELS.FRIENDREQUEST.Requests;
-using MODELS.USER.Dtos;
 using MODELS.FRIENDSHIP.Requests;
+using MODELS.USER.Dtos;
 
 namespace BE.Services.FriendRequest
 {
@@ -207,7 +207,7 @@ namespace BE.Services.FriendRequest
                     _context.FriendRequests.Update(update);
 
                     // Tạo dữ liệu FriendShip
-                    if(update.Status == 1)
+                    if (update.Status == 1)
                     {
                         var result = _friendshipService.Insert(new POSTFriendshipRequest
                         {

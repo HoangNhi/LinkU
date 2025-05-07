@@ -9,6 +9,7 @@ namespace FE.Services
         ApiResponse ExcuteAPI(string action, object? model, HttpAction method);
         ApiResponse ExcuteAPIWithoutToken(string action, object? model, HttpAction method);
         Task<IActionResult> ExecuteFileDownloadAPI(string action, string fileName);
+        Task<ApiResponse> PostFormDataAPI(string action, System.Net.Http.MultipartFormDataContent content);
         string GetBEUrl();
         string GetToken(string nameToken);
         string GetUserId();

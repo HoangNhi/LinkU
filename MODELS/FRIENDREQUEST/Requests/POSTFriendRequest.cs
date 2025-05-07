@@ -1,6 +1,5 @@
 ﻿using MODELS.BASE;
 using MODELS.USER.Dtos;
-using System.ComponentModel.DataAnnotations;
 
 namespace MODELS.FRIENDREQUEST.Requests
 {

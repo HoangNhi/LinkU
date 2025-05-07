@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
-using BE.Helpers;
 using ENTITIES.DbContent;
-using Microsoft.Data.SqlClient;
 using MODELS.BASE;
 using MODELS.MESSAGELIST.Dtos;
 using MODELS.MESSAGELIST.Requests;
@@ -34,17 +32,17 @@ namespace BE.Services.MessageList
             {
                 var UserId = Guid.Parse(_contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "name").Value);
                 // Tìm kiếm người dùng theo số điện thoại hoặc email
-                var users = _context.Users.Where(u => u.IsDeleted == false 
+                var users = _context.Users.Where(u => u.IsDeleted == false
                                                 && (u.SoDienThoai.Equals(request.TextSearch) || u.Email.Equals(request.TextSearch))
                                                 && u.Id != UserId) // Không trả về User hiện tại
                                           .Select(x => new MODELUser
-                                            {
-                                                Id = x.Id,
-                                                HoLot = x.HoLot,
-                                                Ten = x.Ten,
-                                                Email = x.Email,
-                                                SoDienThoai = x.SoDienThoai,
-                                            })
+                                          {
+                                              Id = x.Id,
+                                              HoLot = x.HoLot,
+                                              Ten = x.Ten,
+                                              Email = x.Email,
+                                              SoDienThoai = x.SoDienThoai,
+                                          })
                                           .OrderBy(x => string.Concat(x.HoLot, " ", x.Ten))
                                           .ToList();
                 // Lấy ảnh đại diện của người dùng
@@ -53,7 +51,7 @@ namespace BE.Services.MessageList
                     var ProfilePicture = _context.MediaFiles
                                                  .FirstOrDefault(m => m.OwnerId == user.Id
                                                                 && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
-                                                                && !m.IsDeleted && m.IsActive);
+                                                                && !m.IsDeleted && m.IsActived);
                     if (ProfilePicture != null)
                     {
                         user.ProfilePicture = ProfilePicture.Url;

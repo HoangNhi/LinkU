@@ -223,3 +223,9 @@ div{
     transform: translate(-50%, -50%);
 }
 
+.bg-center-image {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat
+}
+

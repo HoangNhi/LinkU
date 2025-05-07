@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ENTITIES.DbContent;
+﻿namespace ENTITIES.DbContent;
 
 public partial class Message
 {
@@ -45,6 +42,8 @@ public partial class Message
     public bool IsActived { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public virtual ICollection<MediaFile> MediaFiles { get; set; } = new List<MediaFile>();
 
     public virtual User Receiver { get; set; } = null!;
 

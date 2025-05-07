@@ -105,7 +105,7 @@ namespace FE.Controllers
                 {
                     ViewBag.Case = Case;
                     ApiResponse response;
-                    if(Case == 1)
+                    if (Case == 1)
                     {
                         response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, request, HttpAction.Post);
                         if (response.Success)
@@ -176,7 +176,7 @@ namespace FE.Controllers
                     throw new Exception(CommonFunc.GetModelState(this.ModelState));
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string message = "Lỗi hệ thống: " + ex.Message;
                 return Json(new { IsSuccess = false, Message = message, Data = "" });

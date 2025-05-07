@@ -5,7 +5,6 @@ using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MESSAGELIST.Dtos;
 using MODELS.MESSAGELIST.Requests;
-using MODELS.USER.Dtos;
 using Newtonsoft.Json;
 
 namespace FE.Controllers
@@ -49,7 +48,7 @@ namespace FE.Controllers
                     throw new Exception(CommonFunc.GetModelState(this.ModelState));
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string message = "Lỗi hệ thống: " + ex.Message;
                 return Json(new { IsSuccess = false, Message = message, Data = "" });

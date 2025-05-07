@@ -1,9 +1,7 @@
 ﻿using BE.Services.FriendRequest;
 using BE.Services.Message;
-using ENTITIES.DbContent;
 using Microsoft.AspNetCore.SignalR;
 using MODELS.MESSAGE.Requests;
-using System;
 using System.Collections.Concurrent;
 namespace BE.Hubs
 {

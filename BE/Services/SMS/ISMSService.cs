@@ -1,7 +1,4 @@
-﻿using MODELS.MAIL.Dtos;
-using MODELS.SMS.Dtos;
-
-namespace BE.Services.SMS
+﻿namespace BE.Services.SMS
 {
     public interface ISMSService
     {

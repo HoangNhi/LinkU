@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MODELS.MAIL.Dtos
+﻿namespace MODELS.MAIL.Dtos
 {
     public class MODELMailSettings
     {

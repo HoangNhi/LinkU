@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using ENTITIES.DbContent;
 using MODELS.BASE;
-using MODELS.FRIENDREQUEST.Dtos;
 using MODELS.FRIENDSHIP.Dtos;
 using MODELS.FRIENDSHIP.Requests;
 

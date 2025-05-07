@@ -1,9 +1,4 @@
 ﻿using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MODELS.BASE
 {
@@ -18,7 +13,7 @@ namespace MODELS.BASE
 
     public class GetListPagingRequestValidator : AbstractValidator<GetListPagingRequest>
     {
-        public GetListPagingRequestValidator() 
+        public GetListPagingRequestValidator()
         {
             RuleFor(x => x.PageIndex).GreaterThanOrEqualTo(1).WithMessage("Số trang phải lớn hơn 0");
             RuleFor(x => x.RowPerPage).GreaterThanOrEqualTo(1).WithMessage("Số bản ghi trên trang phải lớn hơn 0");

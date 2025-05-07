@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace ENTITIES.DbContent;
 
@@ -156,10 +154,9 @@ public partial class LINKUContext : DbContext
 
         modelBuilder.Entity<MediaFile>(entity =>
         {
-            entity.HasNoKey();
-
             entity.HasIndex(e => e.Id, "IX_MediaFiles");
 
+            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.FileName).HasMaxLength(255);
             entity.Property(e => e.FileType).HasComment("Enum: 1 - ProfilePicture, 2 -  CoverPicture, 3 - ChatImage, 4 - ChatFile");
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
@@ -178,11 +175,11 @@ public partial class LINKUContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.Message).WithMany()
+            entity.HasOne(d => d.Message).WithMany(p => p.MediaFiles)
                 .HasForeignKey(d => d.MessageId)
                 .HasConstraintName("FK_MediaFiles_Message");
 
-            entity.HasOne(d => d.Owner).WithMany()
+            entity.HasOne(d => d.Owner).WithMany(p => p.MediaFiles)
                 .HasForeignKey(d => d.OwnerId)
                 .HasConstraintName("FK_MediaFiles_User");
         });

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ENTITIES.DbContent;
+﻿namespace ENTITIES.DbContent;
 
 public partial class MediaFile
 {
@@ -12,7 +9,7 @@ public partial class MediaFile
     public string FileName { get; set; } = null!;
 
     /// <summary>
-    /// Enum: 0 - ProfilePicture, 1 -  CoverPicture, 2 - ChatImage, 3 - ChatFile
+    /// Enum: 1 - ProfilePicture, 2 -  CoverPicture, 3 - ChatImage, 4 - ChatFile
     /// </summary>
     public int FileType { get; set; }
 
@@ -32,7 +29,7 @@ public partial class MediaFile
 
     public string? NguoiXoa { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool IsActived { get; set; }
 
     public bool IsDeleted { get; set; }
 

@@ -1,5 +1,4 @@
-﻿using ENTITIES.DbContent;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using MODELS.COMMON;
 using MODELS.USER.Dtos;
 using System.IdentityModel.Tokens.Jwt;

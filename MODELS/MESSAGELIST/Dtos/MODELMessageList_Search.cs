@@ -1,11 +1,6 @@
 ﻿using MODELS.BASE;
 using MODELS.MESSAGE.Dtos;
 using MODELS.USER.Dtos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MODELS.MESSAGELIST.Dtos
 {

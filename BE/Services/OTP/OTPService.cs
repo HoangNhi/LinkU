@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
-using BE.Services.SMS;
 using ENTITIES.DbContent;
 using MODELS.BASE;
 using MODELS.OTP.Dtos;
 using MODELS.OTP.Requests;
-using MODELS.USER.Dtos;
 
 namespace BE.Services.OTP
 {
@@ -90,7 +88,7 @@ namespace BE.Services.OTP
                 }
                 else
                 {
-                    if(otp.Code != request.Code)
+                    if (otp.Code != request.Code)
                     {
                         throw new Exception("Mã OTP không hợp lệ");
                     }

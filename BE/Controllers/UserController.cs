@@ -1,9 +1,9 @@
 ﻿using BE.Services.User;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
+using MODELS.MEDIAFILE.Requests;
 using MODELS.OTP.Requests;
 using MODELS.REFRESHTOKEN.Requests;
 using MODELS.USER.Requests;
@@ -129,6 +129,31 @@ namespace BE.Controllers
                 if (request != null && ModelState.IsValid)
                 {
                     var response = _service.UpdateInfor(request);
+                    if (response.Error)
+                    {
+                        throw new Exception(response.Message);
+                    }
+                    return Ok(new ApiResponse(response.Data));
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
+
+        [HttpPost]
+        public ActionResult<ApiResponse> UpdatePicture(POSTMediaFileRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    var response = _service.UpdatePicture(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -404,6 +429,30 @@ namespace BE.Controllers
             }
         }
 
+        [HttpPost]
+        public ActionResult<ApiResponse> GetListMediaFiles(POSTGetListMediaFilesRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    var response = _service.GetListMediaFiles(request);
+                    if (response.Error)
+                    {
+                        throw new Exception(response.Message);
+                    }
+                    return Ok(new ApiResponse(response.Data));
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
         private string ipAddress()
         {
             // get source ip address for the current request

@@ -27,10 +27,10 @@
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
     <!-- Datepicker -->
     <script type="text/javascript" src="/js/datepicker-vi.js"></script>
-    <!-- FilePond: Upload File and Zoom Image -->
-    <link href="https://unpkg.com/filepond/dist/filepond.min.css" rel="stylesheet" />
+    <!-- FilePond: Upload File-->
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet" />
     <!-- FilePond plugins CSS -->
-    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css" rel="stylesheet" />
 </head>
 <body>
     <div style="margin: 16px 0; padding: 0px 16px;">
@@ -50,10 +50,24 @@
     <!-- Script Show Loading -->
     <script src="https://malsup.github.io/jquery.blockUI.js"></script>
     <!-- File Upload -->
-    <script src="https://unpkg.com/filepond/dist/filepond.min.js"></script>
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
     <!-- FilePond plugins -->
+    <!-- Image Preview -->
     <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.js"></script>
+    <!-- Validate Size -->
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.min.js"></script>
+    <!-- Validate Type -->
+    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+    <!-- Exif Orientation -->
+    <script src="https://unpkg.com/filepond-plugin-image-exif-orientation/dist/filepond-plugin-image-exif-orientation.js"></script>
+    <!-- Image Crop -->
+    <script src="https://unpkg.com/filepond-plugin-image-crop/dist/filepond-plugin-image-crop.js"></script>
+    <!-- Image Resize -->
+    <script src="https://unpkg.com/filepond-plugin-image-resize/dist/filepond-plugin-image-resize.js"></script>
+    <!-- Image Transform -->
+    <script src="https://unpkg.com/filepond-plugin-image-transform/dist/filepond-plugin-image-transform.js"></script>
+    <!-- Image Encode -->
+    <script src="https://unpkg.com/filepond-plugin-file-encode/dist/filepond-plugin-file-encode.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     @section Scripts {
         <partial name="_ValidationScriptsPartial" />
@@ -167,9 +181,38 @@
     <!-- Register plugins FilePond -->
     <script>
         FilePond.registerPlugin(
+            // encodes the file as base64 data
+            FilePondPluginFileEncode,
+
+            // validates files based on input type
+            FilePondPluginFileValidateType,
+
+            // validates files base on input size
+            FilePondPluginFileValidateSize,
+
+            // corrects mobile image orientation
+            FilePondPluginImageExifOrientation,
+
+            // previews the image
             FilePondPluginImagePreview,
-            FilePondPluginFileValidateSize
+
+            // crops the image to a certain aspect ratio
+            FilePondPluginImageCrop,
+
+            // resizes the image to fit a certain size
+            FilePondPluginImageResize,
+
+            // applies crop and resize information on the client
+            FilePondPluginImageTransform
         );
+
+        const mimeToExt = {
+            'image/jpeg': 'jpg',
+            'image/png': 'png',
+            'image/gif': 'gif',
+            'video/mp4': 'mp4',
+            'application/pdf': 'pdf',
+        };
     </script>
 </body>
 </html>

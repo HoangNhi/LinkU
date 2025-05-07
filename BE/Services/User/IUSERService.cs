@@ -1,4 +1,6 @@
 ﻿using MODELS.BASE;
+using MODELS.MEDIAFILE.Dtos;
+using MODELS.MEDIAFILE.Requests;
 using MODELS.OTP.Requests;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.USER.Dtos;
@@ -9,10 +11,25 @@ namespace BE.Services.User
     public interface IUSERService
     {
         BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request);
+        /// <summary>
+        /// Lấy danh sách CoverPicture hoặc ProfilePicture của người dùng
+        /// </summary>
+        BaseResponse<List<MODELMediaFile>> GetListMediaFiles(POSTGetListMediaFilesRequest request);
         BaseResponse<MODELUser> GetById(GetByIdRequest request);
         BaseResponse<PostUpdateUserInforRequest> GetByPost(GetByIdRequest request);
         BaseResponse<MODELUser> Insert(PostUserRequest request);
+        /// <summary>
+        /// Cập nhật thông tin người dùng
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         BaseResponse<MODELUser> UpdateInfor(PostUpdateUserInforRequest request);
+        /// <summary>
+        /// Cập nhật hình ảnh đại diện và ảnh bìa
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        BaseResponse<MODELMediaFile> UpdatePicture(POSTMediaFileRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
 
         // Login by UserName and Password

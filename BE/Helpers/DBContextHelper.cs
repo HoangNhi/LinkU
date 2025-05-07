@@ -1,9 +1,9 @@
-﻿using Microsoft.Data.SqlClient;
-using System.Data.Common;
-using System.Data;
-using System.Reflection;
-using ENTITIES.DbContent;
+﻿using ENTITIES.DbContent;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+using System.Data.Common;
+using System.Reflection;
 
 namespace BE.Helpers
 {

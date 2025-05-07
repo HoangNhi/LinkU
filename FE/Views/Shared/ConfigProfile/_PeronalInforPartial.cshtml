@@ -149,26 +149,27 @@
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link"
-                                id="pills-update-profile-picture-tab"
+                                id="pills-update-picture-tab"
                                 data-bs-toggle="pill"
-                                data-bs-target="#pills-update-profile-picture"
+                                data-bs-target="#pills-update-picture"
                                 type="button"
                                 role="tab"
-                                aria-controls="pills-update-profile-picture"
+                                aria-controls="pills-update-picture"
                                 aria-selected="false">
-                            Update Profile Picture
+                            Update Picture
                         </button>
                     </li>
+
                     <li class="nav-item" role="presentation">
                         <button class="nav-link"
-                                id="pills-update-cover-picture-tab"
+                                id="pills-confirm-update-picture-tab"
                                 data-bs-toggle="pill"
-                                data-bs-target="#pills-update-cover-picture"
+                                data-bs-target="#pills-confirm-update-picture"
                                 type="button"
                                 role="tab"
-                                aria-controls="pills-update-cover-picture"
+                                aria-controls="pills-confirm-update-picture"
                                 aria-selected="false">
-                            Update Cover Picture
+                            Confirm Update Picture
                         </button>
                     </li>
                 </ul>
@@ -262,22 +263,22 @@
             @* _UpdateProfilePartial.cshtml *@
         </div>
 
-        <!-- Update Profile Picture Screen -->
+        <!-- Update Picture Screen -->
         <div class="tab-pane fade"
-             id="pills-update-profile-picture"
+             id="pills-update-picture"
              role="tabpanel"
-             aria-labelledby="pills-update-profile-picture-tab"
+             aria-labelledby="pills-update-picture-tab"
              tabindex="0">
-            @* _UpdateProfilePicturePartial.cshtml *@
+            @* _UpdatePicturePartial.cshtml *@
         </div>
 
-        <!-- Update Cover Picture Screen -->
+        <!-- Confirm Update Picture Screen -->
         <div class="tab-pane fade"
-             id="pills-update-cover-picture"
+             id="pills-confirm-update-picture"
              role="tabpanel"
-             aria-labelledby="pills-update-cover-picture-tab"
+             aria-labelledby="pills-confirm-update-picture-tab"
              tabindex="0">
-            @* _UpdateCoverPicturePartial.cshtml *@
+            @* _ConfirmUpdatePicturePartial.cshtml *@
         </div>
     </div>
 </div>
@@ -287,19 +288,19 @@
     $(document).ready(function () {
         // Change To Profile Tab
         document.getElementById("BtnUpdateProfile").addEventListener("click", function () {
-            RenderUpdateProfile();
+            RenderUpdateProfileTab();
             let updateProfileTab = new bootstrap.Tab(document.getElementById("pills-update-profile-tab"));
             updateProfileTab.show();
         });
 
         document.getElementById("BtnUpdateProfilePicture").addEventListener("click", function () {
-            RenderUpdateProfilePicture()
-            let updateProfilePictureTab = new bootstrap.Tab(document.getElementById("pills-update-profile-picture-tab"));
-            updateProfilePictureTab.show(); 
+            RenderUpdateProfilePictureTab(0)
+            let updatePictureTab = new bootstrap.Tab(document.getElementById("pills-update-picture-tab"));
+            updatePictureTab.show();
         });
     });
 
-    function RenderUpdateProfile() {
+    function RenderUpdateProfileTab() {
         $.ajax({
             url: "@Url.Action("GetUpdateProfile", "Home")",
             type: "GET",
@@ -315,9 +316,45 @@
         })
     }
 
-    function RenderUpdateProfilePicture() {
-
+    function RenderUpdateProfilePictureTab(type) {
+          $.ajax({
+            url: "@Url.Action("GetUpdatePicture", "Home")",
+            type: "GET",
+            data: {
+                UserId: '@Model.Id',
+                FileType: type // 0 - Profile Picture, 1 - Cover Picture
+            },
+            success: function (data) {
+                $('#pills-update-picture').html(data);
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        })
     }
+
+    function RenderConfirmUpdatePictureTab(pictureId, fileType, callBack) {
+         $.ajax({
+            url: "@Url.Action("GetConfirmUpdatePicture", "Home")",
+            type: "GET",
+            data: {
+                fileid: pictureId,
+                filetype: fileType,
+            },
+            success: function (data) {
+                if (data.isSuccess !== undefined && data.isSuccess === false) {
+                    ShowThongBaoThatBai(data.message)
+                } else {
+                    $('#pills-confirm-update-picture').html(data);
+                    callBack();
+                }
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        })
+    }
+
 
     function UpdateProfile() {
         var data = $("#frmUpdateProfile").serialize();
@@ -338,6 +375,7 @@
                 }
             },
             error: function (xhr, error) {
+                showLoading(false)
                 ShowThongBaoThatBai(error)
             }
         })

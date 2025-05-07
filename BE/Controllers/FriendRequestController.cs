@@ -1,10 +1,8 @@
 ﻿using BE.Services.FriendRequest;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.FRIENDREQUEST.Requests;
-using MODELS.USER.Requests;
 
 namespace BE.Controllers
 {

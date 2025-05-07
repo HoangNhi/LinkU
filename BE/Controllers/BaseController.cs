@@ -7,6 +7,6 @@ namespace BE.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class BaseController<T> : ControllerBase
     {
-        
+
     }
 }

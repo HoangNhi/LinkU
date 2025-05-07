@@ -1,0 +1,163 @@
+﻿@using MODELS.COMMON
+@model MODELS.MEDIAFILE.Requests.POSTMediaFileRequest
+@{
+    // Title of tab
+    Dictionary<int, string> Tot = new Dictionary<int, string>()
+    {
+        { 0, "Cập nhật ảnh đại diện" },
+        { 1, "Cập nhật ảnh bìa" }
+    };
+
+    Model.IsActived = true;
+}
+
+<style>
+    .filepond--image-preview-overlay {
+        opacity: 0 !important;
+    }
+</style>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmUpdatePicture" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.Url)
+    @Html.HiddenFor(m => m.FileName)
+    @Html.HiddenFor(m => m.FileType)
+    @Html.HiddenFor(m => m.OwnerId)
+    @Html.HiddenFor(m => m.IsEdit)
+    @Html.HiddenFor(m => m.IsActived)
+
+    <div class="modal-header">
+        <button type="button"
+                onclick="ReturnInitialInterface()"
+                class="btn-back btn-link rounded-circle position-relative border-0 bg-white opacity-50"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <h1 class="modal-title fs-5">@Tot[Model.FileType]</h1>
+        <button type="button"
+                class="btn-close btn-link rounded-circle"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark">
+        </button>
+    </div>
+
+    <div class="modal-body p-3">
+        <input style="height: 190px"
+               type="file"
+               class="filepond ConfirmPicture"
+               accept="@string.Join(", ", CommonConst.AllowedPictureTypes)" />
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" onclick="ReturnInitialInterface()"
+                class="btn btn-light fs-6 btnHome"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark">
+            Hủy
+        </button>
+        <button type="submit" class="btn btn-primary fs-6" data-mdb-ripple-init>Cập nhật</button>
+    </div>
+}
+
+<script>
+    $(document).ready(function () {
+        // Create FilePond instance
+        pondConfirm = FilePond.create(
+            document.querySelector('input.ConfirmPicture'),
+            {
+                imagePreviewMaxHeight: 200,
+                allowImagePreview: true,
+                imageCropAspectRatio: '1:1',
+                imageResizeTargetWidth: 200,
+                imageResizeTargetHeight: 200,
+                stylePanelLayout: 'compact circle',
+                styleLoadIndicatorPosition: 'center bottom',
+                allowRemove: false,
+                disabled: true,
+            }
+        );
+
+        $("#frmUpdatePicture").submit(async function (event) {
+            event.preventDefault();
+            UpdatePicture();
+
+        });
+    });
+
+    function ReturnInitialInterface() {
+        pondUpdate.removeFiles();
+        let updatePictureTab = new bootstrap.Tab(document.getElementById("pills-update-picture-tab"));
+        updatePictureTab.show();
+    }
+
+    async function UpdatePicture(response) {
+        showLoading(true)
+        @if (Model.IsEdit)
+        {
+            <text>
+            // Xử lý UpdatePicture without UploadPicture
+            $.ajax({
+                url: "@Url.Action("UpdatePictureUserWithoutUploadFile", "Home")",
+                type: "POST",
+                data: $("#frmUpdatePicture").serialize(),
+                success: function (response) {
+                    showLoading(false)
+                    if (response.isSuccess) {
+                        // Rerender ProfilePicture
+                        GetProfilePicture();
+                        // Show Infor modal
+                        showInforModal();
+                        // Show thông báo thành công
+                        ShowThongBaoThanhCong("Cập nhật thành công")
+                    } else {
+                        ShowThongBaoThatBai(response.message)
+                    }
+                },
+                error: function (xhr, error) {
+                    showLoading(false)
+                    ShowThongBaoThatBai(error)
+                }
+            })
+
+            </text>
+        }
+        else
+        {
+            // Xử lý UpdatePicture with UploadPicture
+            <text>
+                var formData = new FormData();
+                formData.append("file", pondConfirm.getFiles()[0].file);
+                formData.append("fileType", '@Model.FileType');
+
+                $.ajax({
+                    url: "@Url.Action("UpdatePictureUserWithUploadFile", "Home")",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        showLoading(false)
+                        if (response.isSuccess) {
+                            // Rerender ProfilePicture
+                            GetProfilePicture();
+                            // Show Infor modal
+                            showInforModal();
+                            // Show thông báo thành công
+                            ShowThongBaoThanhCong("Cập nhật thành công")
+                        } else {
+                            ShowThongBaoThatBai(response.message)
+                        }
+                    },
+                    error: function (xhr, error) {
+                        showLoading(false)
+                        ShowThongBaoThatBai(error)
+                    }
+                })
+            </text>
+        }
+    }
+</script>

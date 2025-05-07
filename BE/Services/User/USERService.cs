@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BE.Helpers;
 using BE.Services.Mail;
+using BE.Services.MediaFile;
 using BE.Services.OTP;
 using BE.Services.SMS;
 using ENTITIES.DbContent;
@@ -9,9 +10,10 @@ using Microsoft.EntityFrameworkCore;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MAIL.Dtos;
+using MODELS.MEDIAFILE.Dtos;
+using MODELS.MEDIAFILE.Requests;
 using MODELS.OTP.Requests;
 using MODELS.REFRESHTOKEN.Dtos;
-using MODELS.REFRESHTOKEN.Requests;
 using MODELS.USER.Dtos;
 using MODELS.USER.Requests;
 using System.Diagnostics;
@@ -30,8 +32,9 @@ namespace BE.Services.User
         private readonly IMAILService _mailService;
         private readonly ISMSService _smsService;
         private readonly IOTPService _otpService;
+        private readonly IMEDIAFILEService _mediaFileService;
 
-        public USERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IWebHostEnvironment webHostEnvironment, IConfiguration config, IMAILService mailService, ISMSService smsService, IOTPService otpService)
+        public USERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IWebHostEnvironment webHostEnvironment, IConfiguration config, IMAILService mailService, ISMSService smsService, IOTPService otpService, IMEDIAFILEService mediaFileService)
         {
             _context = context;
             _mapper = mapper;
@@ -41,9 +44,10 @@ namespace BE.Services.User
             _mailService = mailService;
             _smsService = smsService;
             _otpService = otpService;
+            _mediaFileService = mediaFileService;
         }
 
-        #region Common Method
+        #region Common Method - CRUD
         public BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request)
         {
             var response = new BaseResponse<GetListPagingResponse>();
@@ -80,6 +84,27 @@ namespace BE.Services.User
             return response;
         }
 
+        public BaseResponse<List<MODELMediaFile>> GetListMediaFiles(POSTGetListMediaFilesRequest request)
+        {
+            var response = new BaseResponse<List<MODELMediaFile>>();
+            try
+            {
+                var result = _context.MediaFiles.Where(m => m.OwnerId == request.UserId
+                                                            && m.FileType == request.FileType
+                                                            && !m.IsDeleted)
+                                                .OrderByDescending(m => m.IsActived)
+                                                .ThenByDescending(m => m.NgaySua);
+                response.Data = _mapper.Map<List<MODELMediaFile>>(result);
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+
+            return response;
+        }
+
         public BaseResponse<MODELUser> GetById(GetByIdRequest request)
         {
             var response = new BaseResponse<MODELUser>();
@@ -98,7 +123,7 @@ namespace BE.Services.User
                     var ProfilePicture = _context.MediaFiles
                                                  .FirstOrDefault(m => m.OwnerId == result.Id
                                                                 && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
-                                                                && !m.IsDeleted && m.IsActive);
+                                                                && !m.IsDeleted && m.IsActived);
                     if (ProfilePicture != null)
                     {
                         result.ProfilePicture = ProfilePicture.Url;
@@ -107,7 +132,7 @@ namespace BE.Services.User
                     var CoverPicture = _context.MediaFiles
                                                  .FirstOrDefault(m => m.OwnerId == result.Id
                                                                 && m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture
-                                                               && !m.IsDeleted && m.IsActive);
+                                                               && !m.IsDeleted && m.IsActived);
                     if (CoverPicture != null)
                     {
                         result.CoverPicture = CoverPicture.Url;
@@ -146,8 +171,8 @@ namespace BE.Services.User
                     var ProfilePicture = _context.MediaFiles
                                                  .FirstOrDefault(m => m.OwnerId == result.Id
                                                                 && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
-                                                                && !m.IsDeleted && m.IsActive);
-                    if(ProfilePicture != null)
+                                                                && !m.IsDeleted && m.IsActived);
+                    if (ProfilePicture != null)
                     {
                         result.ProfilePicture = ProfilePicture.Url;
                     }
@@ -155,7 +180,7 @@ namespace BE.Services.User
                     var CoverPicture = _context.MediaFiles
                                                  .FirstOrDefault(m => m.OwnerId == result.Id
                                                                 && m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture
-                                                               && !m.IsDeleted && m.IsActive);
+                                                               && !m.IsDeleted && m.IsActived);
                     if (CoverPicture != null)
                     {
                         result.CoverPicture = CoverPicture.Url;
@@ -294,7 +319,7 @@ namespace BE.Services.User
             try
             {
                 var update = _context.Users.Find(request.Id);
-                if (update == null) 
+                if (update == null)
                 {
                     throw new Exception("Không tìm thấy dữ liệu");
                 }
@@ -321,7 +346,55 @@ namespace BE.Services.User
                     response.Data = _mapper.Map<MODELUser>(update);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Cập nhật hình ảnh đại diện và ảnh bìa
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public BaseResponse<MODELMediaFile> UpdatePicture(POSTMediaFileRequest request)
+        {
+            var response = new BaseResponse<MODELMediaFile>();
+            try
+            {
+                // Cập nhật tất cả hình ảnh về trạng thái IsActived = False
+                var Pictures = _context.MediaFiles.Where(x => x.OwnerId == request.OwnerId
+                                                        && !x.IsDeleted && x.IsActived
+                                                        && x.FileType == request.FileType);
+                foreach (var item in Pictures)
+                {
+                    item.IsActived = false;
+                    item.NgaySua = DateTime.Now;
+                    item.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
+                }
+
+                _context.MediaFiles.UpdateRange(Pictures);
+
+                // Thêm mới hình ảnh hoặc cập nhật trạng thái hình ảnh cũ
+                var result = new BaseResponse<MODELMediaFile>();
+                if (request.IsEdit)
+                {
+                    result = _mediaFileService.Update(request);
+                }
+                else
+                {
+                    result = _mediaFileService.Insert(request);
+                }
+
+                if (result.Error)
+                {
+                    throw new Exception(result.Message);
+                }
+                response.Data = result.Data;
+            }
+            catch (Exception ex)
             {
                 response.Error = true;
                 response.Message = ex.Message;
@@ -831,6 +904,10 @@ namespace BE.Services.User
             }
         }
         #endregion
+        #endregion
+
+        #region Profile Picture and Cover Picture
+
         #endregion
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MODELS.COMMON
+﻿namespace MODELS.COMMON
 {
     public static class CommonConst
     {
@@ -23,6 +17,10 @@ namespace MODELS.COMMON
         /// Các định dạng file được phép upload
         /// Các trường hợp Upload: Profile Picture, Cover Picture, ChatImage, ChatFile
         /// </summary>
-        public static string[] AllowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "application/pdf" };
+        //public static string[] AllowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "application/pdf" };
+        /// <summary>
+        /// Sử dụng cho Profile Picture và Cover picture
+        /// </summary>
+        public static string[] AllowedPictureTypes = new[] { "image/jpeg", "image/png" };
     }
 }

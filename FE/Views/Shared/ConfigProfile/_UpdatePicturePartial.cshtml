@@ -1,0 +1,364 @@
+﻿@using MODELS.COMMON;
+@model List<MODELS.MEDIAFILE.Dtos.MODELMediaFile>
+
+<style>
+    /* LAYOUT FILE POND START */
+    .filepond--panel.filepond--panel-root {
+        border: 2px dashed black !important;
+    }
+
+    .filepond--root,
+    .filepond--root .filepond--drop-label {
+        height: 136px;
+    }
+
+    .filepond--root{
+        overflow: hidden;
+        border-radius: 0.5rem
+    }
+
+    .filepond--root, 
+    .filepond--drop-label > label{
+        cursor: pointer;
+        font-weight: 600
+    }
+
+    .filepond--root:hover {
+        background-color: var(--bs-gray-300) !important
+
+    }
+
+    .filepond--panel-root {
+        border: none !important;
+    }
+    /* the border radius of the file item */
+    .filepond--item-panel {
+        border-radius: 0.5em;
+    }
+
+    /* the background color of the file and file panel (used when dropping an image) */
+    .filepond--item-panel {
+        background-color: #555;
+    }
+
+    /* the background color of the drop circle */
+    .filepond--drip-blob {
+        background-color: #999;
+    }
+
+    /* the background color of the black action buttons */
+    .filepond--file-action-button {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    /* the icon color of the black action buttons */
+    .filepond--file-action-button {
+        color: white;
+    }
+
+    /* the color of the focus ring */
+    .filepond--file-action-button:hover,
+    .filepond--file-action-button:focus {
+        box-shadow: 0 0 0 0.125em rgba(255, 255, 255, 0.9);
+    }
+
+    /* error state color */
+    [data-filepond-item-state*='error'] .filepond--item-panel,
+    [data-filepond-item-state*='invalid'] .filepond--item-panel {
+        background-color: white;
+    }
+
+    [data-filepond-item-state='processing-complete'] .filepond--item-panel {
+        background-color: green;
+    }
+
+    /* bordered drop area */
+    .filepond--panel-root {
+        background-color: transparent;
+        border: 2px solid #2c3340;
+    }
+    /* LAYOUT FILE POND END */
+
+    /* ELEMENT FILE POND START */
+    /* Styles for the .filepond--panel.filepond--item-panel element */
+    .filepond--panel.filepond--item-panel {
+        height: 150px !important;
+        min-height: 150px !important;
+        display: block !important;
+    }
+
+    /* Styles for the children of .filepond--panel.filepond--item-panel */
+    .filepond--panel-top.filepond--item-panel {
+        height: 50px !important;
+        display: block !important;
+    }
+
+    .filepond--panel-center.filepond--item-panel {
+        height: 50px !important;
+        display: block !important;
+    }
+
+    .filepond--item{
+        height: 100px
+    }
+    /*Content*/
+    .filepond--panel-bottom.filepond--item-panel {
+        height: 50px !important;
+        display: block !important;
+    }
+
+    /* the text color of the file status and info labels */
+    .filepond--file {
+        flex-direction: column;
+        justify-content: space-around;
+        box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+        color: black;
+    }
+
+    .filepond--file-status{
+        align-items: start;
+        margin: 0!important;
+        flex-direction: row
+    }
+
+    .filepond--file-info{
+        flex: unset;
+        margin: 0!important;
+    }
+
+    .filepond--file-action-button.filepond--action-remove-item{
+        top: 9px
+    }
+    /* ELEMENT FILE POND END */
+    /*Button Profile Picture*/
+    .position-relative:hover:has(.BtnProfilePicture:not(.disabled)) .BtnProfilePicture {
+        box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+    }
+
+    .position-relative:hover:has(.BtnProfilePicture:not(.disabled)) .btn-xmark {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .btn-xmark {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+    }
+
+    .btn-xmark:hover{
+        border-color: var(--mdb-btn-outline-border-color)!important
+    }
+</style>
+
+<div class="modal-header">
+    <button type="button"
+            onclick='let profileTab = new bootstrap.Tab(document.getElementById("pills-profile-tab")); profileTab.show();'
+            class="btn-back btn-link rounded-circle position-relative border-0 bg-white opacity-50"
+            data-mdb-ripple-init
+            data-mdb-ripple-color="dark">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <h1 class="modal-title fs-5">Cập nhật ảnh đại diện</h1>
+    <button type="button"
+            class="btn-close btn-link rounded-circle"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+            data-mdb-ripple-init
+            data-mdb-ripple-color="dark">
+    </button>
+</div>
+
+<div class="modal-body p-3">
+    <input type="file"
+           class="filepond UploadProfile"
+           accept="@string.Join(", ", CommonConst.AllowedPictureTypes)" />
+
+    <label class="col-12">Ảnh đại diện của tôi</label>
+    <div class="container">
+        <div class="row gap-3">
+            @foreach (var file in Model)
+            {
+                <div id="@file.Id" class="position-relative p-0"
+                     style="width: fit-content">
+                    <button type="button"
+                            onclick="RenderConfirmUpdatePictureTab('@file.Id', '@file.FileType', () => CallBackRenderHistoryPicture('@file.Url'))"
+                            class="BtnProfilePicture btn btn-floating bg-center-image opacity-100 @(file.IsActived ? "btn-outline-success disabled" : "")"
+                            style="height: 80px; width: 80px; background-image: url(@file.Url)">
+                    </button>
+                    <button onclick="DeletePicture('@file.Id')"
+                            type="button" 
+                            class="btn-xmark btn bg-black btn-floating position-absolute btn-sm text-white btn-outline-light" 
+                            data-mdb-ripple-init
+                            style="right: 0px; border-color: black">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    var pondConfirm, pondUpdate;
+
+    $(document).ready(function ()
+    {
+        // Create FilePond instance
+        pondUpdate = FilePond.create(
+            document.querySelector('input.UploadProfile'),
+            {
+                labelIdle: `<i class="fa-solid fa-image"></i> Tải hình ảnh của bạn lên`,
+                labelFileTypeNotAllowed: 'Hình ảnh không hợp lệ',
+                fileValidateTypeLabelExpectedTypes: 'Định dạng hợp lệ: *.jfif, *.pjpeg, *.jpeg, *.pjp, *.jpg, *.png.',
+                labelMaxFileSizeExceeded: 'Kích thước tệp vượt quá giới hạn',
+                labelMaxFileSize: 'Kích thước tệp tối đa là 2MB',
+
+                allowFileTypeValidation: true,
+                allowImagePreview: false,
+                allowFileSizeValidation: true,
+
+                styleButtonRemoveItemPosition: 'right',
+                maxFileSize: '2MB',
+
+                // callback
+                onaddfile: (error, file) => {
+                    if (error) {
+                        // Lấy Element cần điều chỉnh
+                        const fileInfo = document.querySelector('.filepond--file-info');
+                        const fileName = document.querySelector('.filepond--file-info-main');
+                        const fileSize = document.querySelector('.filepond--file-info-sub');
+
+                        // Tạo thẻ div bao bọc mới
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'file-info-wrapper d-flex flex-column'; // Bạn có thể đặt class tùy ý
+
+                        // Chèn wrapper vào DOM, ngay trước fileName
+                        fileInfo.insertBefore(wrapper, fileName);
+
+                        // Di chuyển fileName và fileSize vào trong wrapper
+                        wrapper.appendChild(fileName);
+                        wrapper.appendChild(fileSize);
+
+                        // Thay đổi hướng flex từ row sang column
+                        fileInfo.style.flexDirection = 'row';
+                        fileInfo.style.alignItems = 'center'
+
+                        // Thêm Icon File Infor
+                        const fileInfoIcon = document.createElement('span');
+                        fileInfo.insertBefore(fileInfoIcon, wrapper)
+                        fileInfoIcon.innerHTML = '<i class="fa-regular fa-file fs-4 me-2"></i>'
+
+                        // filepond--file-status
+                        // Lấy Element cần điều chỉnh
+                        const fileStatus = document.querySelector('.filepond--file-status');
+                        const fileNameStatus = document.querySelector('.filepond--file-status-main');
+                        const fileSubStatus = document.querySelector('.filepond--file-status-sub');
+
+                        // Tạo thẻ div bao bọc mới
+                        const wrapperStatus = document.createElement('div');
+                        wrapperStatus.className = 'file-status-wrapper d-flex flex-column'; // Bạn có thể đặt class tùy ý
+
+                        // Chèn wrapper vào DOM, ngay trước fileName
+                        fileStatus.insertBefore(wrapperStatus, fileNameStatus);
+
+                        // Di chuyển fileName và fileSize vào trong wrapper
+                        wrapperStatus.appendChild(fileNameStatus);
+                        wrapperStatus.appendChild(fileSubStatus);
+
+                        fileStatus.style.flexDirection = 'row';
+                        fileStatus.style.alignItems = 'center'
+                        fileNameStatus.style.textAlign = 'start'
+                        fileSubStatus.style.textAlign = 'start'
+
+                        // Thêm Icon File Infor
+                        const fileStatusIcon = document.createElement('span');
+                        fileStatus.insertBefore(fileStatusIcon, wrapperStatus)
+                        fileStatusIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation fs-4 me-2 text-danger"></i>'
+
+                    } else {
+                        // Chuyển sang tab Confirm Picture
+                        RenderConfirmUpdatePictureTab('@Guid.Empty', 0, () => {
+                            let confirmUpdatePictureTab = new bootstrap.Tab(document.getElementById("pills-confirm-update-picture-tab"));
+                            confirmUpdatePictureTab.show();
+
+                            // Chờ FilePond khởi tạo
+                            let waitForPondConfirm = setInterval(() => {
+                                if (typeof pondConfirm !== 'undefined') {
+                                    pondConfirm.addFile(file.file).then((file) => {
+                                        // File has been added
+                                    })
+                                        .catch((error) => {
+                                            console.log(error)
+                                        });
+                                    clearInterval(waitForPondConfirm); // Dừng kiểm tra
+                                }
+                            }, 100);
+                        });
+                    }
+                },
+            }
+        )
+    })
+</script>
+
+<script>
+    function DeletePicture(id) {
+        var element = document.getElementById(id);
+        if (element) {
+            // Call the server to delete the picture
+            $.ajax({
+                url: "@Url.Action("DeleteListPicture", "Home")",
+                type: "POST",
+                data: {
+                    Ids: id
+                },
+                success: function (data) {
+                    if (data.isSuccess) {
+                        // Remove the element from the DOM
+                        element.remove();
+                    } else {
+                        // Show error message
+                        ShowThongBaoThatBai(data.message);
+                    }
+                },
+                error: function (xhr, error) {
+                    ShowThongBaoThatBai(error)
+                }
+            })
+        }
+    }
+
+    function CallBackRenderHistoryPicture(url)
+    {
+        let confirmUpdatePictureTab = new bootstrap.Tab(document.getElementById("pills-confirm-update-picture-tab"));
+        confirmUpdatePictureTab.show();
+
+        // Chờ FilePond khởi tạo
+        let waitForPondConfirm = setInterval(() => {
+            if (typeof pondConfirm !== 'undefined') {
+                createFileFromImageUrl(url)
+                    .then(file => {
+                        pondConfirm.addFile(file).then((file) => {
+                            // File has been added
+                        })
+                            .catch((error) => {
+                                console.log(error)
+                            });
+                        clearInterval(waitForPondConfirm); // Dừng kiểm tra
+                    });
+            }
+        }, 100);
+    }
+
+    async function createFileFromImageUrl(url) {
+        const response = await fetch(url);
+        const blob = await response.blob(); // Lấy dữ liệu dạng blob
+
+        const fileId = url.split('/').pop(); 
+        const typeFile = mimeToExt[blob.type] || 'bin'
+
+        const file = new File([blob], fileId + typeFile, { type: blob.type });
+        return file;
+    }
+</script>

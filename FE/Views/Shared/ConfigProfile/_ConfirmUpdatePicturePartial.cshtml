@@ -15,6 +15,15 @@
     .filepond--image-preview-overlay {
         opacity: 0 !important;
     }
+
+    .ConfirmPicture .filepond--file-info {
+        display: none
+    }
+
+    .ConfirmPicture{
+        margin: 0!important;
+        overflow: hidden
+    }
 </style>
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmUpdatePicture" }))
@@ -69,13 +78,17 @@
         pondConfirm = FilePond.create(
             document.querySelector('input.ConfirmPicture'),
             {
-                imagePreviewMaxHeight: 200,
                 allowImagePreview: true,
-                imageCropAspectRatio: '1:1',
-                imageResizeTargetWidth: 200,
+
+                imagePreviewMaxHeight: 400,
+
+                imageCropAspectRatio: '@(Model.FileType == 0 ? "1:1" : "5:2")',
+
                 imageResizeTargetHeight: 200,
-                stylePanelLayout: 'compact circle',
+
+                stylePanelLayout: 'compact @(Model.FileType == 0 ? "circle" : "")',
                 styleLoadIndicatorPosition: 'center bottom',
+
                 allowRemove: false,
                 disabled: true,
             }
@@ -88,7 +101,8 @@
         });
     });
 
-    function ReturnInitialInterface() {
+    function ReturnInitialInterface() {    
+        $('#modalContainer').removeClass('modal-lg');
         pondUpdate.removeFiles();
         let updatePictureTab = new bootstrap.Tab(document.getElementById("pills-update-picture-tab"));
         updatePictureTab.show();

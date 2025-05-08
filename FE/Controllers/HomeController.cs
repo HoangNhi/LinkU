@@ -153,6 +153,7 @@ namespace FE.Controllers
                     if (response.Success)
                     {
                         var result = JsonConvert.DeserializeObject<List<MODELMediaFile>>(response.Data.ToString());
+                        ViewBag.FileType = request.FileType;
                         return PartialView("~/Views/Shared/ConfigProfile/_UpdatePicturePartial.cshtml", result);
                     }
                     else

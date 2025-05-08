@@ -192,6 +192,22 @@
 
             // Mặc định là MessageList
             SwitchToScreen('TabMessageList')
+
+            // Thay đổi Display của Name-ProfilePicture
+            if (!($("#Functions").width() > 44)) {
+                const NameProfile = document.querySelector("#Name-ProfilePicture")
+                NameProfile.style.display = "none";
+
+                // Change Width
+                const BtnProfilePicture = document.querySelector(".btn-ProfilePicture")
+                BtnProfilePicture.style.width = "100%"
+                const SideNav = document.querySelector("#SideNav")
+                SideNav.style.width = "100%"
+
+                // Remove margin
+                const ImgProfile = document.querySelector("#Img-ProfilePicture")
+                ImgProfile.style.margin = "0";
+            }
         });
     }
 
@@ -202,7 +218,27 @@
         const currentDirection = ProfilePicture.style.flexDirection;
         ProfilePicture.style.flexDirection = (currentDirection === "row" || currentDirection === "") ? "column" : "row";
 
-        if (width == 44) {
+        if ($(window).width() < 900 && $("#Functions").width() > 44) {
+            $("#Functions").width(44)
+            $("#Functions").css("min-width", "44px")
+            $("#ProfilePicture").width(44)
+
+            // Hide title
+            const elements = document.querySelectorAll(".text-Functions");
+            elements.forEach(element => {
+                element.style.display = "none";
+            });
+            const NameProfile = document.querySelector("#Name-ProfilePicture")
+            NameProfile.style.display = "none";
+            // Remove margin
+            const ImgProfile = document.querySelector("#Img-ProfilePicture")
+            ImgProfile.style.margin = "0";
+            // Change Width
+            const BtnProfilePicture = document.querySelector(".btn-ProfilePicture")
+            BtnProfilePicture.style.width = "100%"
+            const SideNav = document.querySelector("#SideNav")
+            SideNav.style.width = "100%"
+        } else {
             $("#Functions").width(240)
             $("#Functions").css("min-width", "240px")
             $("#ProfilePicture").width(240)
@@ -226,26 +262,6 @@
             BtnProfilePicture.style.width = "80%"
             const SideNav = document.querySelector("#SideNav")
             SideNav.style.width = "20%"
-        } else {
-            $("#Functions").width(44)
-            $("#Functions").css("min-width", "44px")
-            $("#ProfilePicture").width(44)
-
-            // Hide title
-            const elements = document.querySelectorAll(".text-Functions");
-            elements.forEach(element => {
-                element.style.display = "none";
-            });
-            const NameProfile = document.querySelector("#Name-ProfilePicture")
-            NameProfile.style.display = "none";
-            // Remove margin
-            const ImgProfile = document.querySelector("#Img-ProfilePicture")
-            ImgProfile.style.margin = "0";
-            // Change Width
-            const BtnProfilePicture = document.querySelector(".btn-ProfilePicture")
-            BtnProfilePicture.style.width = "100%"
-            const SideNav = document.querySelector("#SideNav")
-            SideNav.style.width = "100%"
         }
     }
 

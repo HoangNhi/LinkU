@@ -175,20 +175,34 @@
                 </ul>
 
                 <!-- Cover, Profile picture and Name -->
-                <img src="@Model.CoverPicture"
-                     height="200"
-                     onclick="ShowLightBox(this.src)"
-                     style="object-fit: cover; width: 100%;" />
+                <div onclick="ShowLightBox('@Model.CoverPicture')"
+                     class="position-relative"
+                     style="background-image: url('@Model.CoverPicture'); 
+                            background-repeat: no-repeat;
+                            background-size: cover;
+                            background-position: center;                            
+                            object-fit: cover; width: 100%; height:200px;
+                            cursor: pointer">
+                    <button type="button" onclick="RenderUpdateProfilePictureTab(1)"
+                            class="position-absolute btn btn-light p-2"
+                            data-mdb-ripple-init data-mdb-ripple-color="dark"
+                            style="box-shadow: rgba(6, 24, 44, 0.4) 0px 0px 0px 2px, rgba(6, 24, 44, 0.65) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset;
+                                   right: 10px; bottom: 10px">
+                        <i class="fa-solid fa-image"></i>
+                    </button>
+                </div>
+
                 <div class="p-3 pb-0">
                     <div class="user-info">
                         <div class="position-relative me-3" style="width: 100px">
                             <img src="@Model.ProfilePicture"
                                  class="profile-picture"
-                                 onclick="ShowLightBox(this.src)" />
-                            <button id="BtnUpdateProfilePicture"
-                                    type="button"
+                                 onclick="ShowLightBox(this.src)" 
+                                 style="cursor: pointer"/>
+                            <button type="button" onclick="RenderUpdateProfilePictureTab(0)"
                                     class="position-absolute rounded-circle btn btn-light p-2"
-                                    style="right: 0; bottom: -30px; outline: none"
+                                    style="right: 0; bottom: -30px; outline: none; 
+                                           box-shadow: rgba(6, 24, 44, 0.4) 0px 0px 0px 2px, rgba(6, 24, 44, 0.65) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset;"
                                     data-mdb-ripple-init data-mdb-ripple-color="dark">
                                 <i class="fa-solid fa-camera-retro"></i>
                             </button>
@@ -292,12 +306,6 @@
             let updateProfileTab = new bootstrap.Tab(document.getElementById("pills-update-profile-tab"));
             updateProfileTab.show();
         });
-
-        document.getElementById("BtnUpdateProfilePicture").addEventListener("click", function () {
-            RenderUpdateProfilePictureTab(0)
-            let updatePictureTab = new bootstrap.Tab(document.getElementById("pills-update-picture-tab"));
-            updatePictureTab.show();
-        });
     });
 
     function RenderUpdateProfileTab() {
@@ -317,6 +325,7 @@
     }
 
     function RenderUpdateProfilePictureTab(type) {
+        event.stopPropagation()
           $.ajax({
             url: "@Url.Action("GetUpdatePicture", "Home")",
             type: "GET",
@@ -326,6 +335,8 @@
             },
             success: function (data) {
                 $('#pills-update-picture').html(data);
+                let updatePictureTab = new bootstrap.Tab(document.getElementById("pills-update-picture-tab"));
+                updatePictureTab.show();
             },
             error: function (xhr, error) {
                 ShowThongBaoThatBai(error)
@@ -345,6 +356,10 @@
                 if (data.isSuccess !== undefined && data.isSuccess === false) {
                     ShowThongBaoThatBai(data.message)
                 } else {
+                    // Cover Picture: modal-lg
+                    if (fileType === '1') {
+                        $('#modalContainer').addClass('modal-lg');
+                    }
                     $('#pills-confirm-update-picture').html(data);
                     callBack();
                 }

@@ -1,135 +1,137 @@
 ﻿@using MODELS.COMMON;
 @model List<MODELS.MEDIAFILE.Dtos.MODELMediaFile>
+@{ 
+    // Title Of Tab
+    Dictionary<int, string> TOT = new Dictionary<int, string>
+    {
+        {0, "Cập nhật ảnh đại diện"},
+        {1, "Cập nhật hình nền"}
+    };
+
+    // Title Of List Picture
+    Dictionary<int, string> TOLP = new Dictionary<int, string>
+    {
+        {0, "Ảnh đại diện của tôi"},
+        {1, "Hình nền của tôi"}
+    };
+
+
+}
 
 <style>
     /* LAYOUT FILE POND START */
-    .filepond--panel.filepond--panel-root {
+    .UploadProfile .filepond--panel.filepond--panel-root {
         border: 2px dashed black !important;
     }
 
-    .filepond--root,
-    .filepond--root .filepond--drop-label {
+    .UploadProfile.filepond--root,
+    .UploadProfile.filepond--root .filepond--drop-label {
         height: 136px;
     }
 
-    .filepond--root{
+    .UploadProfile.filepond--root {
         overflow: hidden;
-        border-radius: 0.5rem
+        border-radius: 0.5rem;
+        margin: 0!important
     }
 
-    .filepond--root, 
-    .filepond--drop-label > label{
+    .UploadProfile.filepond--root,
+    .UploadProfile .filepond--drop-label > label {
         cursor: pointer;
-        font-weight: 600
+        font-weight: 600;
     }
 
-    .filepond--root:hover {
-        background-color: var(--bs-gray-300) !important
-
+    .UploadProfile.filepond--root:hover {
+        background-color: var(--bs-gray-300) !important;
     }
 
-    .filepond--panel-root {
+    .UploadProfile .filepond--panel-root {
         border: none !important;
     }
-    /* the border radius of the file item */
-    .filepond--item-panel {
-        border-radius: 0.5em;
-    }
 
-    /* the background color of the file and file panel (used when dropping an image) */
-    .filepond--item-panel {
+    .UploadProfile .filepond--item-panel {
+        border-radius: 0.5em;
         background-color: #555;
     }
 
-    /* the background color of the drop circle */
-    .filepond--drip-blob {
+    .UploadProfile .filepond--drip-blob {
         background-color: #999;
     }
 
-    /* the background color of the black action buttons */
-    .filepond--file-action-button {
+    .UploadProfile .filepond--file-action-button {
         background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    /* the icon color of the black action buttons */
-    .filepond--file-action-button {
         color: white;
     }
 
-    /* the color of the focus ring */
-    .filepond--file-action-button:hover,
-    .filepond--file-action-button:focus {
+    .UploadProfile .filepond--file-action-button:hover,
+    .UploadProfile .filepond--file-action-button:focus {
         box-shadow: 0 0 0 0.125em rgba(255, 255, 255, 0.9);
     }
 
-    /* error state color */
-    [data-filepond-item-state*='error'] .filepond--item-panel,
-    [data-filepond-item-state*='invalid'] .filepond--item-panel {
+    .UploadProfile [data-filepond-item-state*='error'] .filepond--item-panel,
+    .UploadProfile [data-filepond-item-state*='invalid'] .filepond--item-panel {
         background-color: white;
     }
 
-    [data-filepond-item-state='processing-complete'] .filepond--item-panel {
+    .UploadProfile [data-filepond-item-state='processing-complete'] .filepond--item-panel {
         background-color: green;
     }
 
-    /* bordered drop area */
-    .filepond--panel-root {
+    .UploadProfile .filepond--panel-root {
         background-color: transparent;
         border: 2px solid #2c3340;
     }
     /* LAYOUT FILE POND END */
 
     /* ELEMENT FILE POND START */
-    /* Styles for the .filepond--panel.filepond--item-panel element */
-    .filepond--panel.filepond--item-panel {
+    .UploadProfile .filepond--panel.filepond--item-panel {
         height: 150px !important;
         min-height: 150px !important;
         display: block !important;
     }
 
-    /* Styles for the children of .filepond--panel.filepond--item-panel */
-    .filepond--panel-top.filepond--item-panel {
+    .UploadProfile .filepond--panel-top.filepond--item-panel {
         height: 50px !important;
         display: block !important;
     }
 
-    .filepond--panel-center.filepond--item-panel {
+    .UploadProfile .filepond--panel-center.filepond--item-panel {
         height: 50px !important;
         display: block !important;
     }
 
-    .filepond--item{
-        height: 100px
+    .UploadProfile .filepond--item {
+        height: 100px;
     }
-    /*Content*/
-    .filepond--panel-bottom.filepond--item-panel {
+
+    .UploadProfile .filepond--panel-bottom.filepond--item-panel {
         height: 50px !important;
         display: block !important;
     }
 
-    /* the text color of the file status and info labels */
-    .filepond--file {
+    .UploadProfile .filepond--file {
         flex-direction: column;
         justify-content: space-around;
         box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
         color: black;
     }
 
-    .filepond--file-status{
+    .UploadProfile .filepond--file-status {
         align-items: start;
-        margin: 0!important;
-        flex-direction: row
+        margin: 0 !important;
+        flex-direction: row;
     }
 
-    .filepond--file-info{
+    .UploadProfile .filepond--file-info {
         flex: unset;
-        margin: 0!important;
+        margin: 0 !important;
     }
 
-    .filepond--file-action-button.filepond--action-remove-item{
-        top: 9px
+    .UploadProfile .filepond--file-action-button.filepond--action-remove-item {
+        top: 9px;
     }
     /* ELEMENT FILE POND END */
+
     /*Button Profile Picture*/
     .position-relative:hover:has(.BtnProfilePicture:not(.disabled)) .BtnProfilePicture {
         box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
@@ -159,7 +161,7 @@
             data-mdb-ripple-color="dark">
         <i class="fa-solid fa-chevron-left"></i>
     </button>
-    <h1 class="modal-title fs-5">Cập nhật ảnh đại diện</h1>
+    <h1 class="modal-title fs-5">@TOT[ViewBag.FileType]</h1>
     <button type="button"
             class="btn-close btn-link rounded-circle"
             data-bs-dismiss="modal"
@@ -174,29 +176,32 @@
            class="filepond UploadProfile"
            accept="@string.Join(", ", CommonConst.AllowedPictureTypes)" />
 
-    <label class="col-12">Ảnh đại diện của tôi</label>
-    <div class="container">
-        <div class="row gap-3">
-            @foreach (var file in Model)
-            {
-                <div id="@file.Id" class="position-relative p-0"
-                     style="width: fit-content">
-                    <button type="button"
-                            onclick="RenderConfirmUpdatePictureTab('@file.Id', '@file.FileType', () => CallBackRenderHistoryPicture('@file.Url'))"
-                            class="BtnProfilePicture btn btn-floating bg-center-image opacity-100 @(file.IsActived ? "btn-outline-success disabled" : "")"
-                            style="height: 80px; width: 80px; background-image: url(@file.Url)">
-                    </button>
-                    <button onclick="DeletePicture('@file.Id')"
-                            type="button" 
-                            class="btn-xmark btn bg-black btn-floating position-absolute btn-sm text-white btn-outline-light" 
-                            data-mdb-ripple-init
-                            style="right: 0px; border-color: black">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-            }
+    @if (Model.Count > 0)
+    {
+        <label class="col-12 my-3 fs-6 fw-bold text-black">@TOLP[ViewBag.FileType]</label>
+        <div class="container">
+            <div class="row gap-3">
+                @foreach (var file in Model)
+                {
+                    <div id="@file.Id" class="position-relative p-0"
+                         style="width: fit-content">
+                        <button type="button"
+                                onclick="RenderConfirmUpdatePictureTab('@file.Id', '@ViewBag.FileType', () => CallBackRenderHistoryPicture('@file.Url'))"
+                                class="BtnProfilePicture btn @(ViewBag.FileType == 0 ? "btn-floating" : "") bg-center-image opacity-100 @(file.IsActived ? "btn-outline-success disabled" : "")"
+                                style="@(ViewBag.FileType == 0 ? "height: 80px; width: 80px" : "height: 90px; width: 225px"); background-image: url(@file.Url)">
+                        </button>
+                        <button onclick="DeletePicture('@file.Id')"
+                                type="button"
+                                class="btn-xmark btn bg-black btn-floating position-absolute btn-sm text-white btn-outline-light"
+                                data-mdb-ripple-init
+                                style="@(ViewBag.FileType == 0 ? "right: 0px" : "right: 5px; top: 5px"); border-color: black">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                }
+            </div>
         </div>
-    </div>
+    }
 </div>
 
 <script>
@@ -278,7 +283,7 @@
 
                     } else {
                         // Chuyển sang tab Confirm Picture
-                        RenderConfirmUpdatePictureTab('@Guid.Empty', 0, () => {
+                        RenderConfirmUpdatePictureTab('@Guid.Empty', '@ViewBag.FileType', () => {
                             let confirmUpdatePictureTab = new bootstrap.Tab(document.getElementById("pills-confirm-update-picture-tab"));
                             confirmUpdatePictureTab.show();
 

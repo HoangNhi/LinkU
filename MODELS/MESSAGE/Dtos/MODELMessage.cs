@@ -1,4 +1,5 @@
 ﻿using MODELS.BASE;
+using MODELS.USER.Dtos;
 
 namespace MODELS.MESSAGE.Dtos
 {
@@ -28,5 +29,7 @@ namespace MODELS.MESSAGE.Dtos
         public double? DoLon { get; set; }
 
         public string? Url { get; set; }
+
+        public MODELUser? User { get; set; } = new MODELUser();
     }
 }

@@ -54,5 +54,35 @@ namespace FE.Controllers
                 return Json(new { IsSuccess = false, Message = message, Data = "" });
             }
         }
+
+        public IActionResult GetListMessageLatest(POSTGetListMessageLatestRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.MESSAGELIST_GETLISTMESSAGELATEST, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
+                        result.Data = JsonConvert.DeserializeObject<List<MODELMessageList_GetListMessageLatest>>(result.Data.ToString());
+                        return PartialView("~/Views/Home/MessageList/_TabListMessageLatestPartial.cshtml", result);
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
     }
 }

@@ -129,26 +129,37 @@
         function transToChatScreen(userId) {
             event.stopPropagation(); // Ngăn sự kiện click lan lên div
             showLoading(true)
-            $.ajax({
-                url: "@Url.Action("TransToChatScreen", "Message")",
-                type: "POST",
-                data: {
-                    Id: userId
-                },
-                success: function (response) {
-                    showLoading(false)
-                    if (response.isSuccess === undefined) {
-                        CloseModal()
-                        $("#Messages").html(response)
-                    } else {
-                        ShowThongBaoThatBai(response.message)
+
+            // Kiểm tra Message hiện tại có phải của UserId không?
+            var UserOfMessageTap = $('#UserIdOfMessage').val();
+            // Case 1: Tap Message hiện tại chưa được tải
+            if (UserOfMessageTap === undefined || UserOfMessageTap !== userId) {
+                $.ajax({
+                    url: "@Url.Action("TransToChatScreen", "Message")",
+                    type: "POST",
+                    data: {
+                        Id: userId
+                    },
+                    success: function (response) {
+                        showLoading(false)
+                        if (response.isSuccess === undefined) {
+                            CloseModal()
+                            $("#Messages").html(response)
+                        } else {
+                            ShowThongBaoThatBai(response.message)
+                        }
+                    },
+                    error: function (xhr, error) {
+                        showLoading(false)
+                        ShowThongBaoThatBai(error)
                     }
-                },
-                error: function (xhr, error) {
-                    showLoading(false)
-                    ShowThongBaoThatBai(error)
-                }
-            })
+                })
+            }
+            // Case 2: Tap Message hiện tại của UserId
+            else {
+                showLoading(false)
+
+            }
         }
 
         // Xóa lời mời kết bạn

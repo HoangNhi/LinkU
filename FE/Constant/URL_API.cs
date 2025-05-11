@@ -31,6 +31,7 @@
 
         // MessageList
         public const string MESSAGELIST_SEARCH = "/MessageList/Search";
+        public const string MESSAGELIST_GETLISTMESSAGELATEST = "/MessageList/GetListMessageLatest";
 
         // FriendRequest
         public const string FRIENDREQUEST_GET_LIST_PAGING = "/FriendRequest/GetListPaging";

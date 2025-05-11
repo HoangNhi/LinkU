@@ -3,25 +3,18 @@
     bool isHaveData = (Model.Users.Count() + Model.Messages.Count() + Model.Files.Count()) > 0;
 }
 
-<style>
-    #btnMessageList_Search:hover {
-        background-color: hsl(0 0% 90% / 1)
-    }
-</style>
-
 @if (isHaveData)
 {
     if (Model.Users.Count() > 0)
     {
         foreach (MODELS.USER.Dtos.MODELUser user in Model.Users)
             {
-            <button id="btnMessageList_Search"
-                    type="button"
+            <button type="button"
                     class="d-flex w-100 btn btn-link p-0 mb-2"
                     style="text-align: start; align-items: center; color: inherit"
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
-                    onclick="transToChatScreen('@user.Id')">
+                    onclick="transToChatScreen('@user.Id'); SwitchToTab('tab-list-message'); setActiveButton('@user.Id'); HideReturnButton();">
                 <img class="rounded-circle"
                      style="margin: 6px; object-fit: cover"
                      width="48" height="48"

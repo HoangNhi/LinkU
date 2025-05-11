@@ -218,7 +218,7 @@
         const currentDirection = ProfilePicture.style.flexDirection;
         ProfilePicture.style.flexDirection = (currentDirection === "row" || currentDirection === "") ? "column" : "row";
 
-        if ($(window).width() < 900 && $("#Functions").width() > 44) {
+        if (width > 44) {
             $("#Functions").width(44)
             $("#Functions").css("min-width", "44px")
             $("#ProfilePicture").width(44)
@@ -306,36 +306,6 @@
             $("#SideNav").hide();
         } else {
             $("#SideNav").show();
-        }
-    }
-
-    function returnMessageListScreen() {
-        $("#MessageList_Back").addClass("d-none")
-        $("#MessageList_SearchInput").val("")
-    }
-
-    function searchMessage() {
-        var textSearch = $("#MessageList_SearchInput").val()
-        if (textSearch === "") {
-            $("#MessageList_Body").html('<div id="MessageList_SearchResult"></div>')
-        } else {
-             $.ajax({
-                 url: "@Url.Action("Search", "MessageList")",
-                 type: "POST",
-                 data: {
-                     TextSearch: textSearch
-                 },
-                 success: function (response) {
-                     if (response.isSuccess === undefined) {
-                         $("#MessageList_SearchResult").html(response)
-                     } else {
-                         ShowThongBaoThatBai(response.message)
-                     }
-                 },
-                 error: function (xhr, error) {
-                     ShowThongBaoThatBai(error)
-                 }
-             })
         }
     }
 

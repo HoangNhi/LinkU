@@ -3,20 +3,27 @@ using System.Collections.Generic;
 
 namespace ENTITIES.DbContent;
 
-public partial class FriendRequest
+public partial class MessageStatus
 {
     public Guid Id { get; set; }
 
-    public Guid SenderId { get; set; }
-
-    public Guid ReceiverId { get; set; }
+    public Guid UserId { get; set; }
 
     /// <summary>
-    /// 0: Chưa xác nhận, 1: Đồng ý, 2: Từ chối 
+    /// 0: Converstation - User to User; 1: Group - User to Group
     /// </summary>
-    public int Status { get; set; }
+    public int TypeOfMessage { get; set; }
 
-    public string? Message { get; set; }
+    /// <summary>
+    /// Id của User hoặc của Group dựa theo TypeOfMessage
+    /// </summary>
+    public Guid TargetId { get; set; }
+
+    public bool IsRead { get; set; }
+
+    public DateTime? ReadAt { get; set; }
+
+    public int? UnreadCount { get; set; }
 
     public DateTime NgayTao { get; set; }
 
@@ -34,5 +41,5 @@ public partial class FriendRequest
 
     public bool IsDeleted { get; set; }
 
-    public virtual User Sender { get; set; } = null!;
+    public virtual User User { get; set; } = null!;
 }

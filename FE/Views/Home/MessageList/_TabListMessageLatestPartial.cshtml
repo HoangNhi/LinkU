@@ -1,0 +1,52 @@
+﻿@model MODELS.BASE.GetListPagingResponse
+@{
+    var data = Model.Data as List<MODELS.MESSAGELIST.Dtos.MODELMessageList_GetListMessageLatest>;
+}
+
+<style>
+    #pills-list-message > button.active {
+        --mdb-btn-active-bg: var(--mdb-gray-300);
+        pointer-events: none
+    }
+</style>
+
+@if (data.Count == 0)
+{
+    <div>Không tìm thấy tin nhắn</div>
+}
+else
+{
+    foreach (var item in data)
+    {
+        <button id="@item.UserId"
+                type="button"
+                class="d-flex w-100 btn btn-link p-2 mb-2"
+                style="text-align: start; align-items: center; color: inherit; height: 64px"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark"
+                onclick="transToChatScreen('@item.UserId'); setActiveButton('@item.UserId');">
+            <img class="rounded-circle me-2 "
+                 style="object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
+                 width="48" height="48"
+                 src='@(item.ProfilePicture)' />
+            <div class="d-flex flex-column">
+                <span class="fs-6" style="line-height: 1.5">@(string.Concat(item.HoLot, " ", item.Ten))</span>
+                <span class="mt-1 @(item.IsRead ? "fw-normal" : "fw-bold")" style="font-size: 0.75rem">@(item.IsMyMessage ? $"Bạn: {item.LatestMessage}" : $"{item.Ten}: {item.LatestMessage}" )</span>
+            </div>
+        </button>
+    }
+
+}
+
+<script>
+    function setActiveButton(id) {
+        // Xóa class 'active' khỏi tất cả các button
+        document.querySelectorAll('#pills-list-message>button.active').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Thêm class 'active' vào button được click
+        var button = $('#pills-list-message>#' + id);
+        button.addClass('active')
+    }
+</script>

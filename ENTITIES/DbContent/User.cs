@@ -1,4 +1,7 @@
-﻿namespace ENTITIES.DbContent;
+﻿using System;
+using System.Collections.Generic;
+
+namespace ENTITIES.DbContent;
 
 public partial class User
 {
@@ -45,6 +48,8 @@ public partial class User
     public bool IsDeleted { get; set; }
 
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+    public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
 
     public virtual ICollection<FriendRequest> FriendRequests { get; set; } = new List<FriendRequest>();
 

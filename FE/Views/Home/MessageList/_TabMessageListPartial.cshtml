@@ -3,7 +3,8 @@
     $("#MessageList_SearchInput").on('focus', function () {
         if ($("#MessageList_Back").hasClass("d-none")) {
             $("#MessageList_Back").removeClass("d-none");
-            $("#MessageList_Body").html('<div id="MessageList_SearchResult"></div>')
+            $("#pills-list-search-result").html('<div id="MessageList_SearchResult"></div>')
+            SwitchToTab("tab-list-search-result")
         }
         $("#MessageList_SearchInput_Container").css("box-shadow", "rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px")
     });
@@ -12,6 +13,13 @@
         $("#MessageList_SearchInput_Container").css("box-shadow", "none")
     });
 </script>
+
+<style>
+    #MessageList_Body button:hover {
+        background-color: hsl(0 0% 90% / 1)
+    }
+</style>
+
 <div class="card text-center flex-grow-1">
     <div class="card-header d-flex justify-content-between align-items-center flex-column border-bottom-0"
          style="padding: 6px 12px">
@@ -35,7 +43,7 @@
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
                     style="margin-right: 4px; padding: 8px 9.25px; line-height: 1; background-color: rgba(0,0,0,0)"
-                    onclick="returnMessageListScreen()">
+                    onclick="HideReturnButton(); SwitchToTab('tab-list-message')">
                 <i class="fa-solid fa-arrow-left"
                    style="color: black; font-size: 20px"></i>
             </button>
@@ -49,14 +57,120 @@
                        type="text"
                        placeholder="Tìm kiếm"
                        autocomplete="off"
-                       oninput="searchMessage()">
+                       oninput="SearchMessage()">
             </div>
         </div>
     </div>
-    
-    <div id="MessageList_Body"
-         class="card-body"
-         style="padding: 6px; height: calc(100vh - 126px); overflow-x: hidden; overflow-y: auto">
-        Danh sách tin nhắn
+
+    <!-- Pills navs -->
+    <ul class="nav nav-pills mb-3 d-none" id="ex1" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="tab-list-message"
+                    role="tab" type="button"
+                    data-bs-toggle="pill"
+                    data-bs-target="#pills-list-message"
+                    aria-controls="pills-list-message"
+                    aria-selected="true">
+                Danh sách tin nhắn
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="tab-list-search-result"
+                    role="tab" type="button"
+                    data-bs-toggle="pill"
+                    data-bs-target="#pills-list-search-result"
+                    aria-controls="pills-list-search-result"
+                    aria-selected="false">
+                Danh sách kết quả tìm kiếm
+            </button>
+        </li>
+    </ul>
+    <!-- Pills navs -->
+
+    <!-- Pills content -->
+    <div class="tab-content card-body p-1" id="MessageList_Body"
+         style="height: calc(100vh - 126px); overflow-x: hidden; overflow-y: auto">
+        <!-- List message -->
+        <div class="tab-pane fade show active"
+             id="pills-list-message"
+             role="tabpanel"
+             aria-labelledby="tab-list-message">
+            Danh sách tin nhắn
+        </div>
+
+        <!-- Search result-->
+        <div class="tab-pane fade"
+             id="pills-list-search-result"
+             role="tabpanel"
+             aria-labelledby="tab-list-search-result">
+            @*Danh sách kết quả tìm kiếm*@
+        </div>
     </div>
+    <!-- Pills content -->
 </div>
+
+<script>
+    $(document).ready(function () {
+        GetListMessageLatest()
+    });
+    function HideReturnButton() {
+        $('#MessageList_Back').addClass('d-none');
+        $('#MessageList_SearchInput').val('');
+    }
+
+    function SwitchToTab(id) {
+        let tab = new bootstrap.Tab(document.getElementById(id));
+        tab.show();
+    }
+
+    function SearchMessage() {
+        var textSearch = $("#MessageList_SearchInput").val()
+        if (textSearch === "") {
+            $("#pills-list-search-result").html('<div id="MessageList_SearchResult"></div>')
+        } else {
+             $.ajax({
+                 url: "@Url.Action("Search", "MessageList")",
+                 type: "POST",
+                 data: {
+                     TextSearch: textSearch
+                 },
+                 success: function (response) {
+                     if (response.isSuccess === undefined) {
+                         SwitchToTab("tab-list-search-result");
+                         $("#MessageList_SearchResult").html(response)
+                     } else {
+                         ShowThongBaoThatBai(response.message)
+                     }
+                 },
+                 error: function (xhr, error) {
+                     ShowThongBaoThatBai(error)
+                 }
+             })
+        }
+    }
+
+    function GetListMessageLatest(PageIndex = 1) {
+        $.ajax({
+            url: "@Url.Action("GetListMessageLatest", "MessageList")",
+            type: "POST",
+            data: {
+                TextSearch: "",
+                CurrentUserId: "@ViewContext.GetClaimValue("UserId")",
+                PageIndex: 1,
+                RowPerPage: 15
+            },
+            success: function (response) {
+                if (response.isSuccess === undefined) {
+                    $("#pills-list-message").html(response)
+                } else {
+                    ShowThongBaoThatBai(response.message)
+                }
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        })
+    }
+</script>

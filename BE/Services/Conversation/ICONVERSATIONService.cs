@@ -8,10 +8,9 @@ namespace BE.Services.Conversation
     public interface ICONVERSATIONService
     {
         BaseResponse<GetListPagingResponse> GetListPaging(POSTConversationGetListPagingRequest request);
+        BaseResponse<GetListPagingResponse> SearchUserByEmailOrPhone(POSTSearchInConversationRequest request);
         BaseResponse<MODELConversation> Insert(POSTConversationRequest request);
         BaseResponse<MODELConversation> Update(POSTConversationRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
-
-        basere
     }
 }

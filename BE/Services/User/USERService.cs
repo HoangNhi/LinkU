@@ -9,6 +9,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using MODELS.BASE;
 using MODELS.COMMON;
+using MODELS.CONVERSATION.Requests;
 using MODELS.MAIL.Dtos;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
@@ -904,10 +905,6 @@ namespace BE.Services.User
             }
         }
         #endregion
-        #endregion
-
-        #region Profile Picture and Cover Picture
-
         #endregion
     }
 }

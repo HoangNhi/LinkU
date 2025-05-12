@@ -46,7 +46,7 @@
         -webkit-box-shadow: none
     }
 
-    #MessageList {
+    #Conversation {
         max-height: 100%;
         min-height: 0;
         width: unset;
@@ -81,7 +81,7 @@
         background-color: rgba(211, 212, 213, 1)!important 
     }*/
 
-    #MessageList_SearchInput {
+    #Conversation_SearchInput {
         padding: 4px 12px 4px 2px;
         border: 0;
         font-size: .9375rem;
@@ -90,7 +90,7 @@
         background-color: rgba(0,0,0,0)
     }
 
-    #MessageList_SearchInput:focus-visible {
+    #Conversation_SearchInput:focus-visible {
         outline: none;
         box-shadow: none;
     }
@@ -107,7 +107,7 @@
                     style="min-width: 100%!important"
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
-                    onclick="SwitchToScreen('TabMessageList')">
+                    onclick="SwitchToScreen('TabConversation')">
                 <i class="fa-regular fa-comment icon-Functions"
                    style=""></i>
                 <span class="text-Functions">Đoạn chat</span>
@@ -132,6 +132,8 @@
                 <i class="fa-regular fa-address-book icon-Functions"></i>
                 <span class="text-Functions">Lời mời kết nối</span>
             </button>
+            
+        
         </div>
         <!-- Tên và sidenav -->
         <div id="ProfilePicture"
@@ -142,9 +144,7 @@
     </div>
 
     <!-- Danh sách tin nhắn -->
-    <div id="MessageList">
-        
-    </div>
+    <div id="Conversation"></div>
 
     <!-- Tin nhắn -->
     <div id="Messages">
@@ -190,8 +190,8 @@
             // Thay đổi giao diện khi lần đầu truy cập vào trang
             changeWidthFocusScreen();
 
-            // Mặc định là MessageList
-            SwitchToScreen('TabMessageList')
+            // Mặc định là Conversation
+            SwitchToScreen('TabConversation')
 
             // Thay đổi Display của Name-ProfilePicture
             if (!($("#Functions").width() > 44)) {
@@ -266,7 +266,7 @@
     }
 
     // Lấy ra vùng đang được Focus
-    // 1: MessageList
+    // 1: Conversation
     // 2: Messages
     function getFocusScreen() {
         return 1;
@@ -278,25 +278,25 @@
             ChangeWidthSideNav();
         }
 
-        // Màn hình MessageList và Messages
+        // Màn hình Conversation và Messages
         if ($(window).width() < 700) {
             if (getFocusScreen() == 1) {
-                $("#MessageList").show()
-                $("#MessageList").css("max-width", "100%")
-                $("#MessageList").css("width", "100%")
+                $("#Conversation").show()
+                $("#Conversation").css("max-width", "100%")
+                $("#Conversation").css("width", "100%")
                 $("#Messages").hide()
             } else {
-                $("#MessageList").hide()
+                $("#Conversation").hide()
                 $("#Messages").show()
                 $("#Messages").css("max-width", "100%")
                 $("#Messages").css("width", "100%")
             }
         } else {
-            $("#MessageList").show()
+            $("#Conversation").show()
             $("#Messages").show()
             // Reset css
-            $("#MessageList").css("max-width", "360px")
-            $("#MessageList").css("width", "unset")
+            $("#Conversation").css("max-width", "360px")
+            $("#Conversation").css("width", "unset")
             $("#Messages").css("max-width", "100%")
             $("#Messages").css("width", "unset")
         }
@@ -312,16 +312,16 @@
     function SwitchToScreen(screen) {
         changeFaRularToFaSolid(screen)
 
-        if (screen === "TabMessageList") {
-            $.get("@Url.Action("Index", "MessageList")", function (data) {
-                $("#MessageList").html(data);
+        if (screen === "TabConversation") {
+            $.get("@Url.Action("Index", "Conversation")", function (data) {
+                $("#Conversation").html(data);
             });
         } else if (screen === "TabContact") {
             $.get("@Url.Action("Index", "Contact")", function (data) {
-                $("#MessageList").html(data);
+                $("#Conversation").html(data);
             });
         } else if (screen === "TabMessageWaiting") {
-            $("#MessageList").html("Tin nhắn đang chờ<br/>Tính năng đang thực hiện");
+            $("#Conversation").html("Tin nhắn đang chờ<br/>Tính năng đang thực hiện");
         }
     }
 

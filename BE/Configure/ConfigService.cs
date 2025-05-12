@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Azure.Storage.Blobs;
 using BE.AutoMapper;
+using BE.Services.Conversation;
 using BE.Services.FriendRequest;
 using BE.Services.FriendShip;
 using BE.Services.Mail;
@@ -122,10 +123,11 @@ namespace BE.Configure
             builder.Services.AddTransient<IMAILService, MAILService>();
             builder.Services.AddTransient<ISMSService, SMSService>();
             builder.Services.AddTransient<IOTPService, OTPService>();
-            builder.Services.AddTransient<IMESSAGELISTService, MESSAGELISTService>();
+            //builder.Services.AddTransient<IMESSAGELISTService, MESSAGELISTService>();
             builder.Services.AddTransient<IFRIENDREQUESTService, FRIENDREQUESTService>();
             builder.Services.AddTransient<IFRIENDSHIPService, FIRENDSHIPService>();
             builder.Services.AddScoped<IMEDIAFILEService, MEDIAFILEService>();
+            builder.Services.AddTransient<ICONVERSATIONService, CONVERSATIONService>();
         }
     }
 }

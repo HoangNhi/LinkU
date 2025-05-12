@@ -8,6 +8,8 @@ using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
+using MODELS.MESSAGESTATUS.Dtos;
+using MODELS.MESSAGESTATUS.Requests;
 using MODELS.OTP.Dtos;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.USER.Dtos;
@@ -46,6 +48,10 @@ namespace BE.AutoMapper
             // MediaFile
             CreateMap<MediaFile, MODELMediaFile>().ReverseMap();
             CreateMap<MediaFile, POSTMediaFileRequest>().ReverseMap();
+
+            // Conversation
+            CreateMap<Conversation, MODELConversation>().ReverseMap();
+            CreateMap<Conversation, POSTConversationRequest>().ReverseMap();
         }
     }
 }

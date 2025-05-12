@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
+using MODELS.CONVERSATION.Requests;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.OTP.Requests;
 using MODELS.REFRESHTOKEN.Requests;

@@ -3,40 +3,40 @@ using FE.Services;
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
+using MODELS.CONVERSATION.Requests;
 using MODELS.MESSAGELIST.Dtos;
 using MODELS.MESSAGELIST.Requests;
+using MODELS.MESSAGESTATUS.Dtos;
+using MODELS.USER.Dtos;
 using Newtonsoft.Json;
 
 namespace FE.Controllers
 {
-    public class MessageListController : BaseController<MessageListController>
+    public class ConversationController : BaseController<ConversationController>
     {
 
-        public MessageListController(ICONSUMEAPIService consumeAPI) : base(consumeAPI)
+        public ConversationController(ICONSUMEAPIService consumeAPI) : base(consumeAPI)
         {
         }
 
         public IActionResult Index()
         {
-            return PartialView("~/Views/Home/MessageList/_TabMessageListPartial.cshtml");
+            return PartialView("~/Views/Home/Conversation/_ConversationPartial.cshtml");
         }
 
-        [HttpPost]
-        public IActionResult Search(MessageList_SearchRequest request)
+        // Tab: Search
+        public IActionResult SearchUserByEmailOrPhone(POSTSearchInConversationRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.MESSAGELIST_SEARCH, request, HttpAction.Post);
+                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.CONVERSATION_SEARCH_USER_BY_EMAIL_OR_PHONE, request, HttpAction.Post);
                     if (response.Success)
                     {
-                        var result = JsonConvert.DeserializeObject<MODELMessageList_Search>(response.Data.ToString());
-                        foreach (var item in result.Users)
-                        {
-                            item.ProfilePicture = GetProfilePicture(item.ProfilePicture);
-                        }
-                        return PartialView("~/Views/Home/MessageList/_SearchResultPartial.cshtml", result);
+                        var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
+                        result.Data = JsonConvert.DeserializeObject<List<MODELUser>>(result.Data.ToString());
+                        return PartialView("~/Views/Home/Conversation/_TabSearchResultPartial.cshtml", result);
                     }
                     else
                     {
@@ -55,18 +55,19 @@ namespace FE.Controllers
             }
         }
 
-        public IActionResult GetListMessageLatest(POSTGetListMessageLatestRequest request)
+        // Tab: GetListPaging
+        public IActionResult GetListPaging(POSTConversationGetListPagingRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.MESSAGELIST_GETLISTMESSAGELATEST, request, HttpAction.Post);
+                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.CONVERSATION_GET_LIST_PAGING, request, HttpAction.Post);
                     if (response.Success)
                     {
                         var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
-                        result.Data = JsonConvert.DeserializeObject<List<MODELMessageList_GetListMessageLatest>>(result.Data.ToString());
-                        return PartialView("~/Views/Home/MessageList/_TabListMessageLatestPartial.cshtml", result);
+                        result.Data = JsonConvert.DeserializeObject<List<MODELConversation>>(result.Data.ToString());
+                        return PartialView("~/Views/Home/Conversation/_TabGetListPagingPartial.cshtml", result);
                     }
                     else
                     {

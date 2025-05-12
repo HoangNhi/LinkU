@@ -1,0 +1,210 @@
+﻿using AutoMapper;
+using BE.Helpers;
+using ENTITIES.DbContent;
+using Microsoft.Data.SqlClient;
+using MODELS.BASE;
+using MODELS.CONVERSATION.Dtos;
+using MODELS.CONVERSATION.Requests;
+using MODELS.MESSAGE.Dtos;
+using MODELS.MESSAGELIST.Dtos;
+using MODELS.MESSAGESTATUS.Dtos;
+using MODELS.MESSAGESTATUS.Requests;
+using MODELS.USER.Dtos;
+
+namespace BE.Services.Conversation
+{
+    public class CONVERSATIONService : ICONVERSATIONService
+    {
+        private readonly LINKUContext _context;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _contextAccessor;
+
+        public CONVERSATIONService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor)
+        {
+            _context = context;
+            _mapper = mapper;
+            _contextAccessor = contextAccessor;
+        }
+
+        public BaseResponse<GetListPagingResponse> GetListPaging(POSTConversationGetListPagingRequest request)
+        {
+            var response = new BaseResponse<GetListPagingResponse>();
+            try
+            {
+                SqlParameter iTotalRow = new SqlParameter()
+                {
+                    ParameterName = "@oTotalRow",
+                    SqlDbType = System.Data.SqlDbType.BigInt,
+                    Direction = System.Data.ParameterDirection.Output
+                };
+
+                var parameters = new[]
+                {
+                    new SqlParameter("@iTextSearch", request.TextSearch),
+                    new SqlParameter("@iPageIndex", request.PageIndex - 1),
+                    new SqlParameter("@iRowsPerPage", request.RowPerPage),
+                    new SqlParameter("@iCurrentUserId", request.CurrentUserId),
+                    iTotalRow
+                };
+
+                var result = _context.ExcuteStoredProcedure<MODELConversationGetListPaging>("sp_CONVERSATION_GetListPaging", parameters).ToList();
+
+                GetListPagingResponse resposeData = new GetListPagingResponse();
+                resposeData.PageIndex = request.PageIndex;
+                resposeData.Data = result;
+                resposeData.TotalRow = Convert.ToInt32(iTotalRow.Value);
+                response.Data = resposeData;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public BaseResponse<GetListPagingResponse> SearchUserByEmailOrPhone(POSTSearchInConversationRequest request)
+        {
+            var response = new BaseResponse<GetListPagingResponse>();
+            try
+            {
+                SqlParameter iTotalRow = new SqlParameter()
+                {
+                    ParameterName = "@oTotalRow",
+                    SqlDbType = System.Data.SqlDbType.BigInt,
+                    Direction = System.Data.ParameterDirection.Output
+                };
+
+                var UserId = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "name").Value;
+
+                var parameters = new[]
+                {
+                    new SqlParameter("@iCurrentId", UserId),
+                    new SqlParameter("@iTextSearch", request.TextSearch),
+                    new SqlParameter("@iPageIndex", request.PageIndex - 1),
+                    new SqlParameter("@iRowsPerPage", request.RowPerPage),
+                    iTotalRow
+                };
+
+                var result = _context.ExcuteStoredProcedure<MODELUser>("sp_USER_UserSearchByEmailOrPhone", parameters).ToList();
+                GetListPagingResponse responseData = new GetListPagingResponse();
+                responseData.PageIndex = request.PageIndex;
+                responseData.Data = result;
+                responseData.TotalRow = Convert.ToInt32(iTotalRow.Value);
+                response.Data = responseData;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+        
+        public BaseResponse<MODELConversation> Insert(POSTConversationRequest request)
+        {
+            var response = new BaseResponse<MODELConversation>();
+            try
+            {
+                var check = _context.Conversations.Any(x => x.UserId == request.UserId
+                                                                  && x.TargetId == request.TargetId
+                                                                  && !x.IsDeleted);
+
+                if (check)
+                {
+                    throw new Exception("Cuộc trò chuyện đã tồn tại trong hệ thống");
+                }
+
+                var add = _mapper.Map<ENTITIES.DbContent.Conversation>(request);
+                add.Id = request.Id == Guid.Empty ? Guid.NewGuid() : request.Id;
+                add.NgayTao = DateTime.Now;
+                add.NguoiTao = _contextAccessor.HttpContext.User.Identity.Name;
+                add.NgaySua = DateTime.Now;
+                add.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
+
+                _context.Conversations.Add(add);
+                _context.SaveChanges();
+
+                response.Data = _mapper.Map<MODELConversation>(add);
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+        
+        public BaseResponse<MODELConversation> Update(POSTConversationRequest request)
+        {
+            var response = new BaseResponse<MODELConversation>();
+            try
+            {
+                var check = _context.Conversations.Any(x => x.UserId == request.UserId
+                                                       && x.TargetId == request.TargetId
+                                                       && !x.IsDeleted && x.Id != request.Id);
+
+                if (check)
+                {
+                    throw new Exception("Cuộc trò chuyện đã tồn tại trong hệ thống");
+                }
+
+                var update = _context.Conversations.Find(request.Id);
+                if (update == null)
+                {
+                    throw new Exception("Không tìm thấy dữ liệu");
+                }
+                else
+                {
+                    _mapper.Map(request, update);
+                    update.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
+                    update.NgaySua = DateTime.Now;
+
+                    // Lưu dữ liệu
+                    _context.Conversations.Update(update);
+                    _context.SaveChanges();
+
+                    response.Data = _mapper.Map<MODELConversation>(update);
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public BaseResponse<string> DeleteList(DeleteListRequest request)
+        {
+            var response = new BaseResponse<string>();
+            try
+            {
+                foreach (var id in request.Ids)
+                {
+                    var delete = _context.Conversations.Find(id);
+                    if (delete != null)
+                    {
+                        delete.IsDeleted = true;
+                        delete.NguoiXoa = _contextAccessor.HttpContext.User.Identity.Name;
+                        delete.NgayXoa = DateTime.Now;
+                        // Lưu dữ liệu
+                        _context.Conversations.Update(delete);
+                        _context.SaveChanges();
+                    }
+                    else
+                    {
+                        throw new Exception($"Không tìm thấy dữ liệu: {id.ToString()}");
+                    }
+                }
+                response.Data = string.Join(", ", request.Ids);
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+    }
+}

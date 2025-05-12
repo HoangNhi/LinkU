@@ -1,4 +1,5 @@
 ﻿using MODELS.BASE;
+using MODELS.CONVERSATION.Requests;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.OTP.Requests;

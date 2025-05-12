@@ -1,11 +1,6 @@
 ﻿using FluentValidation;
 using MODELS.BASE;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MODELS.CONVERSATION.Requests
 {
@@ -22,6 +17,10 @@ namespace MODELS.CONVERSATION.Requests
             RuleFor(x => x.TextSearch)
                 .NotEmpty().WithMessage("Vui lòng nhập từ khóa tìm kiếm")
                 .MaximumLength(100).WithMessage("Từ khóa tìm kiếm không được quá 100 ký tự");
+
+            RuleFor(x => x.PageIndex).GreaterThanOrEqualTo(1).WithMessage("Số trang phải lớn hơn 0");
+            RuleFor(x => x.RowPerPage).GreaterThanOrEqualTo(1).WithMessage("Số bản ghi trên trang phải lớn hơn 0");
+
         }
     }
 

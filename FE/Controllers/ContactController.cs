@@ -10,7 +10,7 @@ namespace FE.Controllers
         }
         public IActionResult Index()
         {
-            return PartialView("~/Views/Home/Contact/_TabContactPartial.cshtml");
+            return PartialView("~/Views/Home/Contact/_ContactPartial.cshtml");
         }
     }
 }

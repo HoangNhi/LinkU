@@ -1,43 +1,40 @@
-﻿@model MODELS.MESSAGELIST.Dtos.MODELMessageList_Search
-@{
-    bool isHaveData = (Model.Users.Count() + Model.Messages.Count() + Model.Files.Count()) > 0;
+﻿@model MODELS.BASE.GetListPagingResponse
+@{ 
+    var data = Model.Data as List<MODELS.USER.Dtos.MODELUser>;
 }
 
-@if (isHaveData)
+@if (data.Any())
 {
-    if (Model.Users.Count() > 0)
+    foreach (MODELS.USER.Dtos.MODELUser user in data)
     {
-        foreach (MODELS.USER.Dtos.MODELUser user in Model.Users)
-            {
-            <button type="button"
-                    class="d-flex w-100 btn btn-link p-0 mb-2"
-                    style="text-align: start; align-items: center; color: inherit"
-                    data-mdb-ripple-init
-                    data-mdb-ripple-color="dark"
-                    onclick="transToChatScreen('@user.Id'); SwitchToTab('tab-list-message'); setActiveButton('@user.Id'); HideReturnButton();">
-                <img class="rounded-circle"
-                     style="margin: 6px; object-fit: cover"
-                     width="48" height="48"
-                     src='@(user.ProfilePicture)' />
-                <div class="d-flex flex-column">
-                    <span class="fs-6" style="line-height: 1.5">@(string.Concat(user.HoLot, " ", user.Ten))</span>
-                    @if (user.SoDienThoai != null)
-                    {
-                        <span class="fs-6" style="line-break: anywhere; line-height: 1.5">
-                            <i class="fa-solid fa-phone"></i>
-                            <span class="text-primary-emphasis">@user.SoDienThoai</span>
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="fs-6" style="line-break: anywhere; line-height: 1.5">
-                            <i class="fa-solid fa-envelope"></i>
-                            <span class="text-primary-emphasis">@user.Email</span>
-                        </span>
-                    }
-                </div>
-            </button>
-            }
+        <button type="button"
+                class="d-flex w-100 btn btn-link p-0 mb-2"
+                style="text-align: start; align-items: center; color: inherit"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark"
+                onclick="transToChatScreen('@user.Id'); SwitchToTab('tab-list-message'); setActiveButton('@user.Id'); HideReturnButton();">
+            <img class="rounded-circle"
+                 style="margin: 6px; object-fit: cover"
+                 width="48" height="48"
+                 src='@(user.ProfilePicture)' />
+            <div class="d-flex flex-column">
+                <span class="fs-6" style="line-height: 1.5">@(string.Concat(user.HoLot, " ", user.Ten))</span>
+                @if (user.SoDienThoai != null)
+                {
+                    <span class="fs-6" style="line-break: anywhere; line-height: 1.5">
+                        <i class="fa-solid fa-phone"></i>
+                        <span class="text-primary-emphasis">@user.SoDienThoai</span>
+                    </span>
+                }
+                else
+                {
+                    <span class="fs-6" style="line-break: anywhere; line-height: 1.5">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span class="text-primary-emphasis">@user.Email</span>
+                    </span>
+                }
+            </div>
+        </button>
     }
 }
 else

@@ -46,7 +46,7 @@
         -webkit-box-shadow: none
     }
 
-    #Conversation {
+    #ChatInfo {
         max-height: 100%;
         min-height: 0;
         width: unset;
@@ -60,7 +60,7 @@
         flex: 2;
     }
 
-    #Messages {
+    #ChatArea {
         max-height: 100%;
         min-height: 0;
         width: unset;
@@ -101,40 +101,60 @@
      style="background-color: rgb(245, 245, 245); height: calc(100vh - 32px)">
     <!-- Chức năng -->
     <div id="Functions" style="width: 240px; min-width: 240px">
-        <div>
-            <button type="button"
-                    class="btn btn-link d-flex align-items-center btn-Functions active"
-                    style="min-width: 100%!important"
-                    data-mdb-ripple-init
-                    data-mdb-ripple-color="dark"
-                    onclick="SwitchToScreen('TabConversation')">
-                <i class="fa-regular fa-comment icon-Functions"
-                   style=""></i>
-                <span class="text-Functions">Đoạn chat</span>
-            </button>
+        <ul class="nav" role="tablist">
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        class="btn btn-link d-flex align-items-center btn-Functions active"
+                        style="min-width: 100%!important"
+                        id="tab-conversation"
+                        data-mdb-ripple-init
+                        data-mdb-ripple-color="dark"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-conversation"
+                        aria-controls="pills-conversation"
+                        aria-selected="true"
+                        onclick="SwitchToTabFunctions('tab-conversation')">
+                    <i class="fa-regular fa-comment icon-Functions"
+                       style=""></i>
+                    <span class="text-Functions">Đoạn chat</span>
+                </button>
+            </li>
 
-            <button type="button"
-                    class="btn btn-link d-flex align-items-center btn-Functions"
-                    style="min-width: 100%!important"
-                    data-mdb-ripple-init
-                    data-mdb-ripple-color="dark"
-                    onclick="SwitchToScreen('TabMessageWaiting')">
-                <i class="fa-regular fa-comment-dots icon-Functions"></i>
-                <span class="text-Functions">Tin nhắn đang chờ</span>
-            </button>
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        class="btn btn-link d-flex align-items-center btn-Functions"
+                        style="min-width: 100%!important"
+                        id="tab-message-waiting"
+                        data-mdb-ripple-init
+                        data-mdb-ripple-color="dark"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-message-waiting"
+                        aria-controls="pills-message-waiting"
+                        aria-selected="true"
+                        onclick="SwitchToTabFunctions('tab-message-waiting')">
+                    <i class="fa-regular fa-comment-dots icon-Functions"></i>
+                    <span class="text-Functions">Tin nhắn đang chờ</span>
+                </button>
+            </li>
 
-            <button type="button"
-                    class="btn btn-link d-flex align-items-center btn-Functions"
-                    style="min-width: 100%!important"
-                    data-mdb-ripple-init
-                    data-mdb-ripple-color="dark"
-                    onclick="SwitchToScreen('TabContact')">
-                <i class="fa-regular fa-address-book icon-Functions"></i>
-                <span class="text-Functions">Lời mời kết nối</span>
-            </button>
-            
-        
-        </div>
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        class="btn btn-link d-flex align-items-center btn-Functions"
+                        style="min-width: 100%!important"
+                        id="tab-contact"
+                        data-mdb-ripple-init
+                        data-mdb-ripple-color="dark"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-contact"
+                        aria-controls="pills-contact"
+                        aria-selected="true"
+                        onclick="SwitchToTabFunctions('tab-contact')">
+                    <i class="fa-regular fa-address-book icon-Functions"></i>
+                    <span class="text-Functions">Tin nhắn đang chờ</span>
+                </button>
+            </li>
+        </ul>
+
         <!-- Tên và sidenav -->
         <div id="ProfilePicture"
              style="padding-top: 12px; bottom: 12px; width: 100%; max-width: 240px; background-color: rgb(245, 245, 245)"
@@ -143,11 +163,36 @@
         </div>
     </div>
 
-    <!-- Danh sách tin nhắn -->
-    <div id="Conversation"></div>
+    <!-- ChatInfo - Pills content -->
+    <div class="tab-content" id="ChatInfo">
+        <!-- Conversation -->
+        <div class="tab-pane fade show active w-100"
+             id="pills-conversation"
+             role="tabpanel"
+             aria-labelledby="tab-conversation">
+            <!-- ~/Views/Home/Conversation/_ConversationPartial.cshtml -->
+        </div>
+
+        <!-- Message Waiting -->
+        <div class="tab-pane fade w-100"
+             id="pills-message-waiting"
+             role="tabpanel"
+             aria-labelledby="tab-message-waiting">
+            Tin nhắn đang chờ<br/>Tính năng đang thực hiện
+        </div>
+
+        <!-- Contact -->
+        <div class="tab-pane fade w-100"
+             id="pills-contact"
+             role="tabpanel"
+             aria-labelledby="tab-contact">
+            <!-- ~/Views/Home/Contact/_ContactPartial.cshtml -->
+        </div>
+    </div>
+    <!-- ChatInfo - Pills content -->
 
     <!-- Tin nhắn -->
-    <div id="Messages">
+    <div id="ChatArea">
         <div class="card text-center flex-grow-1" style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
             <div class="card-header">Featured</div>
             <div class="card-body">
@@ -161,6 +206,8 @@
 <script>
     var BtnPopover;
     $(document).ready(function () {
+        renderTabConversation(true)
+        renderTabContact(false)
         GetProfilePicture();
     });
 
@@ -185,13 +232,10 @@
 
     // Render ProfilePicture
     function GetProfilePicture() {
-        $.get("@Url.Action("GetConfigProfile", "Home")", function (data) { 
+        $.get("@Url.Action("GetConfigProfile", "Home")", function (data) {
             $("#ProfilePicture").html(data)
             // Thay đổi giao diện khi lần đầu truy cập vào trang
             changeWidthFocusScreen();
-
-            // Mặc định là Conversation
-            SwitchToScreen('TabConversation')
 
             // Thay đổi Display của Name-ProfilePicture
             if (!($("#Functions").width() > 44)) {
@@ -309,20 +353,11 @@
         }
     }
 
-    function SwitchToScreen(screen) {
-        changeFaRularToFaSolid(screen)
+    function SwitchToTabFunctions(id) {
+        changeFaRularToFaSolid(id)
 
-        if (screen === "TabConversation") {
-            $.get("@Url.Action("Index", "Conversation")", function (data) {
-                $("#Conversation").html(data);
-            });
-        } else if (screen === "TabContact") {
-            $.get("@Url.Action("Index", "Contact")", function (data) {
-                $("#Conversation").html(data);
-            });
-        } else if (screen === "TabMessageWaiting") {
-            $("#Conversation").html("Tin nhắn đang chờ<br/>Tính năng đang thực hiện");
-        }
+        let tab = new bootstrap.Tab(document.getElementById(id));
+        tab.show();
     }
 
     function changeFaRularToFaSolid(screen) {
@@ -338,7 +373,7 @@
         });
 
         // Tìm button được click và thay đổi icon thành fa-solid
-        const clickedButton = document.querySelector(`[onclick="SwitchToScreen('${screen}')"]`);
+        const clickedButton = document.querySelector(`[onclick="SwitchToTabFunctions('${screen}')"]`);
         const clickedIcon = clickedButton.querySelector('.icon-Functions');
         clickedButton.classList.add('active'); // Thêm class active cho button
         clickedIcon.classList.remove('fa-regular');
@@ -348,6 +383,26 @@
     function showInforModal() {
         $.get('@Url.Action("ShowPersonalInfoModal", "Home")', function (data) {
             ShowModal(data, "md")
+        });
+    }
+
+    function renderTabConversation(isLoading = false) {
+        if (isLoading) {
+            showLoading(true)
+        }
+        $.get('@Url.Action("Index", "Conversation")', function (data) {
+            showLoading(false)
+            $("#pills-conversation").html(data)
+        });
+    }
+
+    function renderTabContact(isLoading = false) {
+        if (isLoading) {
+            showLoading(true)
+        }
+        $.get('@Url.Action("Index", "Contact")', function (data) {
+            showLoading(false)
+            $("#pills-contact").html(data)
         });
     }
 </script>

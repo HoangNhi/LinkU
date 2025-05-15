@@ -12,5 +12,20 @@ namespace BE.Services.Conversation
         BaseResponse<MODELConversation> Insert(POSTConversationRequest request);
         BaseResponse<MODELConversation> Update(POSTConversationRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
+
+        #region Xử lý request từ Websocket
+        /// <summary>
+        /// Tạo conversation qua websocket SendPrivateMessage
+        /// Hàm sẽ tạo conversation với cả 2 người dùng
+        //// </summary>
+        BaseResponse<MODELConversation> InsertPrivateConversation(WSPrivateMessageInsertConversation request);
+        BaseResponse<bool> CheckConversationExist(Guid userId, Guid targetId);
+        BaseResponse<Dictionary<Guid, List<Guid>>> GetDictionaryConversationUserToUser();
+        /// <summary>
+        /// Delete conversation trong trường hợp roolback
+        /// </summary> 
+        BaseResponse<bool> RoolbackDelete(GetByIdRequest request);
+
+        #endregion
     }
 }

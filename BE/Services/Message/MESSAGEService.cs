@@ -210,5 +210,33 @@ namespace BE.Services.Message
             }
             return response;
         }
+
+        public BaseResponse<bool> RoolbackDelete(GetByIdRequest request)
+        {
+            var response = new BaseResponse<bool>();
+            try
+            {
+                var delete = _context.Messages.Find(request.Id);
+                if (delete != null)
+                {
+                    delete.IsDeleted = true;
+                    delete.NguoiXoa = "roolback";
+                    delete.NgayXoa = DateTime.Now;
+                    // Lưu dữ liệu
+                    _context.Messages.Update(delete);
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    throw new Exception("Không tìm thấy dữ liệu");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
     }
 }

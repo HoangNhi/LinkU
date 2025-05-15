@@ -144,7 +144,7 @@
                         showLoading(false)
                         if (response.isSuccess === undefined) {
                             CloseModal()
-                            $("#Messages").html(response)
+                            $("#ChatArea").html(response)
                         } else {
                             ShowThongBaoThatBai(response.message)
                         }

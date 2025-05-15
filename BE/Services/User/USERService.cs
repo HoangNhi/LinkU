@@ -152,6 +152,34 @@ namespace BE.Services.User
             return response;
         }
 
+        public async Task<BaseResponse<MODELUser>> GetByIdAsync(GetByIdRequest request)
+        {
+            var response = new BaseResponse<MODELUser>();
+            try
+            {
+                var result = new MODELUser();
+
+                var data = await _context.Users.FindAsync(request.Id);
+                if (data == null)
+                {
+                    return new BaseResponse<MODELUser> { Error = true, Message = "Không tìm thấy người dùng." };
+                }
+
+                var profilePicture = await _context.MediaFiles
+                    .FirstOrDefaultAsync(m => m.OwnerId == result.Id && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture && !m.IsDeleted && m.IsActived);
+                var coverPicture = await _context.MediaFiles
+                    .FirstOrDefaultAsync(m => m.OwnerId == result.Id && m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture && !m.IsDeleted && m.IsActived);
+
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
         public BaseResponse<PostUpdateUserInforRequest> GetByPost(GetByIdRequest request)
         {
             var response = new BaseResponse<PostUpdateUserInforRequest>();
@@ -679,8 +707,6 @@ namespace BE.Services.User
         public BaseResponse SendOTP(UsernameRequest request)
         {
             var response = new BaseResponse();
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
             try
             {
                 if (CommonFunc.IsValidEmail(request.Username))
@@ -705,10 +731,6 @@ namespace BE.Services.User
                 response.Error = true;
                 response.Message = ex.Message;
             }
-            // Dừng đếm thời gian
-            stopwatch.Stop();
-            // In kết quả thời gian chạy (tính bằng mili giây)
-            Console.WriteLine($"Thời gian chạy: {stopwatch.ElapsedMilliseconds} ms");
             return response;
         }
 

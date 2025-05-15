@@ -100,7 +100,7 @@ namespace BE.Services.Conversation
             }
             return response;
         }
-        
+
         public BaseResponse<MODELConversation> Insert(POSTConversationRequest request)
         {
             var response = new BaseResponse<MODELConversation>();
@@ -134,7 +134,7 @@ namespace BE.Services.Conversation
             }
             return response;
         }
-        
+
         public BaseResponse<MODELConversation> Update(POSTConversationRequest request)
         {
             var response = new BaseResponse<MODELConversation>();
@@ -206,5 +206,110 @@ namespace BE.Services.Conversation
             }
             return response;
         }
+
+        #region Xử lý request từ Websocket
+        public BaseResponse<MODELConversation> InsertPrivateConversation(WSPrivateMessageInsertConversation request)
+        {
+            var response = new BaseResponse<MODELConversation>();
+            try
+            {
+                var add = new ENTITIES.DbContent.Conversation
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = request.Sender.Id,
+                    TypeOfConversation = 0,
+                    TargetId = request.Receiver.Id,
+                    LastReadMessageId = request.MessageId,
+                    NgayTao = DateTime.Now,
+                    NguoiTao = request.Sender.Username,
+                    NgaySua = DateTime.Now,
+                    NguoiSua = request.Sender.Username,
+                    IsActived = true,
+                    IsDeleted = false,
+                };
+
+                _context.Conversations.Add(add);
+                _context.SaveChanges();
+
+                response.Data = _mapper.Map<MODELConversation>(add);
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public BaseResponse<bool> CheckConversationExist(Guid userId, Guid targetId)
+        {
+            var response = new BaseResponse<bool>();
+            try
+            {
+                var result = _context.Conversations.Any(x => x.UserId == userId && x.TargetId == targetId && !x.IsDeleted && x.IsActived);
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public BaseResponse<Dictionary<Guid, List<Guid>>> GetDictionaryConversationUserToUser()
+        {
+            var response = new BaseResponse<Dictionary<Guid, List<Guid>>>();
+            try
+            {
+                var result = _context.Conversations
+                    .Where(x => !x.IsDeleted && x.IsActived && x.TypeOfConversation == 0)
+                    .Select(x => new { x.UserId, x.TargetId })
+                    .ToList();
+
+                var dictionary = result
+                                .GroupBy(x => x.UserId)
+                                .ToDictionary(
+                                    group => group.Key,
+                                    group => group.Select(x => x.TargetId).ToList()
+                                );
+                response.Data = dictionary;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+        
+        public BaseResponse<bool> RoolbackDelete(GetByIdRequest request)
+        {
+            var response = new BaseResponse<bool>();
+            try
+            {
+                var delete = _context.Conversations.Find(request.Id);
+                if (delete != null)
+                {
+                    delete.IsDeleted = true;
+                    delete.NguoiXoa = "roolback";
+                    delete.NgayXoa = DateTime.Now;
+                    // Lưu dữ liệu
+                    _context.Conversations.Update(delete);
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    throw new Exception("Không tìm thấy dữ liệu");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+        #endregion
     }
 }

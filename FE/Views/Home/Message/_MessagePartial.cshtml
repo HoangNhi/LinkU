@@ -316,9 +316,24 @@
 
     // Hàm nhận tin nhắn từ server
     connection.off("ReceivePrivateMessage");
-    connection.on("ReceivePrivateMessage", function (sender, message, ngaytao) {
-        appendMessage(sender, message, ngaytao);
-        scrollToBottom()
+    connection.on("ReceivePrivateMessage", function (response) {
+
+        // Example Respnose:
+        //{
+        //    "success": true,
+        //    "message": null,
+        //    "data": {
+        //      "senderId": "d839fbb0-ccbd-4b17-9c46-6bcd27ee9b65",
+        //      "message": "hello bạn",
+        //      "dateTime": "09:13 15 tháng 05, 2025"
+        //    }
+        //}
+        if (!response.success) {
+            ShowThongBaoThatBai(response.message)
+        } else {
+            appendMessage(response.data.senderId, response.data.message, response.data.dateTime);
+            scrollToBottom()
+        }
     });
 
     // Append tin nhắn

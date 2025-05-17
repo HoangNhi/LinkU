@@ -73,7 +73,7 @@
         <partial name="_ValidationScriptsPartial" />
     }
 
-    <script>
+<script>
         // Kết nối tới Hub SignalR từ API
         const connection = new signalR.HubConnectionBuilder()
                                     .withUrl('https://localhost:7181/messageHub?userid=@(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value)') // URL API SignalR hub
@@ -108,6 +108,25 @@
             $('#Message_Content').html('')
         }
 
+        function updateConversationLatestMessage(targetId) {
+            var data = {
+                UserId: '@ViewContext.GetClaimValue("UserId")',
+                TargetId: targetId
+            }
+
+            connection.invoke("UpdateConversationLatestMessage", data)
+                .then(result => {
+                    if (result.error) {
+                        ShowThongBaoThatBai(result.message)
+                    } else {
+                        GetListPagingConversation(PageIndexConversation, RowPerPageConversation, () => { setActiveButton(targetId) })
+                    }
+                })
+                .catch(err => {
+                    ShowThongBaoThatBai("Lỗi hệ thống: " + result.message)
+                });
+        }
+
         // Hàm nhận yêu cầu kết bạn từ server
         connection.off("UpdateFriendRequest");
         connection.on("UpdateFriendRequest", function () {
@@ -122,7 +141,44 @@
                 showFriendRequest()
             }
         });
-    </script>
+
+        // Hàm nhận tin nhắn từ server
+        connection.off("ReceivePrivateMessage");
+        connection.on("ReceivePrivateMessage", function (response) {
+            // Example Respnose:
+            //{
+            //    "success": true,
+            //    "message": null,
+            //    "data": {
+            //      "senderId": "Guid",
+            //      "receiverId": "Guid"
+            //      "message": "hello bạn",
+            //      "dateTime": "09:13 15 tháng 05, 2025"
+            //    }
+            //}
+            if (!response.success) {
+                ShowThongBaoThatBai(response.message)
+            } else {
+                var TargetId = $("#TargetId").val()
+                // Rerender Conversation
+                GetListPagingConversation(PageIndexConversation, RowPerPageConversation, () => { setActiveButton(TargetId) })
+
+                // Xử lý khi Tab Message đã được tải
+                if (TargetId === response.data.senderId || TargetId === response.data.receiverId) {
+                    // Thêm 1 tin nhắn
+                    appendMessage(response.data.senderId, response.data.message, response.data.dateTime);
+                    // Scroll Message tới cuối cùng
+                    scrollToBottom()
+
+                    // Update lastread message cho người nhận 
+                    // Vì người gửi đã được cập nhật latest mesage lúc gửi tin nhắn
+                    if (TargetId === response.data.senderId) {
+                        updateConversationLatestMessage(TargetId)
+                    }
+                }
+            }
+        });
+</script>
 
     <script>
         // Chuyển giao diện nhắn tin với User
@@ -131,9 +187,9 @@
             showLoading(true)
 
             // Kiểm tra Message hiện tại có phải của UserId không?
-            var UserOfMessageTap = $('#UserIdOfMessage').val();
+            var TargetId = $('#TargetId').val();
             // Case 1: Tap Message hiện tại chưa được tải
-            if (UserOfMessageTap === undefined || UserOfMessageTap !== userId) {
+            if (TargetId === undefined || TargetId !== userId) {
                 $.ajax({
                     url: "@Url.Action("TransToChatScreen", "Message")",
                     type: "POST",
@@ -158,7 +214,6 @@
             // Case 2: Tap Message hiện tại của UserId
             else {
                 showLoading(false)
-
             }
         }
 

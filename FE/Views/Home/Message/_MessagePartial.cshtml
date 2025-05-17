@@ -62,7 +62,7 @@
     }
 </style>
 
-@Html.Hidden("UserIdOfMessage", Model.Id)
+@Html.Hidden("TargetId", Model.Id)
 
 <div class="card text-center flex-grow-1"
      style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
@@ -313,28 +313,6 @@
         const chatBox = document.getElementById("MessageWrapper");
         chatBox.scrollTop = chatBox.scrollHeight;
     }
-
-    // Hàm nhận tin nhắn từ server
-    connection.off("ReceivePrivateMessage");
-    connection.on("ReceivePrivateMessage", function (response) {
-
-        // Example Respnose:
-        //{
-        //    "success": true,
-        //    "message": null,
-        //    "data": {
-        //      "senderId": "d839fbb0-ccbd-4b17-9c46-6bcd27ee9b65",
-        //      "message": "hello bạn",
-        //      "dateTime": "09:13 15 tháng 05, 2025"
-        //    }
-        //}
-        if (!response.success) {
-            ShowThongBaoThatBai(response.message)
-        } else {
-            appendMessage(response.data.senderId, response.data.message, response.data.dateTime);
-            scrollToBottom()
-        }
-    });
 
     // Append tin nhắn
     function appendMessage(sender, message, ngaytao) {

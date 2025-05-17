@@ -32,7 +32,7 @@
                     class="btn btn-light rounded-circle"
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
-                    style="padding: 9px; margin: 6px">
+                    style="padding: 9px; margin: 6px 0 6px 6px">
                 <i class="fa-regular fa-pen-to-square" style="font-size: 20px; color: black"></i>
             </button>
         </div>
@@ -91,7 +91,7 @@
 
     <!-- Pills content -->
     <div class="tab-content card-body p-1" id="Conversation_Body"
-         style="height: calc(100vh - 126px); overflow-x: hidden; overflow-y: auto">
+         style="height: calc(100vh - 129px); overflow-x: hidden; overflow-y: auto">
         <!-- List message -->
         <div class="tab-pane fade show active"
              id="pills-list-message"
@@ -112,8 +112,9 @@
 </div>
 
 <script>
+    var PageIndexConversation = 1, RowPerPageConversation = 15; 
     $(document).ready(function () {
-        //GetListMessageLatest()
+        GetListPagingConversation()
     });
     function HideReturnButton() {
         $('#Conversation_Back').addClass('d-none');
@@ -156,19 +157,27 @@
         })
     }
 
-    function GetListMessageLatest(PageIndex = 1) {
+    function GetListPagingConversation(pageIndex = 1, rowPerPage = 15, callback) {
         $.ajax({
-            url: "@Url.Action("GetListMessageLatest", "Conversation")",
+            url: "@Url.Action("GetListPaging", "Conversation")",
             type: "POST",
             data: {
                 TextSearch: "",
                 CurrentUserId: "@ViewContext.GetClaimValue("UserId")",
-                PageIndex: 1,
-                RowPerPage: 15
+                PageIndex: pageIndex,
+                RowPerPage: rowPerPage
             },
             success: function (response) {
                 if (response.isSuccess === undefined) {
+                    // Cập nhật số trang hiện tại
+                    PageIndexConversation = pageIndex
+                    RowPerPageConversation = rowPerPage
+                    // Set Html
                     $("#pills-list-message").html(response)
+                    // Callback
+                    if (typeof callback === "function") {
+                        callback()
+                    }
                 } else {
                     ShowThongBaoThatBai(response.message)
                 }

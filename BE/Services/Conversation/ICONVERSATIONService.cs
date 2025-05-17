@@ -26,6 +26,8 @@ namespace BE.Services.Conversation
         /// </summary> 
         BaseResponse<bool> RoolbackDelete(GetByIdRequest request);
 
+        BaseResponse UpdateLatestMessage(Guid UserId, Guid TargetId);
+
         #endregion
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BE.Helpers;
+using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
@@ -18,12 +19,14 @@ namespace BE.Services.Conversation
         private readonly LINKUContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IUSERService _userService;
 
-        public CONVERSATIONService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor)
+        public CONVERSATIONService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IUSERService userService)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
+            _userService = userService;
         }
 
         public BaseResponse<GetListPagingResponse> GetListPaging(POSTConversationGetListPagingRequest request)
@@ -309,6 +312,59 @@ namespace BE.Services.Conversation
                 response.Message = ex.Message;
             }
             return response;
+        }
+        
+        public BaseResponse UpdateLatestMessage(Guid UserId, Guid TargetId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var update = _context.Conversations.FirstOrDefault(c => c.UserId == UserId
+                                                                   && c.TargetId == TargetId
+                                                                   && !c.IsDeleted);
+                if(update == null)
+                {
+                    throw new Exception("Dữ liệu không tồn tại");
+                }
+
+                var message = GetLatestMessage(UserId, TargetId);
+
+                if(message == null)
+                {
+                    throw new Exception("Tin nhắn không tồn tại");
+                }
+
+                var User = _userService.GetById(new GetByIdRequest { Id = UserId});
+
+
+                update.LastReadMessageId = message.Id;
+                update.NguoiSua = User.Data.Username;
+                update.NgayTao = DateTime.Now;
+
+                _context.Conversations.Update(update);
+                _context.SaveChanges();
+            }
+            catch(Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+
+        #endregion
+
+        #region Private Function
+        MODELMessage GetLatestMessage(Guid UserId, Guid TargetId)
+        {
+            var message = _context.Messages.Where(m => (m.SenderId == UserId || m.SenderId == TargetId)
+                                                 && (m.ReceiverId == UserId || m.ReceiverId == TargetId)
+                                                 && !m.IsDeleted)
+                                           .OrderByDescending(m => m.NgayTao)
+                                           .FirstOrDefault();
+
+            return _mapper.Map<MODELMessage>(message);
         }
         #endregion
     }

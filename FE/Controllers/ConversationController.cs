@@ -3,6 +3,7 @@ using FE.Services;
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
+using MODELS.CONVERSATION.Dtos;
 using MODELS.CONVERSATION.Requests;
 using MODELS.MESSAGELIST.Dtos;
 using MODELS.MESSAGELIST.Requests;
@@ -66,7 +67,7 @@ namespace FE.Controllers
                     if (response.Success)
                     {
                         var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
-                        result.Data = JsonConvert.DeserializeObject<List<MODELConversation>>(result.Data.ToString());
+                        result.Data = JsonConvert.DeserializeObject<List<MODELConversationGetListPaging>>(result.Data.ToString());
                         return PartialView("~/Views/Home/Conversation/_TabGetListPagingPartial.cshtml", result);
                     }
                     else

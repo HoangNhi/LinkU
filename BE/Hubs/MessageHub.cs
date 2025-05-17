@@ -1,4 +1,5 @@
-﻿using BE.Services.Conversation;
+﻿using Azure;
+using BE.Services.Conversation;
 using BE.Services.FriendRequest;
 using BE.Services.Message;
 using BE.Services.User;
@@ -10,6 +11,7 @@ using MODELS.CONVERSATION.Requests;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
 using MODELS.USER.Dtos;
+using Org.BouncyCastle.Asn1.X509;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Transactions;
@@ -112,6 +114,28 @@ namespace BE.Hubs
             }
         }
 
+        public async Task<BaseResponse> UpdateConversationLatestMessage(WSPrivateMessageUpdateConversation request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var update = _conversationService.UpdateLatestMessage(request.UserId, request.TargetId);
+
+                if (update.Error) 
+                {
+                    throw new Exception(update.Message);
+                }
+
+                SendSignalRRerenderTab(request.TargetId, "GetListPagingConversation");
+                SendSignalRRerenderTab(request.UserId, "GetListPagingConversation");
+            }
+            catch (Exception ex) 
+            {
+                response.Error = true;
+                response.Message = "Lỗi hệ thống: " + ex.Message;
+            }
+            return response;
+        }
 
         #region Connect/Disconnect
         // Phương thức cho user kết nối vào hub
@@ -189,7 +213,12 @@ namespace BE.Hubs
             {
                 if (existingConversationId.Contains(receiver.Id))
                 {
-                    // Nếu đã có cuộc trò chuyện, không cần tạo mới
+                    // Nếu đã có cuộc trò chuyện, update lastread conversation là mới nhất
+                    var update = _conversationService.UpdateLatestMessage(sender.Id, receiver.Id);
+                    if (update.Error)
+                    {
+                        throw new Exception(update.Message);
+                    }
                 }
                 else
                 {
@@ -205,6 +234,13 @@ namespace BE.Hubs
                         // Đồng bộ với _conversationCurrent
                         existingConversationId.Add(receiver.Id);
                         _conversationUserToUser[sender.Id] = existingConversationId;
+
+                        // update lastread conversation là mới nhất
+                        var update = _conversationService.UpdateLatestMessage(sender.Id, receiver.Id);
+                        if (update.Error)
+                        {
+                            throw new Exception(update.Message);
+                        }
                     }
                     else
                     {
@@ -243,6 +279,13 @@ namespace BE.Hubs
                 {
                     // Đồng bộ với _conversationCurrent
                     _conversationUserToUser.Add(sender.Id, new List<Guid> { receiver.Id });
+
+                    // update lastread conversation là mới nhất
+                    var update = _conversationService.UpdateLatestMessage(sender.Id, receiver.Id);
+                    if (update.Error)
+                    {
+                        throw new Exception(update.Message);
+                    }
                 }
                 else
                 {
@@ -267,21 +310,31 @@ namespace BE.Hubs
             }
         }
 
-        async Task SendSignalRMessage(Guid senderId, Guid receiver, string message, string Datetime)
+        async Task SendSignalRMessage(Guid senderId, Guid receiverId, string message, string Datetime)
         {
             var response = new MODELPrivateMessageResponse
             {
                 SenderId = senderId,
+                ReceiverId = receiverId,
                 Message = message,
                 DateTime = Datetime
             };
 
             // Gửi tin nhắn qua SignalR
-            if (_users.TryGetValue(receiver.ToString(), out string receiverConnectionId))
+            if (_users.TryGetValue(receiverId.ToString(), out string receiverConnectionId))
             {
                 await Clients.Client(receiverConnectionId).SendAsync("ReceivePrivateMessage", new ApiResponse(response));
             }
             await Clients.Caller.SendAsync("ReceivePrivateMessage", new ApiResponse(response));
+        }
+
+        async Task SendSignalRRerenderTab(Guid UserId, string tab)
+        {
+            // Gửi tin nhắn qua SignalR
+            if (_users.TryGetValue(UserId.ToString(), out string receiverConnectionId))
+            {
+                await Clients.Client(receiverConnectionId).SendAsync("RerenderTab", new ApiResponse(tab));
+            }
         }
         #endregion
     }

@@ -3,21 +3,11 @@
     var data = Model.Data as List<MODELS.CONVERSATION.Dtos.MODELConversationGetListPaging>;
 }
 
-<style>
-    #pills-list-message > button.active {
-        --mdb-btn-active-bg: var(--mdb-gray-300);
-        pointer-events: none
-    }
 
-    #pills-list-message .row > *{
-        padding-left: 0;
-        padding-right: 0;
-    }
-</style>
 
 @if (data.Count == 0)
 {
-    <div>Không tìm thấy tin nhắn</div>
+     
 }
 else
 {
@@ -30,6 +20,7 @@ else
                 data-mdb-ripple-init
                 data-mdb-ripple-color="dark"
                 onclick="transToChatScreen('@item.TargetId');
+                         setActiveButton('@item.TargetId')
                          @(item.IsRead ? "" : $"updateConversationLatestMessage('{item.TargetId}')")">
             <img class="rounded-circle me-2 flex-shrink-0"
                  style="object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
@@ -89,18 +80,3 @@ else
         </button>
     }
 }
-
-<script>
-    function setActiveButton(id) {
-        if (id !== '') {
-            // Xóa class 'active' khỏi tất cả các button
-            document.querySelectorAll('#pills-list-message>button.active').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Thêm class 'active' vào button được click
-            var button = $('#pills-list-message>#' + id);
-            button.addClass('active')
-        }
-    }
-</script>

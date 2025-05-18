@@ -18,6 +18,16 @@
     #Conversation_Body button:hover {
         background-color: hsl(0 0% 90% / 1)
     }
+
+    #pills-list-message > button.active {
+        --mdb-btn-active-bg: var(--mdb-gray-300);
+        pointer-events: none
+    }
+
+    #pills-list-message .row > * {
+        padding-left: 0;
+        padding-right: 0;
+    }
 </style>
 
 <div class="card text-center flex-grow-1">
@@ -112,9 +122,25 @@
 </div>
 
 <script>
-    var PageIndexConversation = 1, RowPerPageConversation = 15; 
+    var PageIndexConversation = 1, RowPerPageConversation = 15;
+    var isLoadingConversation = false;
+    // Biến kiểm tra đã lấy hết dữ liệu trong db hay chưa
+    var isDoneConversation = false;
+
     $(document).ready(function () {
         GetListPagingConversation()
+
+        var conversationBody = document.getElementById('Conversation_Body');
+        // Lắng nghe sự kiện cuộn
+        conversationBody.addEventListener('scroll', () => {
+            const scrollTop = conversationBody.scrollTop;
+            const windowHeight = conversationBody.scrollHeight;
+            const docHeight = conversationBody.clientHeight;
+
+            if (scrollTop + docHeight + 1 >= windowHeight) {
+                GetListPagingConversation(PageIndexConversation + 1, RowPerPageConversation, null, false);
+            }
+        });
     });
     function HideReturnButton() {
         $('#Conversation_Back').addClass('d-none');
@@ -157,34 +183,86 @@
         })
     }
 
-    function GetListPagingConversation(pageIndex = 1, rowPerPage = 15, callback) {
-        $.ajax({
-            url: "@Url.Action("GetListPaging", "Conversation")",
-            type: "POST",
-            data: {
-                TextSearch: "",
-                CurrentUserId: "@ViewContext.GetClaimValue("UserId")",
-                PageIndex: pageIndex,
-                RowPerPage: rowPerPage
-            },
-            success: function (response) {
-                if (response.isSuccess === undefined) {
-                    // Cập nhật số trang hiện tại
-                    PageIndexConversation = pageIndex
-                    RowPerPageConversation = rowPerPage
-                    // Set Html
-                    $("#pills-list-message").html(response)
-                    // Callback
-                    if (typeof callback === "function") {
-                        callback()
+    function GetListPagingConversation(pageIndex = 1, rowPerPage = 15, callback, isRefresh = true) {
+        if (isRefresh) {
+            $.ajax({
+                url: "@Url.Action("GetListPaging", "Conversation")",
+                type: "POST",
+                data: {
+                    TextSearch: "",
+                    CurrentUserId: "@ViewContext.GetClaimValue("UserId")",
+                    PageIndex: 1,
+                    RowPerPage: pageIndex * rowPerPage
+                },
+                success: function (response) {
+                    if (response.isSuccess === undefined) {
+                        // Set Html
+                        $("#pills-list-message").html(response)
+                        // Callback
+                        if (typeof callback === "function") {
+                            callback()
+                        }
+                    } else {
+                        ShowThongBaoThatBai(response.message)
                     }
-                } else {
-                    ShowThongBaoThatBai(response.message)
+                },
+                error: function (xhr, error) {
+                    ShowThongBaoThatBai(error)
                 }
-            },
-            error: function (xhr, error) {
-                ShowThongBaoThatBai(error)
-            }
-        })
+            })
+        }
+        else {
+            if (isDoneConversation) return
+            if (isLoadingConversation) return;
+
+            isLoadingConversation = true;
+            $.ajax({
+                url: "@Url.Action("GetListPaging", "Conversation")",
+                type: "POST",
+                data: {
+                    TextSearch: "",
+                    CurrentUserId: "@ViewContext.GetClaimValue("UserId")",
+                    PageIndex: pageIndex, 
+                    RowPerPage: rowPerPage
+                },
+                success: function (response) {
+                    if (response.isSuccess === undefined) {
+                        if (response.trim() !== '') {
+                            // Lưu dữ liệu trang hiện tại
+                            PageIndexConversation = pageIndex
+                            RowPerPageConversation = rowPerPage
+                            // Set Html
+                            $("#pills-list-message").append(response)
+                            // Callback
+                            if (typeof callback === "function") {
+                                callback()
+                            }
+                            isLoadingConversation = false;
+                        } else {
+                            isDoneConversation = true;
+                        }
+                    } else {
+                        ShowThongBaoThatBai(response.message)
+                    }
+                },
+                error: function (xhr, error) {
+                    ShowThongBaoThatBai(error)
+                }
+            })
+
+        }
+    }
+
+    function setActiveButton(id) {
+        if (id !== '') {
+            // Xóa class 'active' khỏi tất cả các button
+            document.querySelectorAll('#pills-list-message>button.active').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Thêm class 'active' vào button được click
+            var button = $('#pills-list-message>#' + id);
+            button.addClass('active')
+        }
     }
 </script>

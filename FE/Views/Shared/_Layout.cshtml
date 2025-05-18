@@ -184,12 +184,12 @@
         // Chuyển giao diện nhắn tin với User
         function transToChatScreen(userId) {
             event.stopPropagation(); // Ngăn sự kiện click lan lên div
-            showLoading(true)
 
             // Kiểm tra Message hiện tại có phải của UserId không?
             var TargetId = $('#TargetId').val();
             // Case 1: Tap Message hiện tại chưa được tải
             if (TargetId === undefined || TargetId !== userId) {
+                showLoading(true)
                 $.ajax({
                     url: "@Url.Action("TransToChatScreen", "Message")",
                     type: "POST",
@@ -213,7 +213,7 @@
             }
             // Case 2: Tap Message hiện tại của UserId
             else {
-                showLoading(false)
+
             }
         }
 

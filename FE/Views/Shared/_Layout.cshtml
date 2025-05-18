@@ -200,7 +200,8 @@
                         showLoading(false)
                         if (response.isSuccess === undefined) {
                             CloseModal()
-                            $("#ChatArea").html(response)
+                            $("#pills-chat-message").html(response)
+                            SwitchToTabChatArea('tab-chat-message')
                         } else {
                             ShowThongBaoThatBai(response.message)
                         }
@@ -213,7 +214,7 @@
             }
             // Case 2: Tap Message hiện tại của UserId
             else {
-
+                
             }
         }
 

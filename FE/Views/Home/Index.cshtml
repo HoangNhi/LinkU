@@ -58,6 +58,7 @@
         box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
         display: flex;
         flex: 2;
+        overflow: hidden;
     }
 
     #ChatArea {
@@ -66,7 +67,6 @@
         width: unset;
         max-width: 100%;
         min-width: 300px;
-        background-color: white;
         border-radius: 12px;
         margin-left: 16px;
         display: flex;
@@ -192,13 +192,46 @@
     <!-- ChatInfo - Pills content -->
 
     <!-- Tin nhắn -->
-    <div id="ChatArea">
-        <div class="card text-center flex-grow-1" style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
-            <div class="card-header">Featured</div>
-            <div class="card-body">
-                Message - Tin nhắn
-            </div>
-            <div class="card-footer text-muted">2 days ago</div>
+    <div class="tab-content" id="ChatArea">
+        <!-- Controller -->
+        <ul class="nav d-none" role="tablist">
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        class="active"
+                        id="tab-wellcome"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-wellcome"
+                        aria-controls="pills-wellcome"
+                        aria-selected="true">
+                    <span>Wellcome</span>
+                </button>
+            </li>
+
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        id="tab-chat-message"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-chat-message"
+                        aria-controls="pills-chat-message"
+                        aria-selected="true">
+                    <span>Message</span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Wellcome -->
+        <div class="tab-pane fade show w-100 active"
+             id="pills-wellcome"
+             role="tabpanel"
+             aria-labelledby="tab-wellcome">
+            @(Html.Partial("~/Views/Shared/Wellcome.cshtml"))
+        </div>
+
+        <div class="tab-pane fade w-100"
+             id="pills-chat-message"
+             role="tabpanel"
+             aria-labelledby="tab-chat-message">
+            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
         </div>
     </div>
 </div>
@@ -322,27 +355,27 @@
             ChangeWidthSideNav();
         }
 
-        // Màn hình Conversation và Messages
+        // Màn hình ChatInfo và ChatArea
         if ($(window).width() < 700) {
             if (getFocusScreen() == 1) {
-                $("#Conversation").show()
-                $("#Conversation").css("max-width", "100%")
-                $("#Conversation").css("width", "100%")
-                $("#Messages").hide()
+                $("#ChatInfo").show()
+                $("#ChatInfo").css("max-width", "100%")
+                $("#ChatInfo").css("width", "100%")
+                $("#ChatArea").hide()
             } else {
-                $("#Conversation").hide()
-                $("#Messages").show()
-                $("#Messages").css("max-width", "100%")
-                $("#Messages").css("width", "100%")
+                $("#ChatInfo").hide()
+                $("#ChatArea").show()
+                $("#ChatArea").css("max-width", "100%")
+                $("#ChatArea").css("width", "100%")
             }
         } else {
-            $("#Conversation").show()
-            $("#Messages").show()
+            $("#ChatInfo").show()
+            $("#ChatArea").show()
             // Reset css
-            $("#Conversation").css("max-width", "360px")
-            $("#Conversation").css("width", "unset")
-            $("#Messages").css("max-width", "100%")
-            $("#Messages").css("width", "unset")
+            $("#ChatInfo").css("max-width", "360px")
+            $("#ChatArea").css("width", "unset")
+            $("#ChatArea").css("max-width", "100%")
+            $("#ChatArea").css("width", "unset")
         }
 
         // Button SideNav
@@ -356,6 +389,11 @@
     function SwitchToTabFunctions(id) {
         changeFaRularToFaSolid(id)
 
+        let tab = new bootstrap.Tab(document.getElementById(id));
+        tab.show();
+    }
+
+    function SwitchToTabChatArea(id) {
         let tab = new bootstrap.Tab(document.getElementById(id));
         tab.show();
     }

@@ -1,12 +1,17 @@
-﻿<div style="padding: 6px; width: 100%">
+﻿<style>
+    #pills-contact button.btnContact span.material-symbols-outlined{
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+    }
+</style>
+
+<div style="padding: 6px; width: 100%;">
     <button type="button"
-            class="btn btn-link d-flex align-items-center w-100"
-            style="padding: 20px 10px"
+            class="btnContact btn btn-link d-flex align-items-center w-100 p-2"
             data-mdb-ripple-init
             data-mdb-ripple-color="dark">
-        <img src="~/asset/Friend.png"
-             width="44"
-             style="margin-right: 10px; color: black" />
+        <span class="material-symbols-outlined text-black me-2 fs-1">
+            person
+        </span>
         <span style="color: rgb(5,5,5);
                      font-size: 14px;
                      font-weight: 500;
@@ -16,13 +21,12 @@
             ">Danh sách bạn bè</span>
     </button>
     <button type="button"
-            class="btn btn-link d-flex align-items-center w-100"
-            style="padding: 20px 10px"
+            class="btnContact btn btn-link d-flex align-items-center w-100 p-2"
             data-mdb-ripple-init
             data-mdb-ripple-color="dark">
-        <img src="~/asset/group.png"
-             width="44"
-             style="margin-right: 10px; color: black" />
+        <span class="material-symbols-outlined text-black me-2 fs-1">
+            group
+        </span>
         <span style="color: rgb(5,5,5);
                  font-size: 14px;
                  font-weight: 500;
@@ -32,30 +36,22 @@
         ">Danh sách nhóm</span>
     </button>
     <button type="button"
-            class="btn btn-link d-flex align-items-center w-100"
+            class="btnContact btn btn-link d-flex align-items-center w-100 p-2"
             onclick="showFriendRequest()"
-            style="padding: 20px 10px"
             data-mdb-ripple-init
             data-mdb-ripple-color="dark">
-        <img src="~/asset/Add-Friend.png"
-             width="44"
-             style="margin-right: 10px; color: black" />
-        <span style="color: rgb(5,5,5);
-                 font-size: 14px;
-                 font-weight: 500;
-                 line-height: 20px;
-                 text-transform: none;
-                 padding: 10px 0;
-        ">Lời mời kết bạn</span>
+        <span class="material-symbols-outlined text-black me-2 fs-1">
+            person_add
+        </span>
+        <span class="color">Lời mời kết bạn</span>
     </button>
     <button type="button"
-            class="btn btn-link d-flex align-items-center w-100"
-            style="padding: 20px 10px"
+            class="btnContact btn btn-link d-flex align-items-center w-100 p-2"
             data-mdb-ripple-init
             data-mdb-ripple-color="dark">
-        <img src="~/asset/Add-Group.png"
-             width="44"
-             style="margin-right: 10px; color: black" />
+        <span class="material-symbols-outlined text-black me-2 fs-1">
+            group_add
+        </span>
         <span style="color: rgb(5,5,5);
                  font-size: 14px;
                  font-weight: 500;

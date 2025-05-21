@@ -216,6 +216,8 @@
             if (isLoadingConversation) return;
 
             isLoadingConversation = true;
+            ToggleLoadingConversation();
+
             $.ajax({
                 url: "@Url.Action("GetListPaging", "Conversation")",
                 type: "POST",
@@ -238,8 +240,11 @@
                                 callback()
                             }
                             isLoadingConversation = false;
+                            ToggleLoadingConversation();
                         } else {
+                            isLoadingConversation = false;
                             isDoneConversation = true;
+                            ToggleLoadingConversation();
                         }
                     } else {
                         ShowThongBaoThatBai(response.message)
@@ -265,10 +270,41 @@
             button.addClass('active')
         }
     }
+
     function removeAllBtnConversationActive() {
         // Xóa class 'active' khỏi tất cả các button
         document.querySelectorAll('#pills-list-message>button.active').forEach(btn => {
             btn.classList.remove('active');
         });
+    }
+
+    function ToggleLoadingConversation() {
+        if (isLoadingConversation) {
+            const divLoading = `<button class="d-flex w-100 btn btn-link p-2 mb-2 LoadingConversation" aria-hidden="true"
+                            style="text-align: start; align-items: center; color: inherit; height: 64px">
+                        <img class="rounded-circle me-2 flex-shrink-0 placeholder bg-brown-900"
+                             style="object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
+                             width="48" height="48"/>
+                        <div class="container" style="width: calc(100% - 48px - .5rem)">
+                            <div class="row fw-normal placeholder-glow justify-content-between mb-2">
+                                <span class="fs-6 col-8 text-truncate text-black placeholder bg-brown-900" style="line-height: 1.5"></span>
+                                <span class="col-3 text-end align-items-center placeholder bg-brown-900"></span>
+                            </div>
+
+                            <div class="row fw-normal placeholder-glow justify-content-between">
+                                <span class="fs-6 col-10 text-truncate text-black placeholder bg-brown-900" style="line-height: 1.5"></span>
+                                <span class="col-1 text-end align-items-center placeholder bg-brown-900"></span>
+                            </div>
+                        </div>
+                    </button>`
+            $("#pills-list-message").append(divLoading)
+            $("#pills-list-message").append(divLoading)
+        }
+        else {
+            // Chọn tất cả các button có class isLoading trong div#pills-list-message
+            const buttons = document.querySelectorAll('#pills-list-message button.LoadingConversation');
+            // Xóa từng button
+            buttons.forEach(button => button.remove());
+        }
     }
 </script>

@@ -7,7 +7,7 @@
 
 @if (data.Count == 0)
 {
-     
+
 }
 else
 {
@@ -55,7 +55,7 @@ else
                             <div class="position-absolute rounded-circle"
                                  style="top: 50%; left: 50%; -ms-transform: translate(-50%, -50%);
                                         transform: translate(-50%, -50%); background-color: #C62828;
-                                        @(item.UnreadCount switch 
+                                        @(item.UnreadCount switch
                                         {
                                             1 => "padding: 0.25rem",
                                             var count when count > 1 && count < 9 => "padding: 0.5rem",

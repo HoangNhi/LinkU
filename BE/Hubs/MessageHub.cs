@@ -15,6 +15,7 @@ using Org.BouncyCastle.Asn1.X509;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Transactions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace BE.Hubs
 {
     public class MessageHub : Hub
@@ -102,14 +103,14 @@ namespace BE.Hubs
                 if (_users.TryGetValue(friendRequestModel.Data.ReceiverId.ToString(), out string receiverConnectionId))
                 {
                     // Gửi yêu cầu cập nhật đến người nhận
-                    await Clients.Client(receiverConnectionId).SendAsync("UpdateFriendRequest");
+                    await Clients.Client(receiverConnectionId).SendAsync("UpdateFriendRequest", new ApiResponse(friendRequestModel.Data));
                 }
 
                 // Kiểm tra xem người nhận có đang trực tuyến không
                 if (_users.TryGetValue(friendRequestModel.Data.SenderId.ToString(), out string senderConnectionId))
                 {
                     // Gửi yêu cầu cập nhật đến người nhận
-                    await Clients.Client(senderConnectionId).SendAsync("UpdateFriendRequest");
+                    await Clients.Client(senderConnectionId).SendAsync("UpdateFriendRequest", new ApiResponse(friendRequestModel.Data));
                 }
             }
         }

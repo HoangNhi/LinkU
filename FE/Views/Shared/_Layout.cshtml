@@ -131,16 +131,13 @@
 
         // Hàm nhận yêu cầu kết bạn từ server
         connection.off("UpdateFriendRequest");
-        connection.on("UpdateFriendRequest", function () {
-            // Cập nhật _FriendRequestStatusPartial.cshtml
-            if (typeof GetFriendRequestStatus === "function") {
-                GetFriendRequestStatus()
-                return;
-            }
-
+        connection.on("UpdateFriendRequest", function (response) {
             // Cập nhật _TabFriendRequestPartial.cshtml
-            if (typeof showFriendRequest === "function") {
-                showFriendRequest()
+            renderTabFriendRequest()
+            var TargetId = $('#TargetId').val();
+            // Cập nhật _FriendRequestStatusPartial.cshtml
+            if (TargetId === response.data.senderId || TargetId === response.data.receiverId) {
+                GetFriendRequestStatus()
             }
         });
 
@@ -216,7 +213,7 @@
             }
             // Case 2: Tap Message hiện tại của UserId
             else {
-
+                SwitchToTabChatArea('tab-chat-message')
             }
         }
 
@@ -231,6 +228,7 @@
                     Id: id,
                 },
                 success: function (data) {
+                    showLoading(false);
                     if (!data.isSuccess) {
                         ShowThongBaoThatBai(data.message)
                     } else {
@@ -240,10 +238,10 @@
                     }
                 },
                 error: function (xhr, error) {
+                    showLoading(false);
                     ShowThongBaoThatBai(error)
                 }
             });
-            showLoading(false);
         }
     </script>
 

@@ -217,6 +217,50 @@
                     <span>Message</span>
                 </button>
             </li>
+
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        id="tab-friend"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-friend"
+                        aria-controls="pills-friend"
+                        aria-selected="true">
+                    <span>Friend</span>
+                </button>
+            </li>
+
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        id="tab-group"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-group"
+                        aria-controls="pills-group"
+                        aria-selected="true">
+                    <span>Group</span>
+                </button>
+            </li>
+
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        id="tab-friend-request"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-friend-request"
+                        aria-controls="pills-friend-request"
+                        aria-selected="true">
+                    <span>Friend Request</span>
+                </button>
+            </li>
+
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        id="tab-group-request"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-group-request"
+                        aria-controls="pills-group-request"
+                        aria-selected="true">
+                    <span>Group Request</span>
+                </button>
+            </li>
         </ul>
 
         <!-- Wellcome -->
@@ -227,11 +271,47 @@
             @(Html.Partial("~/Views/Shared/Wellcome.cshtml"))
         </div>
 
+        <!-- Message -->
         <div class="tab-pane fade w-100"
              id="pills-chat-message"
              role="tabpanel"
              aria-labelledby="tab-chat-message">
             <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+        </div>
+
+        <!-- Friend -->
+        <div class="tab-pane fade w-100"
+             id="pills-friend"
+             role="tabpanel"
+             aria-labelledby="tab-friend">
+            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+            Tab Friend
+        </div>
+        <!-- Group -->
+        <div class="tab-pane fade w-100"
+             id="pills-group"
+             role="tabpanel"
+             aria-labelledby="tab-group">
+            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+            Tab Group
+        </div>
+
+        <!-- Friend Request -->
+        <div class="tab-pane fade w-100"
+             id="pills-friend-request"
+             role="tabpanel"
+             aria-labelledby="tab-friend-request">
+            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+            Tab Friend Request
+        </div>
+
+        <!-- Group Request -->
+        <div class="tab-pane fade w-100"
+             id="pills-group-request"
+             role="tabpanel"
+             aria-labelledby="tab-group-request">
+            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+            Tab Group Request
         </div>
     </div>
 </div>
@@ -242,6 +322,7 @@
         renderTabConversation(true)
         renderTabContact(false)
         GetProfilePicture();
+        renderTabFriendRequest(false);
     });
 
     // Hiển thị
@@ -394,6 +475,14 @@
     }
 
     function SwitchToTabChatArea(id) {
+        switch (id) {
+            case "tab-chat-message":
+                removeAllBtnContactActive();
+                break;
+            default:
+                removeAllBtnConversationActive();
+                break;
+        }
         let tab = new bootstrap.Tab(document.getElementById(id));
         tab.show();
     }
@@ -411,7 +500,7 @@
         });
 
         // Tìm button được click và thay đổi icon thành fa-solid
-        const clickedButton = document.querySelector(`[onclick="SwitchToTabFunctions('${screen}')"]`);
+        const clickedButton = document.getElementById(screen);
         const clickedIcon = clickedButton.querySelector('.icon-Functions');
         clickedButton.classList.add('active'); // Thêm class active cho button
         clickedIcon.classList.remove('fa-regular');
@@ -441,6 +530,16 @@
         $.get('@Url.Action("Index", "Contact")', function (data) {
             showLoading(false)
             $("#pills-contact").html(data)
+        });
+    }
+
+    function renderTabFriendRequest(isLoading = false) {
+        if (isLoading) {
+            showLoading(true)
+        }
+        $.get('friendrequest', function (data) {
+            showLoading(false)
+            $("#pills-friend-request").html(data)
         });
     }
 </script>

@@ -265,4 +265,10 @@
             button.addClass('active')
         }
     }
+    function removeAllBtnConversationActive() {
+        // Xóa class 'active' khỏi tất cả các button
+        document.querySelectorAll('#pills-list-message>button.active').forEach(btn => {
+            btn.classList.remove('active');
+        });
+    }
 </script>

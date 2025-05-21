@@ -29,7 +29,7 @@
                    color: black"
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
-                    onclick="ShowPopupAddFriend()">
+                    onclick="ShowPopupAddFriend($('#TargetId').val(), 1)">
                 Gửi kết bạn
             </button>
         </div>
@@ -106,6 +106,7 @@
                 status: status
             },
             success: function (data) {
+                showLoading(false);
                 if (data.isSuccess) {
                     // Gửi yêu cầu cập nhật FriendRequest
                     connection.invoke("UpdateFriendRequest", id);
@@ -114,9 +115,9 @@
                 }
             },
             error: function (xhr, error) {
+                showLoading(false);
                 ShowThongBaoThatBai(error)
             }
         });
-        showLoading(false);
     }
 </script>

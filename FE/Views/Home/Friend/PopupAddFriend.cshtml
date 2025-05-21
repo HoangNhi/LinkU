@@ -43,7 +43,7 @@
         color: black!important
     }
 </style>
-<div class="modal-content" style="height: 559.5px">
+<div class="modal-content">
     <div class="modal-header">
         <button type="button"
                 id="btnHome"
@@ -228,7 +228,7 @@
                             @COB[ViewBag.Case]
                         </button>
                         <button type="button" 
-                                onclick="transToChatScreen('@Model.User.Id')"
+                                onclick="transToChatScreen('@Model.User.Id'); CloseModal()"
                                 class="btn btn-secondary fs-6"
                                 style="width: 49%; padding: 10px 12px"
                                 data-mdb-ripple-init>Nhắn tin</button>

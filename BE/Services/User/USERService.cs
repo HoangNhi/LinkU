@@ -9,6 +9,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using MODELS.BASE;
 using MODELS.COMMON;
+using MODELS.CONVERSATION.Requests;
 using MODELS.MAIL.Dtos;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
@@ -141,6 +142,34 @@ namespace BE.Services.User
                     result.Password = "";
                     result.PasswordSalt = "";
                 }
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<MODELUser>> GetByIdAsync(GetByIdRequest request)
+        {
+            var response = new BaseResponse<MODELUser>();
+            try
+            {
+                var result = new MODELUser();
+
+                var data = await _context.Users.FindAsync(request.Id);
+                if (data == null)
+                {
+                    return new BaseResponse<MODELUser> { Error = true, Message = "Không tìm thấy người dùng." };
+                }
+
+                var profilePicture = await _context.MediaFiles
+                    .FirstOrDefaultAsync(m => m.OwnerId == result.Id && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture && !m.IsDeleted && m.IsActived);
+                var coverPicture = await _context.MediaFiles
+                    .FirstOrDefaultAsync(m => m.OwnerId == result.Id && m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture && !m.IsDeleted && m.IsActived);
+
                 response.Data = result;
             }
             catch (Exception ex)
@@ -678,8 +707,6 @@ namespace BE.Services.User
         public BaseResponse SendOTP(UsernameRequest request)
         {
             var response = new BaseResponse();
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
             try
             {
                 if (CommonFunc.IsValidEmail(request.Username))
@@ -704,10 +731,6 @@ namespace BE.Services.User
                 response.Error = true;
                 response.Message = ex.Message;
             }
-            // Dừng đếm thời gian
-            stopwatch.Stop();
-            // In kết quả thời gian chạy (tính bằng mili giây)
-            Console.WriteLine($"Thời gian chạy: {stopwatch.ElapsedMilliseconds} ms");
             return response;
         }
 
@@ -904,10 +927,6 @@ namespace BE.Services.User
             }
         }
         #endregion
-        #endregion
-
-        #region Profile Picture and Cover Picture
-
         #endregion
     }
 }

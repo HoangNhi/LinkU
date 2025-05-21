@@ -16,7 +16,7 @@
 @* Style _MessageContainerPartial *@
 <style>
     /* Container cha */
-    .wrapper {
+    .Mwrapper {
         container-type: inline-size; /* Theo dõi chiều rộng của container */
         height: 100%;
         width: 100%;
@@ -62,14 +62,15 @@
     }
 </style>
 
+@Html.Hidden("TargetId", Model.Id)
 
-<div class="card text-center flex-grow-1"
+<div class="card text-center flex-grow-1 h-100"
      style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
     <div class="card-header d-flex justify-content-between position-relative"
          style="padding: 10px 12px; box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px; border: 0">
         <div class="d-flex">
             <img class="rounded-circle"
-                 style="margin: 6px; object-fit: cover"
+                 style="margin: 6px; object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
                  width="36" height="36"
                  src='@(Model.ProfilePicture)' />
             <div class="d-flex align-items-center"
@@ -120,7 +121,7 @@
     <div id="MessageWrapper" class="card-body p-0" style="height: calc(100% - 136px); overflow: auto">
         <div id="FriendStatus" class="position-absolute position-absolute w-100"></div>
         <div id="MessageContainer">
-            <div class="wrapper">
+            <div class="Mwrapper">
                 <div id="ChatContainer" class="container"></div>
             </div>
         </div>
@@ -250,7 +251,7 @@
         }
     });
 
-    function ShowPopupAddFriend() {
+    @*function ShowPopupAddFriend() {
         $.ajax({
             url: '@Url.Action("ShowAddFriendPopup", "Friend")',
             type: 'GET',
@@ -259,7 +260,7 @@
                 ShowModal(data, "md")
             }
         });
-    }
+    }*@
 
     function GetFriendRequestStatus() {
         $.ajax({
@@ -312,13 +313,6 @@
         const chatBox = document.getElementById("MessageWrapper");
         chatBox.scrollTop = chatBox.scrollHeight;
     }
-
-    // Hàm nhận tin nhắn từ server
-    connection.off("ReceivePrivateMessage");
-    connection.on("ReceivePrivateMessage", function (sender, message, ngaytao) {
-        appendMessage(sender, message, ngaytao);
-        scrollToBottom()
-    });
 
     // Append tin nhắn
     function appendMessage(sender, message, ngaytao) {

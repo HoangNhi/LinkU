@@ -1,0 +1,132 @@
+﻿<style>
+    #pills-contact button.btnContact span.material-symbols-outlined{
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+    }
+
+    #pills-contact button.btnContact.active {
+        box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+        pointer-events: none;
+    }
+
+    #pills-contact button.btnContact.active span.material-symbols-outlined {
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+    }
+</style>
+
+<div class="" 
+     style="padding: 6px; width: 100%;">
+    <button type="button"
+            aria-label="tab-friend"
+            class="btnContact btn btn-link d-flex align-items-center w-100 p-2 mb-1 rounded-3"
+            data-mdb-ripple-init
+            data-mdb-ripple-color="dark">
+        <span class="material-symbols-outlined me-2 fs-1 text-brown-900">
+            person
+        </span>
+        <span class="text-black fs-6 py-1" 
+              style="line-height: 20px;
+                     text-transform: none;
+                     font-weight: 500;
+            ">Danh sách bạn bè</span>
+    </button>
+    <button type="button" aria-label="tab-group"
+            class="btnContact btn btn-link d-flex align-items-center w-100 p-2 mb-1 rounded-3"
+            data-mdb-ripple-init
+            data-mdb-ripple-color="dark">
+        <span class="material-symbols-outlined me-2 fs-1 text-brown-900">
+            group
+        </span>
+        <span class="text-black fs-6 py-1"
+              style="line-height: 20px;
+             text-transform: none;
+             font-weight: 500;
+        ">Danh sách nhóm</span>
+    </button>
+    <button type="button" aria-label="tab-friend-request"
+            class="btnContact btn btn-link d-flex align-items-center w-100 p-2 mb-1 rounded-3"
+            data-mdb-ripple-init
+            data-mdb-ripple-color="dark">
+        <span class="material-symbols-outlined me-2 fs-1 text-brown-900">
+            person_add
+        </span>
+        <span class="text-black fs-6 py-1"
+              style="line-height: 20px;
+              text-transform: none;
+              font-weight: 500;"
+              >Lời mời kết bạn</span>
+    </button>
+    <button type="button" aria-label="tab-group-request"
+            class="btnContact btn btn-link d-flex align-items-center w-100 p-2 mb-1 rounded-3"
+            data-mdb-ripple-init
+            data-mdb-ripple-color="dark">
+        <span class="material-symbols-outlined me-2 fs-1 text-brown-900">
+            group_add
+        </span>
+        <span class="text-black fs-6 py-1"
+              style="line-height: 20px;
+              text-transform: none;
+              font-weight: 500;"
+              >Lời mời vào nhóm</span>
+    </button>
+</div>
+
+<script>
+    $(document).ready(function ()
+    {
+        // Xử lý sự kiện chuyển button
+        const buttons = document.querySelectorAll('.btnContact');
+
+        // Thêm sự kiện click cho từng button
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Loại bỏ class .active khỏi tất cả các button
+                buttons.forEach(btn => btn.classList.remove('active'));
+
+                // Thêm class .active cho button vừa được click
+                button.classList.add('active');
+
+                SwitchToTabChatArea(button.getAttribute("aria-label"))
+            });
+        })
+    })
+
+    function removeAllBtnContactActive() {
+        const buttons = document.querySelectorAll('.btnContact');
+        buttons.forEach(btn => btn.classList.remove('active'));
+    }
+
+    function showFriendRequest() {
+        showLoadingElement(true, "Messages")
+        $.ajax({
+            url: 'friendrequest',
+            type: 'GET',
+            success: function (data) {
+                $('#Messages').html(data);
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        });
+        showLoadingElement(false, "Messages")
+    }
+
+    function ShowPopupAddFriend(Id, Case) {
+        showLoading(true)
+        $.ajax({
+            url: '@Url.Action("ShowAddFriendPopup", "Friend")',
+            type: 'GET',
+            data:
+            {
+                Id: Id,
+                Case: Case
+            },
+            success: function (data) {
+                ShowModal(data, "md")
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        });
+        showLoading(false)
+    }
+</script>

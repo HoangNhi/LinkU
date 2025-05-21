@@ -1,4 +1,5 @@
 ﻿using MODELS.BASE;
+using MODELS.CONVERSATION.Requests;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.OTP.Requests;
@@ -16,6 +17,7 @@ namespace BE.Services.User
         /// </summary>
         BaseResponse<List<MODELMediaFile>> GetListMediaFiles(POSTGetListMediaFilesRequest request);
         BaseResponse<MODELUser> GetById(GetByIdRequest request);
+        Task<BaseResponse<MODELUser>> GetByIdAsync(GetByIdRequest request);
         BaseResponse<PostUpdateUserInforRequest> GetByPost(GetByIdRequest request);
         BaseResponse<MODELUser> Insert(PostUserRequest request);
         /// <summary>

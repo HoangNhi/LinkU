@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using BE.Helpers;
 using ENTITIES.DbContent;
+using Microsoft.Data.SqlClient;
 using MODELS.BASE;
+using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGELIST.Dtos;
 using MODELS.MESSAGELIST.Requests;
 using MODELS.USER.Dtos;
@@ -20,11 +23,6 @@ namespace BE.Services.MessageList
             _contextAccessor = contextAccessor;
         }
 
-        /// <summary>
-        /// Tìm kiếm danh sách tin nhắn: Người dùng, tin nhắn, file đính kèm,...
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
         public BaseResponse<MODELMessageList_Search> Search(MessageList_SearchRequest request)
         {
             var response = new BaseResponse<MODELMessageList_Search>();
@@ -62,6 +60,44 @@ namespace BE.Services.MessageList
                 {
                     Users = users
                 };
+            }
+            catch (System.Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+
+        public BaseResponse<GetListPagingResponse> GetListMessageLatest(POSTGetListMessageLatestRequest request)
+        {
+            var response = new BaseResponse<GetListPagingResponse>();
+            try
+            {
+                SqlParameter iTotalRow = new SqlParameter()
+                {
+                    ParameterName = "@oTotalRow",
+                    SqlDbType = System.Data.SqlDbType.BigInt,
+                    Direction = System.Data.ParameterDirection.Output
+                };
+
+                var parameters = new[]
+                {
+                    new SqlParameter("@iTextSearch", request.TextSearch),
+                    new SqlParameter("@iPageIndex", request.PageIndex - 1),
+                    new SqlParameter("@iRowsPerPage", request.RowPerPage),
+                    new SqlParameter("@iCurrentUserId", request.CurrentUserId),
+                    iTotalRow
+                };
+
+                var result = _context.ExcuteStoredProcedure<MODELMessageList_GetListMessageLatest>("sp_MESSAGELIST_GetListMessageLastes", parameters).ToList();
+
+                GetListPagingResponse resposeData = new GetListPagingResponse();
+                resposeData.PageIndex = request.PageIndex;
+                resposeData.Data = result;
+                resposeData.TotalRow = Convert.ToInt32(iTotalRow.Value);
+                response.Data = resposeData;
             }
             catch (System.Exception ex)
             {

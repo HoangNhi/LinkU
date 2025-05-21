@@ -362,3 +362,7 @@ MigrationBackup/
 FodyWeavers.xsd
 /BE/appsettings.Development.json
 /BE/appsettings.json
+/.idea/.idea.LinkU/.idea
+/FE/wwwroot/scss
+/FE/package-lock.json
+/FE/package.json

@@ -1,4 +1,7 @@
-﻿namespace ENTITIES.DbContent;
+﻿using System;
+using System.Collections.Generic;
+
+namespace ENTITIES.DbContent;
 
 public partial class RefreshToken
 {

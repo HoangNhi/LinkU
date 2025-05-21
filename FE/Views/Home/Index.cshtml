@@ -14,7 +14,7 @@
 
     .icon-Functions {
         padding: 12px 12px 12px 4px;
-        color: black;
+        color: var(--color-brown-900);
         font-size: 20px
     }
 
@@ -46,7 +46,7 @@
         -webkit-box-shadow: none
     }
 
-    #MessageList {
+    #ChatInfo {
         max-height: 100%;
         min-height: 0;
         width: unset;
@@ -58,15 +58,15 @@
         box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
         display: flex;
         flex: 2;
+        overflow: hidden;
     }
 
-    #Messages {
+    #ChatArea {
         max-height: 100%;
         min-height: 0;
         width: unset;
         max-width: 100%;
         min-width: 300px;
-        background-color: white;
         border-radius: 12px;
         margin-left: 16px;
         display: flex;
@@ -81,7 +81,7 @@
         background-color: rgba(211, 212, 213, 1)!important 
     }*/
 
-    #MessageList_SearchInput {
+    #Conversation_SearchInput {
         padding: 4px 12px 4px 2px;
         border: 0;
         font-size: .9375rem;
@@ -90,7 +90,7 @@
         background-color: rgba(0,0,0,0)
     }
 
-    #MessageList_SearchInput:focus-visible {
+    #Conversation_SearchInput:focus-visible {
         outline: none;
         box-shadow: none;
     }
@@ -101,38 +101,60 @@
      style="background-color: rgb(245, 245, 245); height: calc(100vh - 32px)">
     <!-- Chức năng -->
     <div id="Functions" style="width: 240px; min-width: 240px">
-        <div>
-            <button type="button"
-                    class="btn btn-link d-flex align-items-center btn-Functions active"
-                    style="min-width: 100%!important"
-                    data-mdb-ripple-init
-                    data-mdb-ripple-color="dark"
-                    onclick="SwitchToScreen('TabMessageList')">
-                <i class="fa-regular fa-comment icon-Functions"
-                   style=""></i>
-                <span class="text-Functions">Đoạn chat</span>
-            </button>
+        <ul class="nav" role="tablist">
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        class="btn btn-link d-flex align-items-center btn-Functions active"
+                        style="min-width: 100%!important"
+                        id="tab-conversation"
+                        data-mdb-ripple-init
+                        data-mdb-ripple-color="dark"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-conversation"
+                        aria-controls="pills-conversation"
+                        aria-selected="true"
+                        onclick="SwitchToTabFunctions('tab-conversation')">
+                    <i class="fa-solid fa-comment icon-Functions"
+                       style=""></i>
+                    <span class="text-Functions">Đoạn chat</span>
+                </button>
+            </li>
 
-            <button type="button"
-                    class="btn btn-link d-flex align-items-center btn-Functions"
-                    style="min-width: 100%!important"
-                    data-mdb-ripple-init
-                    data-mdb-ripple-color="dark"
-                    onclick="SwitchToScreen('TabMessageWaiting')">
-                <i class="fa-regular fa-comment-dots icon-Functions"></i>
-                <span class="text-Functions">Tin nhắn đang chờ</span>
-            </button>
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        class="btn btn-link d-flex align-items-center btn-Functions"
+                        style="min-width: 100%!important"
+                        id="tab-message-waiting"
+                        data-mdb-ripple-init
+                        data-mdb-ripple-color="dark"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-message-waiting"
+                        aria-controls="pills-message-waiting"
+                        aria-selected="true"
+                        onclick="SwitchToTabFunctions('tab-message-waiting')">
+                    <i class="fa-regular fa-comment-dots icon-Functions"></i>
+                    <span class="text-Functions">Tin nhắn đang chờ</span>
+                </button>
+            </li>
 
-            <button type="button"
-                    class="btn btn-link d-flex align-items-center btn-Functions"
-                    style="min-width: 100%!important"
-                    data-mdb-ripple-init
-                    data-mdb-ripple-color="dark"
-                    onclick="SwitchToScreen('TabContact')">
-                <i class="fa-regular fa-address-book icon-Functions"></i>
-                <span class="text-Functions">Lời mời kết nối</span>
-            </button>
-        </div>
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        class="btn btn-link d-flex align-items-center btn-Functions"
+                        style="min-width: 100%!important"
+                        id="tab-contact"
+                        data-mdb-ripple-init
+                        data-mdb-ripple-color="dark"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-contact"
+                        aria-controls="pills-contact"
+                        aria-selected="true"
+                        onclick="SwitchToTabFunctions('tab-contact')">
+                    <i class="fa-regular fa-address-book icon-Functions"></i>
+                    <span class="text-Functions">Tin nhắn đang chờ</span>
+                </button>
+            </li>
+        </ul>
+
         <!-- Tên và sidenav -->
         <div id="ProfilePicture"
              style="padding-top: 12px; bottom: 12px; width: 100%; max-width: 240px; background-color: rgb(245, 245, 245)"
@@ -141,19 +163,155 @@
         </div>
     </div>
 
-    <!-- Danh sách tin nhắn -->
-    <div id="MessageList">
-        
+    <!-- ChatInfo - Pills content -->
+    <div class="tab-content" id="ChatInfo">
+        <!-- Conversation -->
+        <div class="tab-pane fade show active w-100"
+             id="pills-conversation"
+             role="tabpanel"
+             aria-labelledby="tab-conversation">
+            <!-- ~/Views/Home/Conversation/_ConversationPartial.cshtml -->
+        </div>
+
+        <!-- Message Waiting -->
+        <div class="tab-pane fade w-100"
+             id="pills-message-waiting"
+             role="tabpanel"
+             aria-labelledby="tab-message-waiting">
+            Tin nhắn đang chờ<br/>Tính năng đang thực hiện
+        </div>
+
+        <!-- Contact -->
+        <div class="tab-pane fade w-100"
+             id="pills-contact"
+             role="tabpanel"
+             aria-labelledby="tab-contact">
+            <!-- ~/Views/Home/Contact/_ContactPartial.cshtml -->
+        </div>
     </div>
+    <!-- ChatInfo - Pills content -->
 
     <!-- Tin nhắn -->
-    <div id="Messages">
-        <div class="card text-center flex-grow-1" style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
-            <div class="card-header">Featured</div>
-            <div class="card-body">
-                Message - Tin nhắn
-            </div>
-            <div class="card-footer text-muted">2 days ago</div>
+    <div class="tab-content" id="ChatArea">
+        <!-- Controller -->
+        <ul class="nav d-none" role="tablist">
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        class="active"
+                        id="tab-wellcome"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-wellcome"
+                        aria-controls="pills-wellcome"
+                        aria-selected="true">
+                    <span>Wellcome</span>
+                </button>
+            </li>
+
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        id="tab-chat-message"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-chat-message"
+                        aria-controls="pills-chat-message"
+                        aria-selected="true">
+                    <span>Message</span>
+                </button>
+            </li>
+
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        id="tab-friend"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-friend"
+                        aria-controls="pills-friend"
+                        aria-selected="true">
+                    <span>Friend</span>
+                </button>
+            </li>
+
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        id="tab-group"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-group"
+                        aria-controls="pills-group"
+                        aria-selected="true">
+                    <span>Group</span>
+                </button>
+            </li>
+
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        id="tab-friend-request"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-friend-request"
+                        aria-controls="pills-friend-request"
+                        aria-selected="true">
+                    <span>Friend Request</span>
+                </button>
+            </li>
+
+            <li class="nav-item w-100" role="presentation">
+                <button type="button" role="tab"
+                        id="tab-group-request"
+                        data-bs-toggle="pill"
+                        data-bs-target="#pills-group-request"
+                        aria-controls="pills-group-request"
+                        aria-selected="true">
+                    <span>Group Request</span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Wellcome -->
+        <div class="tab-pane fade show w-100 active"
+             id="pills-wellcome"
+             role="tabpanel"
+             aria-labelledby="tab-wellcome">
+            @(Html.Partial("~/Views/Shared/Wellcome.cshtml"))
+        </div>
+
+        <!-- Message -->
+        <div class="tab-pane fade w-100"
+             id="pills-chat-message"
+             role="tabpanel"
+             aria-labelledby="tab-chat-message">
+            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+        </div>
+
+        <!-- Friend -->
+        <div class="tab-pane fade w-100"
+             id="pills-friend"
+             role="tabpanel"
+             aria-labelledby="tab-friend">
+            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+            Tab Friend
+        </div>
+        <!-- Group -->
+        <div class="tab-pane fade w-100"
+             id="pills-group"
+             role="tabpanel"
+             aria-labelledby="tab-group">
+            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+            Tab Group
+        </div>
+
+        <!-- Friend Request -->
+        <div class="tab-pane fade w-100"
+             id="pills-friend-request"
+             role="tabpanel"
+             aria-labelledby="tab-friend-request">
+            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+            Tab Friend Request
+        </div>
+
+        <!-- Group Request -->
+        <div class="tab-pane fade w-100"
+             id="pills-group-request"
+             role="tabpanel"
+             aria-labelledby="tab-group-request">
+            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+            Tab Group Request
         </div>
     </div>
 </div>
@@ -161,7 +319,10 @@
 <script>
     var BtnPopover;
     $(document).ready(function () {
+        renderTabConversation(true)
+        renderTabContact(false)
         GetProfilePicture();
+        renderTabFriendRequest(false);
     });
 
     // Hiển thị
@@ -185,13 +346,10 @@
 
     // Render ProfilePicture
     function GetProfilePicture() {
-        $.get("@Url.Action("GetConfigProfile", "Home")", function (data) { 
+        $.get("@Url.Action("GetConfigProfile", "Home")", function (data) {
             $("#ProfilePicture").html(data)
             // Thay đổi giao diện khi lần đầu truy cập vào trang
             changeWidthFocusScreen();
-
-            // Mặc định là MessageList
-            SwitchToScreen('TabMessageList')
 
             // Thay đổi Display của Name-ProfilePicture
             if (!($("#Functions").width() > 44)) {
@@ -218,7 +376,7 @@
         const currentDirection = ProfilePicture.style.flexDirection;
         ProfilePicture.style.flexDirection = (currentDirection === "row" || currentDirection === "") ? "column" : "row";
 
-        if ($(window).width() < 900 && $("#Functions").width() > 44) {
+        if (width > 44) {
             $("#Functions").width(44)
             $("#Functions").css("min-width", "44px")
             $("#ProfilePicture").width(44)
@@ -266,7 +424,7 @@
     }
 
     // Lấy ra vùng đang được Focus
-    // 1: MessageList
+    // 1: Conversation
     // 2: Messages
     function getFocusScreen() {
         return 1;
@@ -278,27 +436,27 @@
             ChangeWidthSideNav();
         }
 
-        // Màn hình MessageList và Messages
+        // Màn hình ChatInfo và ChatArea
         if ($(window).width() < 700) {
             if (getFocusScreen() == 1) {
-                $("#MessageList").show()
-                $("#MessageList").css("max-width", "100%")
-                $("#MessageList").css("width", "100%")
-                $("#Messages").hide()
+                $("#ChatInfo").show()
+                $("#ChatInfo").css("max-width", "100%")
+                $("#ChatInfo").css("width", "100%")
+                $("#ChatArea").hide()
             } else {
-                $("#MessageList").hide()
-                $("#Messages").show()
-                $("#Messages").css("max-width", "100%")
-                $("#Messages").css("width", "100%")
+                $("#ChatInfo").hide()
+                $("#ChatArea").show()
+                $("#ChatArea").css("max-width", "100%")
+                $("#ChatArea").css("width", "100%")
             }
         } else {
-            $("#MessageList").show()
-            $("#Messages").show()
+            $("#ChatInfo").show()
+            $("#ChatArea").show()
             // Reset css
-            $("#MessageList").css("max-width", "360px")
-            $("#MessageList").css("width", "unset")
-            $("#Messages").css("max-width", "100%")
-            $("#Messages").css("width", "unset")
+            $("#ChatInfo").css("max-width", "360px")
+            $("#ChatArea").css("width", "unset")
+            $("#ChatArea").css("max-width", "100%")
+            $("#ChatArea").css("width", "unset")
         }
 
         // Button SideNav
@@ -309,50 +467,24 @@
         }
     }
 
-    function returnMessageListScreen() {
-        $("#MessageList_Back").addClass("d-none")
-        $("#MessageList_SearchInput").val("")
+    function SwitchToTabFunctions(id) {
+        changeFaRularToFaSolid(id)
+
+        let tab = new bootstrap.Tab(document.getElementById(id));
+        tab.show();
     }
 
-    function searchMessage() {
-        var textSearch = $("#MessageList_SearchInput").val()
-        if (textSearch === "") {
-            $("#MessageList_Body").html('<div id="MessageList_SearchResult"></div>')
-        } else {
-             $.ajax({
-                 url: "@Url.Action("Search", "MessageList")",
-                 type: "POST",
-                 data: {
-                     TextSearch: textSearch
-                 },
-                 success: function (response) {
-                     if (response.isSuccess === undefined) {
-                         $("#MessageList_SearchResult").html(response)
-                     } else {
-                         ShowThongBaoThatBai(response.message)
-                     }
-                 },
-                 error: function (xhr, error) {
-                     ShowThongBaoThatBai(error)
-                 }
-             })
+    function SwitchToTabChatArea(id) {
+        switch (id) {
+            case "tab-chat-message":
+                removeAllBtnContactActive();
+                break;
+            default:
+                removeAllBtnConversationActive();
+                break;
         }
-    }
-
-    function SwitchToScreen(screen) {
-        changeFaRularToFaSolid(screen)
-
-        if (screen === "TabMessageList") {
-            $.get("@Url.Action("Index", "MessageList")", function (data) {
-                $("#MessageList").html(data);
-            });
-        } else if (screen === "TabContact") {
-            $.get("@Url.Action("Index", "Contact")", function (data) {
-                $("#MessageList").html(data);
-            });
-        } else if (screen === "TabMessageWaiting") {
-            $("#MessageList").html("Tin nhắn đang chờ<br/>Tính năng đang thực hiện");
-        }
+        let tab = new bootstrap.Tab(document.getElementById(id));
+        tab.show();
     }
 
     function changeFaRularToFaSolid(screen) {
@@ -368,7 +500,7 @@
         });
 
         // Tìm button được click và thay đổi icon thành fa-solid
-        const clickedButton = document.querySelector(`[onclick="SwitchToScreen('${screen}')"]`);
+        const clickedButton = document.getElementById(screen);
         const clickedIcon = clickedButton.querySelector('.icon-Functions');
         clickedButton.classList.add('active'); // Thêm class active cho button
         clickedIcon.classList.remove('fa-regular');
@@ -378,6 +510,36 @@
     function showInforModal() {
         $.get('@Url.Action("ShowPersonalInfoModal", "Home")', function (data) {
             ShowModal(data, "md")
+        });
+    }
+
+    function renderTabConversation(isLoading = false) {
+        if (isLoading) {
+            showLoading(true)
+        }
+        $.get('@Url.Action("Index", "Conversation")', function (data) {
+            showLoading(false)
+            $("#pills-conversation").html(data)
+        });
+    }
+
+    function renderTabContact(isLoading = false) {
+        if (isLoading) {
+            showLoading(true)
+        }
+        $.get('@Url.Action("Index", "Contact")', function (data) {
+            showLoading(false)
+            $("#pills-contact").html(data)
+        });
+    }
+
+    function renderTabFriendRequest(isLoading = false) {
+        if (isLoading) {
+            showLoading(true)
+        }
+        $.get('friendrequest', function (data) {
+            showLoading(false)
+            $("#pills-friend-request").html(data)
         });
     }
 </script>

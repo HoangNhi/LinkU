@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace ENTITIES.DbContent;
 
@@ -10,6 +12,8 @@ public partial class LINKUContext : DbContext
     }
 
     public virtual DbSet<Comment> Comments { get; set; }
+
+    public virtual DbSet<Conversation> Conversations { get; set; }
 
     public virtual DbSet<FriendRequest> FriendRequests { get; set; }
 
@@ -60,6 +64,38 @@ public partial class LINKUContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Comment_User");
+        });
+
+        modelBuilder.Entity<Conversation>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_MessageStatus");
+
+            entity.ToTable("Conversation");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.NgaySua).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayXoa).HasColumnType("datetime");
+            entity.Property(e => e.NguoiSua)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiTao)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiXoa)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.TargetId).HasComment("Id của User hoặc của Group dựa theo TypeOfConversation");
+            entity.Property(e => e.TypeOfConversation).HasComment("0: Converstation - User to User; 1: Group - User to Group");
+
+            entity.HasOne(d => d.LastReadMessage).WithMany(p => p.Conversations)
+                .HasForeignKey(d => d.LastReadMessageId)
+                .HasConstraintName("FK_Conversation_Message");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Conversations)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Conversation_User");
         });
 
         modelBuilder.Entity<FriendRequest>(entity =>

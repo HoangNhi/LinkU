@@ -30,7 +30,8 @@
         public const string MESSAGE_DELETE_LIST = "/Message/DeleteList";
 
         // MessageList
-        public const string MESSAGELIST_SEARCH = "/MessageList/Search";
+        //public const string MESSAGELIST_SEARCH = "/MessageList/Search";
+        //public const string MESSAGELIST_GETLISTMESSAGELATEST = "/MessageList/GetListMessageLatest";
 
         // FriendRequest
         public const string FRIENDREQUEST_GET_LIST_PAGING = "/FriendRequest/GetListPaging";
@@ -56,6 +57,11 @@
         public const string MEDIAFILE_UPDATE_PICTURE_USER_WITH_UPLOAD_PICTURE = "/MediaFile/UpdatePictureUserWithUploadPicture";
         public const string MEDIAFILE_UPDATE_PICTURE_USER_WITHOUT_UPLOAD_PICTURE = "/MediaFile/UpdatePictureUserWithoutUploadPicture";
 
-
+        // CONVERSATION
+        public const string CONVERSATION_GET_LIST_PAGING = "/Conversation/GetListPaging";
+        public const string CONVERSATION_SEARCH_USER_BY_EMAIL_OR_PHONE = "/Conversation/SearchUserByEmailOrPhone";
+        public const string CONVERSATION_INSERT = "/Conversation/Insert";
+        public const string CONVERSATION_UPDATE = "/Conversation/Update";
+        public const string CONVERSATION_DELETE_LIST = "/Conversation/DeleteList";
     }
 }

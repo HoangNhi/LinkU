@@ -1,0 +1,310 @@
+﻿<script>
+    // Xử lý sự kiện Conversation_Search
+    $("#Conversation_SearchInput").on('focus', function () {
+        if ($("#Conversation_Back").hasClass("d-none")) {
+            $("#Conversation_Back").removeClass("d-none");
+            $("#pills-list-search-result").html('<div id="Conversation_SearchResult"><div id="Conversation_SearchResult_User"></div></div>')
+            SwitchToTab("tab-list-search-result")
+        }
+        $("#Conversation_SearchInput_Container").css("box-shadow", "rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px")
+    });
+
+    $("#Conversation_SearchInput").on('blur', function () {
+        $("#Conversation_SearchInput_Container").css("box-shadow", "none")
+    });
+</script>
+
+<style>
+    #Conversation_Body button:hover {
+        background-color: hsl(0 0% 90% / 1)
+    }
+
+    #pills-list-message > button.active {
+        --mdb-btn-active-bg: var(--mdb-gray-300);
+        pointer-events: none
+    }
+
+    #pills-list-message .row > * {
+        padding-left: 0;
+        padding-right: 0;
+    }
+</style>
+
+<div class="card text-center flex-grow-1">
+    <div class="card-header d-flex justify-content-between align-items-center flex-column border-bottom-0"
+         style="padding: 6px 12px">
+        <div class="d-flex justify-content-between align-items-center w-100"
+             style="">
+            <span style="font-size: 1.5rem; font-weight: 700; color: black; line-height: 28px">
+                Đoạn chat
+            </span>
+            <button type="button"
+                    class="btn btn-light rounded-circle"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark"
+                    style="padding: 9px; margin: 6px 0 6px 6px">
+                <i class="fa-regular fa-pen-to-square" style="font-size: 20px; color: black"></i>
+            </button>
+        </div>
+        <div class="d-flex w-100">
+            <button id="Conversation_Back"
+                    type="button"
+                    class="btn btn-light rounded-circle d-none"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark"
+                    style="margin-right: 4px; padding: 8px 9.25px; line-height: 1; background-color: rgba(0,0,0,0)"
+                    onclick="HideReturnButton(); SwitchToTab('tab-list-message')">
+                <i class="fa-solid fa-arrow-left"
+                   style="color: black; font-size: 20px"></i>
+            </button>
+            <div id="Conversation_SearchInput_Container"
+                 class="d-flex w-100 align-items-center"
+                 style="background-color: rgba(134, 142, 153, .1); border-radius: 50px; overflow: hidden">
+                <i class="fas fa-search"
+                   style="padding: 0 4px 0 14px; line-height: 36px; background-color: rgba(0,0,0,0)"></i>
+                <input id="Conversation_SearchInput"
+                       class="w-100"
+                       type="text"
+                       placeholder="Tìm kiếm"
+                       autocomplete="off"
+                       oninput="Search()">
+            </div>
+        </div>
+    </div>
+
+    <!-- Pills navs -->
+    <ul class="nav nav-pills mb-3 d-none" id="ex1" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="tab-list-message"
+                    role="tab" type="button"
+                    data-bs-toggle="pill"
+                    data-bs-target="#pills-list-message"
+                    aria-controls="pills-list-message"
+                    aria-selected="true">
+                Danh sách tin nhắn
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="tab-list-search-result"
+                    role="tab" type="button"
+                    data-bs-toggle="pill"
+                    data-bs-target="#pills-list-search-result"
+                    aria-controls="pills-list-search-result"
+                    aria-selected="false">
+                Danh sách kết quả tìm kiếm
+            </button>
+        </li>
+    </ul>
+    <!-- Pills navs -->
+
+    <!-- Pills content -->
+    <div class="tab-content card-body p-1" id="Conversation_Body"
+         style="height: calc(100vh - 129px); overflow-x: hidden; overflow-y: auto">
+        <!-- List message -->
+        <div class="tab-pane fade show active"
+             id="pills-list-message"
+             role="tabpanel"
+             aria-labelledby="tab-list-message">
+            Danh sách tin nhắn
+        </div>
+
+        <!-- Search result-->
+        <div class="tab-pane fade"
+             id="pills-list-search-result"
+             role="tabpanel"
+             aria-labelledby="tab-list-search-result">
+            @*Danh sách kết quả tìm kiếm*@
+        </div>
+    </div>
+    <!-- Pills content -->
+</div>
+
+<script>
+    var PageIndexConversation = 1, RowPerPageConversation = 15;
+    var isLoadingConversation = false;
+    // Biến kiểm tra đã lấy hết dữ liệu trong db hay chưa
+    var isDoneConversation = false;
+
+    $(document).ready(function () {
+        GetListPagingConversation()
+
+        var conversationBody = document.getElementById('Conversation_Body');
+        // Lắng nghe sự kiện cuộn
+        conversationBody.addEventListener('scroll', () => {
+            const scrollTop = conversationBody.scrollTop;
+            const windowHeight = conversationBody.scrollHeight;
+            const docHeight = conversationBody.clientHeight;
+
+            if (scrollTop + docHeight + 1 >= windowHeight) {
+                GetListPagingConversation(PageIndexConversation + 1, RowPerPageConversation, null, false);
+            }
+        });
+    });
+    function HideReturnButton() {
+        $('#Conversation_Back').addClass('d-none');
+        $('#Conversation_SearchInput').val('');
+    }
+
+    function SwitchToTab(id) {
+        let tab = new bootstrap.Tab(document.getElementById(id));
+        tab.show();
+    }
+
+    function Search() {
+        var textSearch = $("#Conversation_SearchInput").val()
+        if (textSearch === "") {
+            $("#pills-list-search-result").html('<div id="Conversation_SearchResult"><div id="Conversation_SearchResult_User"></div></div>')
+        } else {
+            SearchUserByEmailOrPhone(textSearch);
+        }
+    }
+
+    function SearchUserByEmailOrPhone(textSearch) {
+          $.ajax({
+            url: "@Url.Action("SearchUserByEmailOrPhone", "Conversation")",
+            type: "GET",
+            data: {
+                TextSearch: textSearch,
+                PageIndex: 1,
+                RowPerPage: 15
+            },
+            success: function (response) {
+                if (response.isSuccess === undefined) {
+                    $("#Conversation_SearchResult_User").html(response)
+                } else {
+                    ShowThongBaoThatBai(response.message)
+                }
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+            }
+        })
+    }
+
+    function GetListPagingConversation(pageIndex = 1, rowPerPage = 15, callback, isRefresh = true) {
+        if (isRefresh) {
+            $.ajax({
+                url: "@Url.Action("GetListPaging", "Conversation")",
+                type: "POST",
+                data: {
+                    TextSearch: "",
+                    CurrentUserId: "@ViewContext.GetClaimValue("UserId")",
+                    PageIndex: 1,
+                    RowPerPage: pageIndex * rowPerPage
+                },
+                success: function (response) {
+                    if (response.isSuccess === undefined) {
+                        // Set Html
+                        $("#pills-list-message").html(response)
+                        // Callback
+                        if (typeof callback === "function") {
+                            callback()
+                        }
+                    } else {
+                        ShowThongBaoThatBai(response.message)
+                    }
+                },
+                error: function (xhr, error) {
+                    ShowThongBaoThatBai(error)
+                }
+            })
+        }
+        else {
+            if (isDoneConversation) return
+            if (isLoadingConversation) return;
+
+            isLoadingConversation = true;
+            ToggleLoadingConversation();
+
+            $.ajax({
+                url: "@Url.Action("GetListPaging", "Conversation")",
+                type: "POST",
+                data: {
+                    TextSearch: "",
+                    CurrentUserId: "@ViewContext.GetClaimValue("UserId")",
+                    PageIndex: pageIndex, 
+                    RowPerPage: rowPerPage
+                },
+                success: function (response) {
+                    if (response.isSuccess === undefined) {
+                        if (response.trim() !== '') {
+                            // Lưu dữ liệu trang hiện tại
+                            PageIndexConversation = pageIndex
+                            RowPerPageConversation = rowPerPage
+                            // Set Html
+                            $("#pills-list-message").append(response)
+                            // Callback
+                            if (typeof callback === "function") {
+                                callback()
+                            }
+                            isLoadingConversation = false;
+                            ToggleLoadingConversation();
+                        } else {
+                            isLoadingConversation = false;
+                            isDoneConversation = true;
+                            ToggleLoadingConversation();
+                        }
+                    } else {
+                        ShowThongBaoThatBai(response.message)
+                    }
+                },
+                error: function (xhr, error) {
+                    ShowThongBaoThatBai(error)
+                }
+            })
+
+        }
+    }
+
+    function setActiveButton(id) {
+        if (id !== '') {
+            // Xóa class 'active' khỏi tất cả các button
+            document.querySelectorAll('#pills-list-message>button.active').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Thêm class 'active' vào button được click
+            var button = $('#pills-list-message>#' + id);
+            button.addClass('active')
+        }
+    }
+
+    function removeAllBtnConversationActive() {
+        // Xóa class 'active' khỏi tất cả các button
+        document.querySelectorAll('#pills-list-message>button.active').forEach(btn => {
+            btn.classList.remove('active');
+        });
+    }
+
+    function ToggleLoadingConversation() {
+        if (isLoadingConversation) {
+            const divLoading = `<button class="d-flex w-100 btn btn-link p-2 mb-2 LoadingConversation" aria-hidden="true"
+                            style="text-align: start; align-items: center; color: inherit; height: 64px">
+                        <img class="rounded-circle me-2 flex-shrink-0 placeholder bg-brown-900"
+                             style="object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
+                             width="48" height="48"/>
+                        <div class="container" style="width: calc(100% - 48px - .5rem)">
+                            <div class="row fw-normal placeholder-glow justify-content-between mb-2">
+                                <span class="fs-6 col-8 text-truncate text-black placeholder bg-brown-900" style="line-height: 1.5"></span>
+                                <span class="col-3 text-end align-items-center placeholder bg-brown-900"></span>
+                            </div>
+
+                            <div class="row fw-normal placeholder-glow justify-content-between">
+                                <span class="fs-6 col-10 text-truncate text-black placeholder bg-brown-900" style="line-height: 1.5"></span>
+                                <span class="col-1 text-end align-items-center placeholder bg-brown-900"></span>
+                            </div>
+                        </div>
+                    </button>`
+            $("#pills-list-message").append(divLoading)
+            $("#pills-list-message").append(divLoading)
+        }
+        else {
+            // Chọn tất cả các button có class isLoading trong div#pills-list-message
+            const buttons = document.querySelectorAll('#pills-list-message button.LoadingConversation');
+            // Xóa từng button
+            buttons.forEach(button => button.remove());
+        }
+    }
+</script>

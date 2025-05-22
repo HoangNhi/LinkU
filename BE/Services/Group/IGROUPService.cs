@@ -12,5 +12,12 @@ namespace BE.Services.Group
         BaseResponse<MODELGroup> Insert(POSTGroupRequest request);
         BaseResponse<MODELGroup> Update(POSTGroupRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
+
+        /// <summary>
+        /// Tạo 1 nhóm, thêm thành viên vào nhóm và Upload ảnh đại diện nhóm (nếu có)
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<BaseResponse<MODELGroup>> CreateGroupWithMember(POSTCreateGroupRequest request);
     }
 }

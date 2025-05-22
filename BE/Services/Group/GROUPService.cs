@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using BE.Services.MediaFile;
 using ENTITIES.DbContent;
 using MODELS.BASE;
 using MODELS.GROUP.Dtos;
 using MODELS.GROUP.Requests;
+using MODELS.MEDIAFILE.Requests;
+using MODELS.COMMON;
 
 namespace BE.Services.Group
 {
@@ -11,14 +14,17 @@ namespace BE.Services.Group
         private readonly LINKUContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IMEDIAFILEService _mediaService;
 
-        public GROUPService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor)
+        public GROUPService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IMEDIAFILEService mediaService)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
+            _mediaService = mediaService;
         }
 
+        #region Common CRUD
         public BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request)
         {
             throw new NotImplementedException();
@@ -79,7 +85,7 @@ namespace BE.Services.Group
             try
             {
                 var add = _mapper.Map<ENTITIES.DbContent.Group>(request);
-                
+
                 add.Id = request.Id == Guid.Empty ? Guid.NewGuid() : request.Id;
                 add.NgayTao = DateTime.Now;
                 add.NguoiTao = _contextAccessor.HttpContext.User.Identity.Name;
@@ -159,5 +165,116 @@ namespace BE.Services.Group
             }
             return response;
         }
+        #endregion
+
+        #region Advanced
+        public async Task<BaseResponse<MODELGroup>> CreateGroupWithMember(POSTCreateGroupRequest request)
+        {
+            var response = new BaseResponse<MODELGroup>();
+            try
+            {
+                // Validate request
+                var validate = ValidateRequestCreateGroupWithMember(request);
+                if (validate.Error)
+                {
+                    throw new Exception(validate.Message);
+                }
+
+                // Tạo nhóm
+                var group = new ENTITIES.DbContent.Group
+                {
+                    Id = Guid.NewGuid(),
+                    GroupName = request.GroupName,
+                    GroupType = request.GroupType,
+                    NgayTao = DateTime.Now,
+                    NguoiTao = _contextAccessor.HttpContext.User.Identity.Name,
+                    NgaySua = DateTime.Now,
+                    NguoiSua = _contextAccessor.HttpContext.User.Identity.Name
+                };
+                _context.Groups.Add(group);
+
+                // Thêm members vào nhóm
+                _context.GroupMembers.AddRange(request.Members.Select(m => new ENTITIES.DbContent.GroupMember
+                {
+                    Id = Guid.NewGuid(),
+                    GroupId = group.Id,
+                    UserId = m.UserId,
+                    Role = m.Role,
+                    NgayTao = DateTime.Now,
+                    NguoiTao = _contextAccessor.HttpContext.User.Identity.Name,
+                    NgaySua = DateTime.Now,
+                    NguoiSua = _contextAccessor.HttpContext.User.Identity.Name
+                }));
+
+                // Nếu có ảnh đại diện thì thêm vào nhóm
+                if (request.Avatar != null)
+                {
+                    var createMedia = await _mediaService.CreatePicture(
+                        new POSTCreatePictureRequest 
+                        {
+                            File = request.Avatar, 
+                            OwnerId = group.Id, 
+                            FileType = MediaFileType.GroupAvatar,
+                            IsSaveChange = false,
+                        }
+                    );
+
+                    if (createMedia.Error)
+                    {
+                        throw new Exception(createMedia.Message);
+                    }
+                }
+
+                // Lưu dữ liệu
+                _context.SaveChanges();
+                response.Data = _mapper.Map<MODELGroup>(group);
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+        #endregion
+
+        #region Private Methods
+        BaseResponse ValidateRequestCreateGroupWithMember(POSTCreateGroupRequest request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Kiểm tra User có tồn tại không
+                foreach (var member in request.Members)
+                {
+                    var userExist = _context.Users.FirstOrDefault(u => u.Id == member.UserId && !u.IsDeleted);
+                    if (userExist == null)
+                    {
+                        throw new Exception($"Người dùng không tồn tại: {member.UserId}");
+                    }
+                }
+
+                // Nhóm phải có ít nhất 1 Admin
+                var IsOneAdmin = request.Members.Count(m => m.Role == 2);
+                switch (IsOneAdmin)
+                {
+                    case 0:
+                        throw new Exception("Nhóm phải có ít nhất 1 Admin");
+                    case 1:
+                        break;
+                    default:
+                        throw new Exception("Nhóm chỉ được có 1 Admin");
+                }
+
+                response.Error = false;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+        #endregion
     }
 }

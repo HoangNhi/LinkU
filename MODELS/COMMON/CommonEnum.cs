@@ -13,6 +13,7 @@
         ProfilePicture,
         CoverPicture,
         ChatImage,
-        ChatFile
+        ChatFile,
+        GroupAvatar,
     }
 }

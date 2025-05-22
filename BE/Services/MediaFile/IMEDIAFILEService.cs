@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
+using MODELS.COMMON;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 
@@ -9,7 +10,13 @@ namespace BE.Services.MediaFile
     {
         Task<BaseResponse<FileStreamResult>> DownloadFileAsync(string fileName);
         Task<BaseResponse<List<MODELMediaFile>>> UploadFileAsync(List<IFormFile> file);
-        Task<BaseResponse<MODELMediaFile>> UpdatePictureUser(IFormFile file, Guid OwnerId, int FileType);
+        /// <summary>
+        /// Tạo mới hình ảnh cho người dùng hoặc nhóm
+        /// Sử dụng cho Profile, Cover Picture và Avartar Group
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<BaseResponse<MODELMediaFile>> CreatePicture(POSTCreatePictureRequest request);
         BaseResponse<MODELMediaFile> UpdatePictureUser(POSTMediaFileRequest request);
         BaseResponse<POSTMediaFileRequest> GetByPost(GetByIdRequest request);
         BaseResponse<MODELMediaFile> Insert(POSTMediaFileRequest request);

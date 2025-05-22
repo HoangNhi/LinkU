@@ -3,7 +3,9 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using ENTITIES.DbContent;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualBasic.FileIO;
 using MODELS.BASE;
+using MODELS.COMMON;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 
@@ -148,29 +150,20 @@ namespace BE.Services.MediaFile
             return response;
         }
 
-        public async Task<BaseResponse<MODELMediaFile>> UpdatePictureUser(IFormFile file, Guid OwnerId, int FileType)
+        public async Task<BaseResponse<MODELMediaFile>> CreatePicture(POSTCreatePictureRequest request)
         {
             var response = new BaseResponse<MODELMediaFile>();
             try
             {
                 // Upload file
-                var resultUpload = await UploadFileAsync(new List<IFormFile> { file });
+                var resultUpload = await UploadFileAsync(new List<IFormFile> { request.File });
                 if (resultUpload.Error)
                 {
                     throw new Exception(resultUpload.Message);
                 }
 
                 // Chuyển các Picture về IsActived = false
-                var currentPictures = _context.MediaFiles
-                    .Where(x => x.OwnerId == OwnerId && x.FileType == FileType && x.IsActived && !x.IsDeleted);
-
-                foreach (var picture in currentPictures)
-                {
-                    picture.IsActived = false;
-                    picture.NgaySua = DateTime.Now;
-                    picture.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
-                    _context.MediaFiles.Update(picture);
-                }
+                changeAllPictureToIsActivedFalse(request.OwnerId, request.FileType);
 
                 // Tạo dữ liệu hình ảnh mới
                 var add = new ENTITIES.DbContent.MediaFile
@@ -178,8 +171,8 @@ namespace BE.Services.MediaFile
                     Id = Guid.NewGuid(),
                     FileName = resultUpload.Data.First().FileName,
                     Url = resultUpload.Data.First().Url,
-                    OwnerId = OwnerId,
-                    FileType = FileType,
+                    OwnerId = request.OwnerId,
+                    FileType = (int)request.FileType,
                     IsActived = true,
                     NgayTao = DateTime.Now,
                     NguoiTao = _contextAccessor.HttpContext.User.Identity.Name,
@@ -191,7 +184,10 @@ namespace BE.Services.MediaFile
                 _context.MediaFiles.Add(add);
 
                 // Lưu thay đổi
-                _context.SaveChanges();
+                if (request.IsSaveChange)
+                {
+                    _context.SaveChanges();
+                }
 
                 // Trả về dữ liệu đã thêm
                 response.Data = _mapper.Map<MODELMediaFile>(add);
@@ -326,6 +322,42 @@ namespace BE.Services.MediaFile
                 response.Message = ex.Message;
             }
             return response;
+        }
+
+        void changeAllPictureToIsActivedFalse(Guid ownerId, MediaFileType fileType)
+        {
+            IEnumerable<ENTITIES.DbContent.MediaFile> currentPictures;
+            switch (fileType)
+            {
+                // Profile và Cover Picture
+                case MediaFileType.ProfilePicture:
+                case MediaFileType.CoverPicture:
+                    currentPictures = _context.MediaFiles.Where(
+                        x => x.OwnerId == ownerId
+                        && x.FileType == (int)fileType
+                        && x.IsActived && !x.IsDeleted
+                    );
+                    break;
+                // Avartar Group
+                case MediaFileType.GroupAvatar:
+                    currentPictures = _context.MediaFiles.Where(
+                        x => x.GroupId == ownerId
+                        && x.FileType == (int)fileType
+                        && x.IsActived && !x.IsDeleted
+                    );
+                    break;
+                default:
+                    throw new Exception("FileType không hợp lệ");
+            }
+
+            // Chuyển các Picture về IsActived = false
+            foreach (var picture in currentPictures)
+            {
+                picture.IsActived = false;
+                picture.NgaySua = DateTime.Now;
+                picture.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
+                _context.MediaFiles.Update(picture);
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ namespace MODELS.MEDIAFILE.Requests
         public string FileName { get; set; } = null!;
 
         /// <summary>
-        /// Enum: 1 - ProfilePicture, 2 -  CoverPicture, 3 - ChatImage, 4 - ChatFile
+        /// Enum: 0 - ProfilePicture, 1 -  CoverPicture, 2 - ChatImage, 3 - ChatFile, 4 - Avartar Group
         /// </summary>
         [Required(AllowEmptyStrings = false, ErrorMessage = "FileType không được để trống")]
         public int FileType { get; set; }

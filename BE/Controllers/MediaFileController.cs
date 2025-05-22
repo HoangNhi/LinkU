@@ -105,7 +105,13 @@ namespace BE.Controllers
                     throw new Exception("FileType không được để trống.");
 
                 // 5. Upload nếu hợp lệ
-                var response = await _service.UpdatePictureUser(file, Guid.Parse(ownerId), int.Parse(fileType));
+                var response = await _service.CreatePicture(new POSTCreatePictureRequest
+                {
+                    File = file, 
+                    OwnerId = Guid.Parse(ownerId), 
+                    FileType = (MediaFileType)int.Parse(fileType)
+                });
+
                 if (response.Error)
                 {
                     throw new Exception(response.Message);

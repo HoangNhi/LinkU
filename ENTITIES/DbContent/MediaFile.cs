@@ -12,13 +12,15 @@ public partial class MediaFile
     public string FileName { get; set; } = null!;
 
     /// <summary>
-    /// Enum: 1 - ProfilePicture, 2 -  CoverPicture, 3 - ChatImage, 4 - ChatFile
+    /// Enum: 1 - ProfilePicture, 2 -  CoverPicture, 3 - ChatImage, 4 - ChatFile, 5 - Avartar Group
     /// </summary>
     public int FileType { get; set; }
 
     public Guid? OwnerId { get; set; }
 
     public Guid? MessageId { get; set; }
+
+    public Guid? GroupId { get; set; }
 
     public DateTime NgayTao { get; set; }
 
@@ -35,6 +37,8 @@ public partial class MediaFile
     public bool IsActived { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public virtual Group? Group { get; set; }
 
     public virtual Message? Message { get; set; }
 

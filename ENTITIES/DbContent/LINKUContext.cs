@@ -19,6 +19,10 @@ public partial class LINKUContext : DbContext
 
     public virtual DbSet<Friendship> Friendships { get; set; }
 
+    public virtual DbSet<Group> Groups { get; set; }
+
+    public virtual DbSet<GroupMember> GroupMembers { get; set; }
+
     public virtual DbSet<Like> Likes { get; set; }
 
     public virtual DbSet<MediaFile> MediaFiles { get; set; }
@@ -153,6 +157,58 @@ public partial class LINKUContext : DbContext
                 .HasConstraintName("FK_Friendship_User1");
         });
 
+        modelBuilder.Entity<Group>(entity =>
+        {
+            entity.ToTable("Group");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.GroupType).HasComment("True: public - Cho phép tham gia bằng Link, False: ngược lại");
+            entity.Property(e => e.NgaySua).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayXoa).HasColumnType("datetime");
+            entity.Property(e => e.NguoiSua)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiTao)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiXoa)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<GroupMember>(entity =>
+        {
+            entity.ToTable("GroupMember");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.NgaySua).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayXoa).HasColumnType("datetime");
+            entity.Property(e => e.NguoiSua)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiTao)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiXoa)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.Role)
+                .HasDefaultValue(1)
+                .HasComment("1 - Member, 2 - Admin");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.GroupMembers)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GroupMember_Group");
+
+            entity.HasOne(d => d.User).WithMany(p => p.GroupMembers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GroupMember_User");
+        });
+
         modelBuilder.Entity<Like>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_like");
@@ -194,7 +250,7 @@ public partial class LINKUContext : DbContext
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.FileName).HasMaxLength(255);
-            entity.Property(e => e.FileType).HasComment("Enum: 1 - ProfilePicture, 2 -  CoverPicture, 3 - ChatImage, 4 - ChatFile");
+            entity.Property(e => e.FileType).HasComment("Enum: 1 - ProfilePicture, 2 -  CoverPicture, 3 - ChatImage, 4 - ChatFile, 5 - Avartar Group");
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
             entity.Property(e => e.NgayTao).HasColumnType("datetime");
             entity.Property(e => e.NgayXoa).HasColumnType("datetime");
@@ -210,6 +266,10 @@ public partial class LINKUContext : DbContext
             entity.Property(e => e.Url)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.Group).WithMany(p => p.MediaFiles)
+                .HasForeignKey(d => d.GroupId)
+                .HasConstraintName("FK_MediaFiles_Group");
 
             entity.HasOne(d => d.Message).WithMany(p => p.MediaFiles)
                 .HasForeignKey(d => d.MessageId)

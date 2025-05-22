@@ -4,6 +4,10 @@ using MODELS.FRIENDREQUEST.Dtos;
 using MODELS.FRIENDREQUEST.Requests;
 using MODELS.FRIENDSHIP.Dtos;
 using MODELS.FRIENDSHIP.Requests;
+using MODELS.GROUP.Dtos;
+using MODELS.GROUP.Requests;
+using MODELS.GROUPMEMBER.Dtos;
+using MODELS.GROUPMEMBER.Requests;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.MESSAGE.Dtos;
@@ -52,6 +56,14 @@ namespace BE.AutoMapper
             // Conversation
             CreateMap<Conversation, MODELConversation>().ReverseMap();
             CreateMap<Conversation, POSTConversationRequest>().ReverseMap();
+
+            // Group
+            CreateMap<Group, MODELGroup>().ReverseMap();
+            CreateMap<Group, POSTGroupRequest>().ReverseMap();
+
+            // GroupMember
+            CreateMap<GroupMember, MODELGroupMember>().ReverseMap();
+            CreateMap<GroupMember, POSTGroupMemberRequest>().ReverseMap();
         }
     }
 }

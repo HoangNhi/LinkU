@@ -4,6 +4,8 @@ using BE.AutoMapper;
 using BE.Services.Conversation;
 using BE.Services.FriendRequest;
 using BE.Services.FriendShip;
+using BE.Services.Group;
+using BE.Services.GroupMember;
 using BE.Services.Mail;
 using BE.Services.MediaFile;
 using BE.Services.Message;
@@ -128,6 +130,8 @@ namespace BE.Configure
             builder.Services.AddTransient<IFRIENDSHIPService, FIRENDSHIPService>();
             builder.Services.AddScoped<IMEDIAFILEService, MEDIAFILEService>();
             builder.Services.AddTransient<ICONVERSATIONService, CONVERSATIONService>();
+            builder.Services.AddTransient<IGROUPService, GROUPService>();
+            builder.Services.AddTransient<IGROUPMEMBERService, GROUPMEMBERService>();
         }
     }
 }

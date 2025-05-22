@@ -57,6 +57,8 @@ public partial class User
 
     public virtual ICollection<Friendship> FriendshipUserId2Navigations { get; set; } = new List<Friendship>();
 
+    public virtual ICollection<GroupMember> GroupMembers { get; set; } = new List<GroupMember>();
+
     public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
 
     public virtual ICollection<MediaFile> MediaFiles { get; set; } = new List<MediaFile>();

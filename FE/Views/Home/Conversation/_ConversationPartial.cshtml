@@ -312,7 +312,7 @@
 
     function ShowModalCreateGroup() {
         $.get('@Url.Action("ShowModalCreateGroup", "Group")', function (data) {
-            ShowModal(data, "md")
+            ShowModal(data, "lg", 'modal-dialog-scrollable')
         });
     }
 </script>

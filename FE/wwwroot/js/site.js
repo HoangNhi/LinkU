@@ -106,12 +106,20 @@ function showLoadingElement(value, id) {
         $('#' + id).unblock();
     }
 }
-function ShowModal(html, size) {
+function ShowModal(html, size, extenClass = '') {
     $('#modalContainer').removeClass().addClass("modal-dialog modal-dialog-centered");
+    // Kích thước
     if (size != 'md')
     {
         $('#modalContainer').addClass('modal-' + size);
     }
+
+    // Thêm class nếu có
+    if (extenClass !== '') {
+        $('#modalContainer').addClass(extenClass)
+    }
+
+    // Chèn html và hiển thị
     $('#modalContainer').html(html);
     $('#modal-default').modal('show');
 }

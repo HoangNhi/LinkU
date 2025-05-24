@@ -28,9 +28,27 @@
     #frmGroup .filepond--drop-label > label {
         cursor: pointer
     }
+
+    #frmGroup input[type="search"]::-webkit-search-cancel-button {
+        -webkit-appearance: none; /* Remove default styling */
+        appearance: none;
+        background: url('./asset/close.png') no-repeat center center; /* Replace with your custom icon */
+        background-size: contain; /* Adjust size to fit */
+        width: 16px; /* Set width */
+        height: 16px; /* Set height */
+        cursor: pointer; /* Add a pointer cursor for better UX */
+    }
+
+    #frmGroup #SearchInput:focus {
+        outline: none;
+    }
+
+    #frmGroup .SearchInputContainer:has(#SearchInput:focus) {
+        box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    }
 </style>
 
-@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmGroup", @class = "w-100" }))
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmGroup", @class = "w-100", @style= "height: 100%" }))
 {
     <div class="modal-content">
         <div class="modal-header">
@@ -43,20 +61,76 @@
                     data-mdb-ripple-color="dark">
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body pb-0">
             <div class="container">
                 <div class="row align-items-center">
-                    <div class="col-2">
+                    <div style="max-height: 80px; max-width: 80px">
                         <input style=""
                                type="file"
                                class="filepond GroupAvatar"
                                accept="@string.Join(", ", MODELS.COMMON.CommonConst.AllowedPictureTypes)" />
                     </div>
-                    <div class="col-10 ps-3">
+                    <div class="ps-3" style="width: calc(100% - 80px)">
                         <input id="GroupName" name="GroupName" type="text"
                                class="border-0 border-2 border-bottom rounded-0 w-100"
                                style="outline: none"
                                placeholder="Nhập tên nhóm..." />
+                    </div>
+                </div>
+                <div class="Member row">
+                    @* Search *@
+                    <div class="SearchInputContainer d-flex w-100 align-items-center my-2"
+                         style="background-color: rgba(134, 142, 153, .1); border-radius: 50px; overflow: hidden">
+                        <i class="fas fa-search"
+                           style="padding: 0 4px 0 14px; line-height: 36px; background-color: rgba(0,0,0,0)"></i>
+                        <input id="SearchInput"
+                               class="w-100"
+                               type="search"
+                               placeholder="Tìm kiếm"
+                               autocomplete="off">
+                    </div>
+
+                    @* Controller Pill *@
+                    <ul class="nav" role="tablist">
+                        <li class="nav-item w-100" role="presentation">
+                            <button type="button" role="tab"
+                                    class="active"
+                                    id="tab-member-full"
+                                    data-bs-toggle="pill"
+                                    data-bs-target="#pills-member-full"
+                                    aria-controls="pills-member-full"
+                                    aria-selected="true">
+                            </button>
+                        </li>
+
+                        <li class="nav-item w-100" role="presentation">
+                            <button type="button" role="tab"
+                                    id="tab-member-search-result"
+                                    data-bs-toggle="pill"
+                                    data-bs-target="#pills-member-search-result"
+                                    aria-controls="pills-member-search-result"
+                                    aria-selected="true">
+                            </button>
+                        </li>
+                    </ul>
+
+                    @* Pill *@
+                    <div class="tab-content">
+                        <!-- Member Full -->
+                        <div class="tab-pane fade show w-100 active"
+                             id="pills-member-full"
+                             role="tabpanel"
+                             aria-labelledby="tab-member-full">
+                        </div>
+
+                        <!-- Member Search Result -->
+                        <div class="tab-pane fade w-100"
+                             id="pills-member-search-result"
+                             style="height: 400px"
+                             role="tabpanel"
+                             aria-labelledby="tab-member-search-result">
+                           
+                        </div>
                     </div>
                 </div>
             </div>
@@ -71,7 +145,7 @@
 <script>
     var member, AvatarGroup, btnPreviewWrapper;
     $(document).ready(function () {
-        GetListMemberCreateGroup()
+        GetListMemberCreateGroup(() => { renderUserList(); showLoading(false) })
 
         AvatarGroup = FilePond.create(
             document.querySelector('input.GroupAvatar'),
@@ -88,9 +162,12 @@
                 stylePanelLayout: 'compact circle',
                 styleLoadIndicatorPosition: 'center bottom',
 
-                labelIdle: `<span class="material-symbols-outlined fs-3">
-                                add_a_photo
-                            </span>`,
+                labelIdle: `<div class="position-relative">
+                                <span class="material-symbols-outlined fs-3 position-absolute-center">
+                                    add_a_photo
+                                </span>
+                            </div>
+                            `,
 
 
                 onaddfile: (error, file) => {
@@ -146,15 +223,23 @@
                 }
             }
         );
+
+        // Sự kiện tìm kiếm
+        //document.getElementById('searchInput').addEventListener('input', (e) => {
+        //    renderUserList(e.target.value);
+        //});
     });
 
     function GetListMemberCreateGroup(callback = () => { }) {
+        showLoading(true)
         $.get('@Url.Action("GetListMemberCreateGroup", "Group")', function (data) {
             if (data.isSuccess) {
                 member = data.data
 
                 if (typeof callback === "function") {
                     callback()
+                } else {
+                    showLoading(false)
                 }
             } else {
                 ShowThongBaoThatBai(data.message)
@@ -170,6 +255,66 @@
     function ReplaceFile() {
         AvatarGroup.browse()
         btnPreviewWrapper.hide()
+    }
+
+    function renderUserList(searchTerm = '') {
+        const userList = document.getElementById('pills-member-full');
+        userList.innerHTML = '';
+
+        // Lọc người dùng theo từ khóa tìm kiếm
+        const filteredUsers = member.filter(user =>
+            user.hoVaTen.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        // Nhóm người dùng theo ký tự đầu của hoVaTen
+        const groupedUsers = filteredUsers.reduce((acc, user) => {
+            const firstChar = user.firstCharacter
+            if (!acc[firstChar]) acc[firstChar] = [];
+            acc[firstChar].push(user);
+            return acc;
+        }, {});
+
+        // Sắp xếp các ký tự đầu theo thứ tự bảng chữ cái
+        const sortedKeys = Object.keys(groupedUsers).sort();
+
+        // Hiển thị danh sách
+        sortedKeys.forEach(char => {
+            const group = groupedUsers[char];
+            // Thêm tiêu đề nhóm
+            const header = document.createElement('h6');
+            header.className = 'bg-body-tertiary p-2 border-top border-bottom fw-bold';
+            header.textContent = char;
+            userList.appendChild(header);
+
+            // Thêm danh sách người dùng
+            const ul = document.createElement('ul');
+            ul.className = 'list-group list-group-light mb-2';
+            group.forEach(user => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.innerHTML = `
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-1 text-center">
+                             <input class="form-check-input" type="checkbox" value="" />
+                        </div>
+                        <div class="col-1 text-center">
+                            <img src="${user.profilePicture}" 
+                                class="rounded-circle border" 
+                                style="max-height: 60px; max-width: 60px; height: 60px; width: 60px; object-fit: cover" />
+                        </div>
+                        <div class="col-10">
+                            <span class="fs-6 ms-2" style="font-weight: 500">${user.hoVaTen}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                    
+                `;
+                ul.appendChild(li);
+            });
+            userList.appendChild(ul);
+        });
     }
 </script>
 

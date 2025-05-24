@@ -63,5 +63,23 @@
         public const string CONVERSATION_INSERT = "/Conversation/Insert";
         public const string CONVERSATION_UPDATE = "/Conversation/Update";
         public const string CONVERSATION_DELETE_LIST = "/Conversation/DeleteList";
+
+        // GROUP
+        public const string GROUP_GET_LIST_PAGING = "/Group/GetListPaging";
+        public const string GROUP_GET_BY_ID = "/Group/GetById";
+        public const string GROUP_GET_BY_POST = "/Group/GetByPost";
+        public const string GROUP_INSERT = "/Group/Insert";
+        public const string GROUP_UPDATE = "/Group/Update";
+        public const string GROUP_DELETE_LIST = "/Group/DeleteList";
+        public const string GROUP_CREATE_GROUP_WITH_MEMBER = "/Group/CreateGroupWithMember";
+        public const string GROUP_GET_LIST_MEMBER_CREATE_GROUP = "/Group/GetListMemberCreateGroup";
+
+        // GROUPMEMBER
+        public const string GROUPMEMBER_GET_LIST_PAGING = "/GroupMember/GetListPaging";
+        public const string GROUPMEMBER_GET_BY_ID = "/GroupMember/GetById";
+        public const string GROUPMEMBER_GET_BY_POST = "/GroupMember/GetByPost";
+        public const string GROUPMEMBER_INSERT = "/GroupMember/Insert";
+        public const string GROUPMEMBER_UPDATE = "/GroupMember/Update";
+        public const string GROUPMEMBER_DELETE_LIST = "/GroupMember/DeleteList";
     }
 }

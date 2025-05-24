@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
+using BE.Helpers;
 using BE.Services.MediaFile;
 using ENTITIES.DbContent;
+using Microsoft.Data.SqlClient;
 using MODELS.BASE;
+using MODELS.COMMON;
 using MODELS.GROUP.Dtos;
 using MODELS.GROUP.Requests;
 using MODELS.MEDIAFILE.Requests;
-using MODELS.COMMON;
 
 namespace BE.Services.Group
 {
@@ -210,10 +212,10 @@ namespace BE.Services.Group
                 if (request.Avatar != null)
                 {
                     var createMedia = await _mediaService.CreatePicture(
-                        new POSTCreatePictureRequest 
+                        new POSTCreatePictureRequest
                         {
-                            File = request.Avatar, 
-                            OwnerId = group.Id, 
+                            File = request.Avatar,
+                            OwnerId = group.Id,
                             FileType = MediaFileType.GroupAvatar,
                             IsSaveChange = false,
                         }
@@ -236,6 +238,29 @@ namespace BE.Services.Group
             }
             return response;
         }
+
+        public BaseResponse<List<MODELMemberCreateGroup>> GetListMemberCreateGroup()
+        {
+            var response = new BaseResponse<List<MODELMemberCreateGroup>>();
+            try
+            {
+                var parameters = new SqlParameter[]
+                {
+                    new SqlParameter("@iUserId", _contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "name").Value)
+                };
+
+                // Lấy dữ liệu
+                var Data = _context.ExcuteStoredProcedure<MODELMemberCreateGroup>("sp_GROUP_GetListMemberCreateGroup", parameters).ToList();
+
+                response.Data = Data;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
         #endregion
 
         #region Private Methods
@@ -244,6 +269,11 @@ namespace BE.Services.Group
             var response = new BaseResponse();
             try
             {
+                if (request.Members.Count < 3)
+                {
+                    throw new Exception("Số lượng thành viên phải lớn hơn hoặc bằng 3");
+                }
+
                 // Kiểm tra User có tồn tại không
                 foreach (var member in request.Members)
                 {
@@ -264,6 +294,19 @@ namespace BE.Services.Group
                         break;
                     default:
                         throw new Exception("Nhóm chỉ được có 1 Admin");
+                }
+
+                // Kiểm tra hình ảnh
+                if (request.Avatar != null)
+                {
+                    // 1. Giới hạn kích thước (ví dụ: 2MB)
+                    const long maxFileSize = 2 * 1024 * 1024; // 2MB
+                    if (request.Avatar.Length > maxFileSize)
+                        throw new Exception("File vượt quá dung lượng cho phép (2MB).");
+
+                    // 2. Kiểm tra định dạng file (chỉ cho phép ảnh và PDF)
+                    if (!CommonConst.AllowedPictureTypes.Contains(request.Avatar.ContentType.ToLower()))
+                        throw new Exception("Định dạng file không được hỗ trợ. Chỉ cho phép .jpg, .jpeg, .jpe, .jfif và .png");
                 }
 
                 response.Error = false;

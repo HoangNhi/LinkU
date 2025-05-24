@@ -1,6 +1,7 @@
 ﻿using MODELS.BASE;
 using MODELS.GROUP.Dtos;
 using MODELS.GROUP.Requests;
+using MODELS.GROUPMEMBER.Dtos;
 
 namespace BE.Services.Group
 {
@@ -19,5 +20,8 @@ namespace BE.Services.Group
         /// <param name="request"></param>
         /// <returns></returns>
         Task<BaseResponse<MODELGroup>> CreateGroupWithMember(POSTCreateGroupRequest request);
+
+        
+        BaseResponse<List<MODELMemberCreateGroup>> GetListMemberCreateGroup(); 
     }
 }

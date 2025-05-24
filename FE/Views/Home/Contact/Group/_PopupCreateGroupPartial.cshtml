@@ -1,0 +1,175 @@
+﻿<style>
+    #frmGroup .btn-light {
+        --mdb-btn-bg: var(--color-brown-500);
+        --mdb-btn-hover-bg: var(--color-brown-700);
+    }
+
+    #frmGroup #GroupName:focus {
+        border-bottom: 2px solid var(--color-brown-900) !important
+    }
+
+    #frmGroup .GroupAvatar {
+        margin: 0;
+    }
+
+    #frmGroup .row > * {
+        padding: 0
+    }
+
+    #frmGroup .material-symbols-outlined {
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24
+    }
+
+    #frmGroup .filepond--image-preview-overlay.filepond--image-preview-overlay-idle{
+        opacity: 0!important;
+    }
+
+    #frmGroup .filepond--root,
+    #frmGroup .filepond--drop-label > label {
+        cursor: pointer
+    }
+</style>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmGroup", @class = "w-100" }))
+{
+    <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5">Thông tin tài khoản</h1>
+            <button type="button"
+                    class="btn-close btn-link rounded-circle"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark">
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-2">
+                        <input style=""
+                               type="file"
+                               class="filepond GroupAvatar"
+                               accept="@string.Join(", ", MODELS.COMMON.CommonConst.AllowedPictureTypes)" />
+                    </div>
+                    <div class="col-10 ps-3">
+                        <input id="GroupName" name="GroupName" type="text"
+                               class="border-0 border-2 border-bottom rounded-0 w-100"
+                               style="outline: none"
+                               placeholder="Nhập tên nhóm..." />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-mdb-ripple-init data-mdb-dismiss="modal">Hủy</button>
+            <button type="button" class="btn btn-light text-white" data-mdb-ripple-init data-mdb-ripple-color="dark">Tạo nhóm</button>
+        </div>
+    </div>
+}
+
+<script>
+    var member, AvatarGroup, btnPreviewWrapper;
+    $(document).ready(function () {
+        GetListMemberCreateGroup()
+
+        AvatarGroup = FilePond.create(
+            document.querySelector('input.GroupAvatar'),
+            {
+                allowImagePreview: true,
+                allowRemove: false,
+
+                imagePreviewMaxHeight: 400,
+
+                imageCropAspectRatio: '1:1',
+
+                imageResizeTargetHeight: 200,
+
+                stylePanelLayout: 'compact circle',
+                styleLoadIndicatorPosition: 'center bottom',
+
+                labelIdle: `<span class="material-symbols-outlined fs-3">
+                                add_a_photo
+                            </span>`,
+
+
+                onaddfile: (error, file) => {
+                    const preview_wrapper = document.getElementsByClassName('filepond--image-preview-wrapper')[0];
+
+                    // Thêm vai trò (role) và các thuộc tính của button
+                    preview_wrapper.setAttribute('role', 'button');
+                    preview_wrapper.setAttribute('tabindex', '0'); // Cho phép focus bằng bàn phím
+                    preview_wrapper.setAttribute('data-bs-custom-class', 'CustomPopover'); // Cho phép focus bằng bàn phím
+
+                    // Tạo Popover
+                    btnPreviewWrapper = new mdb.Popover(preview_wrapper, {
+                        sanitize: false,
+                        html: true,
+                        content: `
+                            <div class="d-flex flex-column p-2">
+                                <button type="button" class="btn btn-link text-black" onclick="ReplaceFile()"
+                                        data-mdb-ripple-init
+                                        data-mdb-ripple-color="dark"
+                                        style: font-weight: 500;>
+                                    Đổi ảnh đại diện
+                                </button>
+                                <button type="button" class="btn btn-link text-black" onclick="RemoveFile()"
+                                        data-mdb-ripple-init
+                                        data-mdb-ripple-color="dark"
+                                        style: font-weight: 500;>
+                                    Xóa ảnh đại diện
+                                </button>
+                            </div>
+                        `,
+                        placement: 'bottom',
+                        container: 'body',
+                        trigger: 'manual',
+                        template: '<div class="popover" role="tooltip" style="max-width: 160px"><div class="popover-arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
+                    });
+
+                    // Thêm sự kiện
+                    // 1. Click vào Avatar Group
+                    preview_wrapper.addEventListener('click', () => {
+                        btnPreviewWrapper.toggle();
+                    });
+
+                    // 2. Click outside Avatar Group
+                    document.addEventListener('click', function (event) {
+                        if (preview_wrapper
+                            && !preview_wrapper.contains(event.target)
+                            && !(btnPreviewWrapper.tip && btnPreviewWrapper.tip.contains(event.target))) {
+                            // Click ở ngoài popup
+                            btnPreviewWrapper.hide()
+                        }
+                    });
+
+                }
+            }
+        );
+    });
+
+    function GetListMemberCreateGroup(callback = () => { }) {
+        $.get('@Url.Action("GetListMemberCreateGroup", "Group")', function (data) {
+            if (data.isSuccess) {
+                member = data.data
+
+                if (typeof callback === "function") {
+                    callback()
+                }
+            } else {
+                ShowThongBaoThatBai(data.message)
+            }
+        });
+    }
+
+    function RemoveFile() {
+        AvatarGroup.removeFiles();
+        btnPreviewWrapper.hide()
+    }
+
+    function ReplaceFile() {
+        AvatarGroup.browse()
+        btnPreviewWrapper.hide()
+    }
+</script>
+

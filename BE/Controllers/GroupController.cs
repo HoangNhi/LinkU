@@ -168,7 +168,7 @@ namespace BE.Controllers
         }
         
         [HttpPost]
-        public async Task<ActionResult<ApiResponse>> CreateGroupWithMember(POSTCreateGroupRequest request)
+        public async Task<ActionResult<ApiResponse>> CreateGroupWithMember([FromForm] POSTCreateGroupRequest request)
         {
             try
             {
@@ -185,6 +185,24 @@ namespace BE.Controllers
                 {
                     throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
                 }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
+
+        [HttpGet]
+        public ActionResult<ApiResponse> GetListMemberCreateGroup()
+        {
+            try
+            {
+                var response = _service.GetListMemberCreateGroup();
+                if (response.Error)
+                {
+                    throw new Exception(response.Message);
+                }
+                return Ok(new ApiResponse(response.Data));
             }
             catch (Exception ex)
             {

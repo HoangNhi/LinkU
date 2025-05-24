@@ -7,7 +7,6 @@ namespace MODELS.GROUP.Requests
 {
     public class POSTCreateGroupRequest : POSTGroupRequest
     {
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Members không được để trống")]
         public List<POSTGroupMemberRequest> Members { get; set; } = new List<POSTGroupMemberRequest>();
         public IFormFile? Avatar { get; set; } = null!;
     }
@@ -18,7 +17,6 @@ namespace MODELS.GROUP.Requests
         {
             RuleFor(x => x.GroupName).NotEmpty().WithMessage("Tên nhóm không được để trống");
             RuleFor(x => x.GroupType).NotNull().WithMessage("Loại nhóm không được để trống");
-            RuleFor(x => x.Members).NotEmpty().WithMessage("Members không được để trống");
         }
     }
 }

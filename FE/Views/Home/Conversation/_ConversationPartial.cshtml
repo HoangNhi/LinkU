@@ -38,12 +38,14 @@
             <span style="font-size: 1.5rem; font-weight: 700; color: black; line-height: 28px">
                 Đoạn chat
             </span>
-            <button type="button"
-                    class="btn btn-light rounded-circle"
+            <button type="button" onclick="ShowModalCreateGroup()"
+                    class="btn btn-light rounded-circle position-relative"
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
-                    style="padding: 9px; margin: 6px 0 6px 6px">
-                <i class="fa-regular fa-pen-to-square" style="font-size: 20px; color: black"></i>
+                    style="margin: 6px 0 6px 6px; padding: 1.25rem">
+                <span class="material-symbols-outlined fs-2 text-brown-900 position-absolute-center">
+                    group_add
+                </span>
             </button>
         </div>
         <div class="d-flex w-100">
@@ -224,7 +226,7 @@
                 data: {
                     TextSearch: "",
                     CurrentUserId: "@ViewContext.GetClaimValue("UserId")",
-                    PageIndex: pageIndex, 
+                    PageIndex: pageIndex,
                     RowPerPage: rowPerPage
                 },
                 success: function (response) {
@@ -306,5 +308,11 @@
             // Xóa từng button
             buttons.forEach(button => button.remove());
         }
+    }
+
+    function ShowModalCreateGroup() {
+        $.get('@Url.Action("ShowModalCreateGroup", "Group")', function (data) {
+            ShowModal(data, "md")
+        });
     }
 </script>

@@ -42,7 +42,7 @@ namespace BE.Services.Message
                     new SqlParameter("@iPageIndex", request.PageIndex - 1),
                     new SqlParameter("@iRowsPerPage", request.RowPerPage),
                     new SqlParameter("@iCurrentId", request.CurrentId),
-                    new SqlParameter("@iFriendId", request.FriendId),
+                    new SqlParameter("@iTargetId", request.TargetId),
                     iTotalRow
                 };
 
@@ -51,7 +51,7 @@ namespace BE.Services.Message
                 {
                     Messages = Messages,
                     CurrentUser = _userService.GetById(new GetByIdRequest() { Id = request.CurrentId }).Data,
-                    FriendUser = _userService.GetById(new GetByIdRequest() { Id = request.FriendId }).Data
+                    FriendUser = _userService.GetById(new GetByIdRequest() { Id = request.TargetId }).Data
                 };
 
                 GetListPagingResponse resposeData = new GetListPagingResponse();
@@ -137,7 +137,10 @@ namespace BE.Services.Message
 
                 // Lưu dữ liệu
                 _context.Messages.Add(add);
-                _context.SaveChanges();
+                if (request.IsSaveChange)
+                {
+                    _context.SaveChanges();
+                }
 
                 response.Data = _mapper.Map<MODELMessage>(add);
             }

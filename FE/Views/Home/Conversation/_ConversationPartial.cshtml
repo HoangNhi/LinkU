@@ -28,6 +28,22 @@
         padding-left: 0;
         padding-right: 0;
     }
+
+    .circles-container {
+        position: relative;
+        width: 52px;
+        height: 52px;
+    }
+
+    .circle {
+        width: 32px;
+        height: 32px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform-origin: center;
+        box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+    }
 </style>
 
 <div class="card text-center flex-grow-1">
@@ -100,7 +116,6 @@
         </li>
     </ul>
     <!-- Pills navs -->
-
     <!-- Pills content -->
     <div class="tab-content card-body p-1" id="Conversation_Body"
          style="height: calc(100vh - 129px); overflow-x: hidden; overflow-y: auto">
@@ -198,11 +213,17 @@
                 },
                 success: function (response) {
                     if (response.isSuccess === undefined) {
-                        // Set Html
-                        $("#pills-list-message").html(response)
-                        // Callback
-                        if (typeof callback === "function") {
-                            callback()
+                        if(response.trim() !== ''){
+                            // Set Html
+                            $("#pills-list-message").html(response)
+                            // Callback
+                            if (typeof callback === "function") {
+                                callback()
+                            }
+                        }else{
+                            $.get("@Url.Action("NoMessage", "Conversation")", function( data ) {
+                                $("#pills-list-message").html(data)
+                            });
                         }
                     } else {
                         ShowThongBaoThatBai(response.message)
@@ -312,7 +333,7 @@
 
     function ShowModalCreateGroup() {
         $.get('@Url.Action("ShowModalCreateGroup", "Group")', function (data) {
-            ShowModal(data, "lg", 'modal-dialog-scrollable')
+            ShowModal(data, "lg", ['modal-dialog-scrollable', 'modal-fullscreen-lg-down'])
         });
     }
 </script>

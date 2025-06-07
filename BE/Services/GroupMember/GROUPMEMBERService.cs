@@ -4,6 +4,7 @@ using ENTITIES.DbContent;
 using MODELS.BASE;
 using MODELS.GROUPMEMBER.Dtos;
 using MODELS.GROUPMEMBER.Requests;
+using MODELS.USER.Dtos;
 
 namespace BE.Services.GroupMember
 {

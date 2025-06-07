@@ -1,0 +1,61 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<style>
+    .chat-empty-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #666;
+    }
+
+    .chat-empty-container img {
+        width: 180px;
+        margin-bottom: 20px;
+        opacity: 0.9;
+    }
+
+    .chat-empty-container h2 {
+        font-size: 20px;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    .chat-empty-container p {
+        font-size: 14px;
+        color: #888;
+        margin-bottom: 16px;
+    }
+
+    .chat-empty-container button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        background-color: #4f46e5;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .chat-empty-container button:hover {
+        background-color: #4338caba;
+    }
+</style>
+
+<div class="chat-empty-container mt-3">
+    <h2>Chưa có cuộc trò chuyện nào</h2>
+    <p>Hãy bắt đầu một cuộc trò chuyện mới hoặc tìm bạn bè để nhắn tin.</p>
+    <button onclick="TransToSeacrhTab()">+ Tạo cuộc trò chuyện</button>
+</div>
+
+<script>
+    function TransToSeacrhTab(){
+        $("#Conversation_SearchInput").focus();
+    }
+</script>

@@ -172,6 +172,7 @@ namespace BE.Services.MediaFile
                     FileName = resultUpload.Data.First().FileName,
                     Url = resultUpload.Data.First().Url,
                     OwnerId = request.OwnerId,
+                    GroupId = request.GroupId,
                     FileType = (int)request.FileType,
                     IsActived = true,
                     NgayTao = DateTime.Now,

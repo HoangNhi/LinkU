@@ -12,6 +12,7 @@ namespace MODELS.MEDIAFILE.Requests
     {
         public IFormFile File { get; set; }
         public Guid OwnerId { get; set; }
+        public Guid GroupId { get; set; }
         public MediaFileType FileType { get; set; }
         public bool IsSaveChange { get; set; } = true;
     }

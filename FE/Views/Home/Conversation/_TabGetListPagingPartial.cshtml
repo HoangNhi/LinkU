@@ -1,9 +1,15 @@
-﻿@model MODELS.BASE.GetListPagingResponse
+﻿@using System.Web;
+@model MODELS.BASE.GetListPagingResponse
 @{
     var data = Model.Data as List<MODELS.CONVERSATION.Dtos.MODELConversationGetListPaging>;
+    const int radius = 80; // Bán kính quỹ đạo từ center
+    Dictionary<int, List<(int, int)>> positions = new Dictionary<int,List<(int, int)>>
+    {
+        { 2, [(-12, 0), (12, 0)] },
+        { 3, [(0, -12), (-12, 12), (12, 12)] },
+        { 4, [(-12, -12), (-12, 12), (12, 12), (12, -12)] }
+    };
 }
-
-
 
 @if (data.Count == 0)
 {
@@ -16,40 +22,102 @@ else
         <button id="@item.TargetId"
                 type="button"
                 class="d-flex w-100 btn btn-link p-2 mb-2"
-                style="text-align: start; align-items: center; color: inherit; height: 64px"
+                style="text-align: start; align-items: center; color: inherit; height: 72px"
                 data-mdb-ripple-init
                 data-mdb-ripple-color="dark"
                 onclick="transToChatScreen('@item.TargetId');
                          setActiveButton('@item.TargetId')
                          @(item.IsRead ? "" : $"updateConversationLatestMessage('{item.TargetId}')")">
-            <img class="rounded-circle me-2 flex-shrink-0"
-                 style="object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
-                 width="48" height="48"
-                 src='@(item.TargetPicture)' />
-            <div class="container" style="width: calc(100% - 48px - .5rem)">
+            @* User to User *@
+            @if (item.TypeOfConversation == 0 || (item.TypeOfConversation == 1 && !string.IsNullOrEmpty(item.TargetPicture)))
+            {
+                <img class="rounded-circle flex-shrink-0"
+                     style="object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
+                     width="48" height="48"
+                     src='@item.TargetPicture' />
+            }
+            else
+            {
+                <div class="circles-container">
+                    @{
+                        int countMember = item.Avartar.CountMember <= 4 ? item.Avartar.CountMember : 4;
+                        int sub = 0;
+                    }
+                    @for (int i = 1; i <= countMember && i <= 4; i++)
+                    {
+                        if (i == 3 && item.Avartar.CountMember > 4)
+                        {
+                            <div class="circle rounded-circle d-flex justify-content-center align-items-center text-white"
+                                 style="background-color: grey;
+                                        transform: translate(calc(-50% + @(positions[countMember][i-1].Item1)px), calc(-50% + @(positions[countMember][i-1].Item2)px));
+                                        z-index: @( i switch
+                                        {
+                                            2 => 0,
+                                            1 => 5,
+                                            3 => 3,
+                                            4 => 4
+                                        } )"
+                            >
+                                @($"{item.Avartar.CountMember - 3} +")
+                            </div>
+                            sub = 1;
+                        }
+                        else
+                        {
+                            <div class="circle rounded-circle d-flex justify-content-center align-items-center text-white"
+                                 style="background: no-repeat center / cover url(@item.Avartar.UrlsAvartar[i - 1 - sub]);
+                                        transform: translate(calc(-50% + @(positions[countMember][i-1].Item1)px), calc(-50% + @(positions[countMember][i-1].Item2)px));
+                                        z-index: @( i switch
+                                        {
+                                            2 => 0,
+                                            1 => 5,
+                                            3 => 3,
+                                            4 => 4
+                                        } )"
+                            >
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            <div class="container ms-3" style="width: calc(100% - 52px - 1rem)">
                 @if (item.IsRead)
                 {
-                    <div class="row fw-normal">
+                    <div class="row fw-normal align-items-center">
                         <span class="fs-6 col-9 text-truncate text-black" style="line-height: 1.5">@item.TargetName</span>
                         <span class="col-3 text-end align-items-center">@ViewContext.GetTimeAgo(item.LatestMessageDate)</span>
                     </div>
 
                     <div class="row fw-normal">
-                        <span class="mt-1 col-12 text-truncate" style="font-size: 0.75rem">
-                            @($"{item.UserSendLastestMessage}: {item.LatestMessage}" )
+                        <span class="mt-1 col-12 text-truncate" style="font-size: 0.75rem; line-height: 1.5">
+                            @if (item.LatestMessageType == 1)
+                            {
+                                @($"{HttpUtility.HtmlDecode(item.LatestMessage)}")
+                            }
+                            else
+                            {
+                                @($"{item.UserSendLastestMessage}: {HttpUtility.HtmlDecode(item.LatestMessage)}")
+                            }
                         </span>
                     </div>
                 }
                 else
                 {
-                    <div class="row">
+                    <div class="row align-items-center">
                         <span class="fs-6 col-9 text-truncate text-black" style="line-height: 1.5">@item.TargetName</span>
                         <span class="col-3 text-end align-items-center">@ViewContext.GetTimeAgo(item.LatestMessageDate)</span>
                     </div>
 
                     <div class="row">
-                        <span class="mt-1 col-11 text-truncate" style="font-size: 0.75rem">
-                            @($"{item.UserSendLastestMessage}: {item.LatestMessage}" )
+                        <span class="mt-1 col-11 text-truncate" style="font-size: 0.75rem; line-height: 1.5">
+                            @if (item.LatestMessageType == 1)
+                            {
+                                @($"{HttpUtility.HtmlDecode(item.LatestMessage)}")
+                            }
+                            else
+                            {
+                                @($"{item.UserSendLastestMessage}: {HttpUtility.HtmlDecode(item.LatestMessage)}")
+                            }
                         </span>
                         <div class="col position-relative">
                             <div class="position-absolute rounded-circle"

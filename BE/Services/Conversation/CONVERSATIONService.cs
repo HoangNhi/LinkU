@@ -4,10 +4,11 @@ using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
+using MODELS.COMMON;
 using MODELS.CONVERSATION.Dtos;
 using MODELS.CONVERSATION.Requests;
+using MODELS.GROUP.Dtos;
 using MODELS.MESSAGE.Dtos;
-using MODELS.MESSAGELIST.Dtos;
 using MODELS.MESSAGESTATUS.Dtos;
 using MODELS.MESSAGESTATUS.Requests;
 using MODELS.USER.Dtos;
@@ -51,6 +52,14 @@ namespace BE.Services.Conversation
                 };
 
                 var result = _context.ExcuteStoredProcedure<MODELConversationGetListPaging>("sp_CONVERSATION_GetListPaging", parameters).ToList();
+
+                foreach (var item in result)
+                {
+                    if (item.TypeOfConversation == 1 && string.IsNullOrEmpty(item.TargetPicture))
+                    {
+                        item.Avartar = GetGroupAvartar(new GetByIdRequest { Id = item.TargetId });
+                    }
+                }
 
                 GetListPagingResponse resposeData = new GetListPagingResponse();
                 resposeData.PageIndex = request.PageIndex;
@@ -126,7 +135,10 @@ namespace BE.Services.Conversation
                 add.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
 
                 _context.Conversations.Add(add);
-                _context.SaveChanges();
+                if (request.IsSaveChange)
+                {
+                    _context.SaveChanges();
+                }
 
                 response.Data = _mapper.Map<MODELConversation>(add);
             }
@@ -211,12 +223,12 @@ namespace BE.Services.Conversation
         }
 
         #region Xử lý request từ Websocket
-        public BaseResponse<MODELConversation> InsertPrivateConversation(WSPrivateMessageInsertConversation request)
+        public BaseResponse<Guid[]> InsertPrivateConversation(WSPrivateMessageInsertConversation request)
         {
-            var response = new BaseResponse<MODELConversation>();
+            var response = new BaseResponse<Guid[]>();
             try
             {
-                var add = new ENTITIES.DbContent.Conversation
+                var Sender = new ENTITIES.DbContent.Conversation
                 {
                     Id = Guid.NewGuid(),
                     UserId = request.Sender.Id,
@@ -231,10 +243,25 @@ namespace BE.Services.Conversation
                     IsDeleted = false,
                 };
 
-                _context.Conversations.Add(add);
+                var Receiver = new ENTITIES.DbContent.Conversation
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = request.Receiver.Id,
+                    TypeOfConversation = 0,
+                    TargetId = request.Sender.Id,
+                    LastReadMessageId = null,
+                    NgayTao = DateTime.Now,
+                    NguoiTao = request.Receiver.Username,
+                    NgaySua = DateTime.Now,
+                    NguoiSua = request.Receiver.Username,
+                    IsActived = true,
+                    IsDeleted = false,
+                };
+
+                _context.Conversations.AddRange(Sender, Receiver);
                 _context.SaveChanges();
 
-                response.Data = _mapper.Map<MODELConversation>(add);
+                response.Data = new Guid[] { Sender.Id, Receiver.Id };
             }
             catch (Exception ex)
             {
@@ -285,7 +312,7 @@ namespace BE.Services.Conversation
             }
             return response;
         }
-        
+
         public BaseResponse<bool> RoolbackDelete(GetByIdRequest request)
         {
             var response = new BaseResponse<bool>();
@@ -313,7 +340,7 @@ namespace BE.Services.Conversation
             }
             return response;
         }
-        
+
         public BaseResponse UpdateLatestMessage(Guid UserId, Guid TargetId)
         {
             var response = new BaseResponse();
@@ -322,19 +349,19 @@ namespace BE.Services.Conversation
                 var update = _context.Conversations.FirstOrDefault(c => c.UserId == UserId
                                                                    && c.TargetId == TargetId
                                                                    && !c.IsDeleted);
-                if(update == null)
+                if (update == null)
                 {
                     throw new Exception("Dữ liệu không tồn tại");
                 }
 
                 var message = GetLatestMessage(UserId, TargetId);
 
-                if(message == null)
+                if (message == null)
                 {
                     throw new Exception("Tin nhắn không tồn tại");
                 }
 
-                var User = _userService.GetById(new GetByIdRequest { Id = UserId});
+                var User = _userService.GetById(new GetByIdRequest { Id = UserId });
 
 
                 update.LastReadMessageId = message.Id;
@@ -344,7 +371,7 @@ namespace BE.Services.Conversation
                 _context.Conversations.Update(update);
                 _context.SaveChanges();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 response.Error = true;
                 response.Message = ex.Message;
@@ -359,12 +386,46 @@ namespace BE.Services.Conversation
         MODELMessage GetLatestMessage(Guid UserId, Guid TargetId)
         {
             var message = _context.Messages.Where(m => (m.SenderId == UserId || m.SenderId == TargetId)
-                                                 && (m.ReceiverId == UserId || m.ReceiverId == TargetId)
+                                                 && (m.TargetId == UserId || m.TargetId == TargetId)
                                                  && !m.IsDeleted)
                                            .OrderByDescending(m => m.NgayTao)
                                            .FirstOrDefault();
 
             return _mapper.Map<MODELMessage>(message);
+        }
+
+        MODELGroupAvartar GetGroupAvartar(GetByIdRequest request)
+        {
+            var Data = new MODELGroupAvartar();
+
+            // Lấy ra thông tin thành viên trong nhóm
+            var member = _context.GroupMembers.Where(gm => gm.GroupId == request.Id
+                                                    && !gm.IsDeleted).ToList();
+            if (!member.Any())
+            {
+                throw new Exception("Không tìm thấy thông tin nhóm");
+            }
+
+            Data.UrlsAvartar = member.Select(mem => _context.MediaFiles
+                                                  .FirstOrDefault(
+                                                        med => med.OwnerId == mem.UserId
+                                                        && med.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
+                                                        && !med.IsDeleted && med.IsActived
+                                                  ))
+                             .Where(med => med != null)
+                             .Select(med => med.Url)
+                             .Take(4).ToList();
+
+            // Nếu số lượng hình ảnh ít hơn 4 thì cần thêm hình ảnh mặc định
+            while (Data.UrlsAvartar.Count < 4 && Data.UrlsAvartar.Count < member.Count)
+            {
+                Data.UrlsAvartar.Add(CommonConst.DefaultUrlNoPicture);
+            }
+
+            // Lấy ra thông tin số lượng thành viên nhóm
+            Data.CountMember = member.Count;
+
+            return Data;
         }
         #endregion
     }

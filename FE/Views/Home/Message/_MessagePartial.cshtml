@@ -284,23 +284,27 @@
             type: 'POST',
             data: {
                 CurrentId: '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value',
-                FriendId: '@Model.Id',
+                TargetId: '@Model.Id',
                 PageIndex: currentPage,
                 RowPerPage: 15
             },
             success: function (data) {
-                if (data.trim() !== '') {
-                    document.getElementById('ChatContainer').insertAdjacentHTML('afterbegin', data);
-                    filterTimeDivs();
-                    if (currentPage === 1) {
-                        scrollToBottom();
+                if(data.isSuccess !== undefined && !data.isSuccess){
+                    ShowThongBaoThatBai(data.message)
+                }else{
+                    if (data.trim() !== '') {
+                        document.getElementById('ChatContainer').insertAdjacentHTML('afterbegin', data);
+                        filterTimeDivs();
+                        if (currentPage === 1) {
+                            scrollToBottom();
+                        } else {
+                            ChatBox.scrollTop = ChatBox.scrollHeight - location;
+                        }
+                        currentPage++;
+                        isLoading = false;
                     } else {
-                        ChatBox.scrollTop = ChatBox.scrollHeight - location;
+                        isDone = true;
                     }
-                    currentPage++;
-                    isLoading = false;
-                } else {
-                    isDone = true;
                 }
             }
         });

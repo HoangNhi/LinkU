@@ -1,6 +1,10 @@
 ﻿using AutoMapper;
 using BE.Helpers;
+using BE.Services.Conversation;
+using BE.Services.GroupMember;
 using BE.Services.MediaFile;
+using BE.Services.Message;
+using BE.Services.MessageList;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
@@ -8,6 +12,7 @@ using MODELS.COMMON;
 using MODELS.GROUP.Dtos;
 using MODELS.GROUP.Requests;
 using MODELS.MEDIAFILE.Requests;
+using MODELS.MESSAGE.Requests;
 
 namespace BE.Services.Group
 {
@@ -17,13 +22,17 @@ namespace BE.Services.Group
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IMEDIAFILEService _mediaService;
+        private readonly ICONVERSATIONService _conversationService;
+        private readonly IMESSAGEService _messageService;
 
-        public GROUPService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IMEDIAFILEService mediaService)
+        public GROUPService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IMEDIAFILEService mediaService, ICONVERSATIONService conversationService, IMESSAGEService messageService)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
             _mediaService = mediaService;
+            _conversationService = conversationService;
+            _messageService = messageService;
         }
 
         #region Common CRUD
@@ -215,7 +224,7 @@ namespace BE.Services.Group
                         new POSTCreatePictureRequest
                         {
                             File = request.Avatar,
-                            OwnerId = group.Id,
+                            GroupId = group.Id,
                             FileType = MediaFileType.GroupAvatar,
                             IsSaveChange = false,
                         }
@@ -224,6 +233,44 @@ namespace BE.Services.Group
                     if (createMedia.Error)
                     {
                         throw new Exception(createMedia.Message);
+                    }
+                }
+
+                var UserId = _contextAccessor.GetClaim("name");
+                if (string.IsNullOrEmpty(UserId))
+                {
+                    throw new Exception("Lỗi trong lúc tạo nhóm");
+                }
+
+                // Tạo tin nhắn chào mừng
+                var message = _messageService.Insert(new PostMessageRequest
+                {
+                    Content = $"{validate.Data} được bạn thêm vào nhóm",
+                    SenderId = Guid.Parse(UserId),
+                    TargetId = group.Id,
+                    MessageType = (int)MessageType.Welcome,
+                    IsSaveChange = false
+                });
+
+                if(message.Error)
+                {
+                    throw new Exception(message.Message);
+                }
+
+                foreach (var member in request.Members)
+                {
+                    // Tạo cuộc trò chuyện cho nhóm
+                    var conversation = _conversationService.Insert(new MODELS.MESSAGESTATUS.Requests.POSTConversationRequest
+                    {
+                        UserId = member.UserId,
+                        TargetId = group.Id,
+                        TypeOfConversation = 1,
+                        LastReadMessageId = member.Role == 1 ? null : message.Data.Id,   
+                    });
+
+                    if (conversation.Error)
+                    {
+                        throw new Exception(conversation.Message);
                     }
                 }
 
@@ -261,20 +308,30 @@ namespace BE.Services.Group
             }
             return response;
         }
+        
+       
         #endregion
 
         #region Private Methods
-        BaseResponse ValidateRequestCreateGroupWithMember(POSTCreateGroupRequest request)
+        BaseResponse<string> ValidateRequestCreateGroupWithMember(POSTCreateGroupRequest request)
         {
-            var response = new BaseResponse();
+            var response = new BaseResponse<string>();
             try
             {
+                if (request.Members.Count > MODELS.COMMON.CommonConst.MaxGroupMember + 1)
+                {
+                    throw new Exception("Số lượng thành viên phải nhỏ hơn 11");
+                }
+
                 if (request.Members.Count < 3)
                 {
                     throw new Exception("Số lượng thành viên phải lớn hơn hoặc bằng 3");
                 }
 
                 // Kiểm tra User có tồn tại không
+                List<string> MemberNames = new List<string>();
+                var UserId = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+
                 foreach (var member in request.Members)
                 {
                     var userExist = _context.Users.FirstOrDefault(u => u.Id == member.UserId && !u.IsDeleted);
@@ -282,7 +339,14 @@ namespace BE.Services.Group
                     {
                         throw new Exception($"Người dùng không tồn tại: {member.UserId}");
                     }
+                    else
+                    {
+                        if (!member.UserId.ToString().Equals(UserId)){
+                            MemberNames.Add(userExist.Ten);
+                        }
+                    }
                 }
+                response.Data += $"{string.Join(", ", MemberNames)}";
 
                 // Nhóm phải có ít nhất 1 Admin
                 var IsOneAdmin = request.Members.Count(m => m.Role == 2);

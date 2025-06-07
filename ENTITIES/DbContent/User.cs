@@ -63,9 +63,7 @@ public partial class User
 
     public virtual ICollection<MediaFile> MediaFiles { get; set; } = new List<MediaFile>();
 
-    public virtual ICollection<Message> MessageReceivers { get; set; } = new List<Message>();
-
-    public virtual ICollection<Message> MessageSenders { get; set; } = new List<Message>();
+    public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 
     public virtual ICollection<OTP> OTPs { get; set; } = new List<OTP>();
 

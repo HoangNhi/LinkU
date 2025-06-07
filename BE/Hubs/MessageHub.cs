@@ -1,21 +1,17 @@
-﻿using Azure;
-using BE.Services.Conversation;
+﻿using BE.Services.Conversation;
 using BE.Services.FriendRequest;
 using BE.Services.Message;
 using BE.Services.User;
-using ENTITIES.DbContent;
 using Microsoft.AspNetCore.SignalR;
-using MimeKit;
 using MODELS.BASE;
 using MODELS.CONVERSATION.Requests;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
 using MODELS.USER.Dtos;
-using Org.BouncyCastle.Asn1.X509;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Transactions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using MODELS.GROUP.Requests;
+
 namespace BE.Hubs
 {
     public class MessageHub : Hub
@@ -51,7 +47,7 @@ namespace BE.Hubs
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             Guid? messageId = null; // Lưu ID tin nhắn để rollback nếu cần
-            Guid? conversationId = null; // Lưu ID conversation để rollback nếu cần
+            Guid[]? conversationId = null; // Lưu ID conversation để rollback nếu cần
 
             try
             {
@@ -81,9 +77,12 @@ namespace BE.Hubs
                 {
                     _messageService.RoolbackDelete(new GetByIdRequest { Id = messageId.Value });
                 }
-                if (conversationId.HasValue)
+                if (conversationId.Any())
                 {
-                    _conversationService.RoolbackDelete(new GetByIdRequest { Id = conversationId.Value });
+                    foreach (var convId in conversationId)
+                    {
+                        _conversationService.RoolbackDelete(new GetByIdRequest { Id = convId });
+                    }
                 }
             }
             finally
@@ -122,15 +121,39 @@ namespace BE.Hubs
             {
                 var update = _conversationService.UpdateLatestMessage(request.UserId, request.TargetId);
 
-                if (update.Error) 
+                if (update.Error)
                 {
                     throw new Exception(update.Message);
                 }
-
-                SendSignalRRerenderTab(request.TargetId, "GetListPagingConversation");
-                SendSignalRRerenderTab(request.UserId, "GetListPagingConversation");
+                //SendSignalRRerenderTab(request.TargetId, "GetListPagingConversation");
+                //SendSignalRRerenderTab(request.UserId, "GetListPagingConversation");
             }
-            catch (Exception ex) 
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = "Lỗi hệ thống: " + ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse> RequestRerenderTab(WSRequestRerenderTab request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                if(request.UserIds.Count == 0)
+                {
+                    throw new Exception("Danh sách UserId không được để trống");
+                }
+                else
+                {
+                    foreach (var UserId in request.UserIds)
+                    {
+                        await SendSignalRRerenderTab(UserId, request.TabName);
+                    }
+                }
+            }
+            catch (Exception ex)
             {
                 response.Error = true;
                 response.Message = "Lỗi hệ thống: " + ex.Message;
@@ -180,7 +203,7 @@ namespace BE.Hubs
             var result = _messageService.Insert(new PostMessageRequest
             {
                 SenderId = senderId,
-                ReceiverId = receiverId,
+                TargetId = receiverId,
                 Content = message,
             });
 
@@ -205,7 +228,7 @@ namespace BE.Hubs
             return (senderInfo.Data, receiverInfo.Data);
         }
 
-        void EnsureConversation(MODELUser sender, MODELUser receiver, Guid messageId, out Guid? conversationId)
+        void EnsureConversation(MODELUser sender, MODELUser receiver, Guid messageId, out Guid[]? conversationId)
         {
             // Khởi tạo mặc định cho conversationId
             conversationId = null;
@@ -263,7 +286,7 @@ namespace BE.Hubs
                         _conversationUserToUser[sender.Id] = existingConversationId; // Cập nhật sau khi tạo thành công
 
                         // Lưu ID conversation
-                        conversationId = conversation.Data.Id;
+                        conversationId = conversation.Data;
                     }
                 }
             }
@@ -306,7 +329,7 @@ namespace BE.Hubs
                     // Cập nhật sau khi tạo thành công
                     _conversationUserToUser.Add(sender.Id, new List<Guid> { receiver.Id });
 
-                    conversationId = conversation.Data.Id;
+                    conversationId = conversation.Data;
                 }
             }
         }
@@ -329,12 +352,12 @@ namespace BE.Hubs
             await Clients.Caller.SendAsync("ReceivePrivateMessage", new ApiResponse(response));
         }
 
-        async Task SendSignalRRerenderTab(Guid UserId, string tab)
+        async Task SendSignalRRerenderTab(Guid UserId, string tabname)
         {
             // Gửi tin nhắn qua SignalR
             if (_users.TryGetValue(UserId.ToString(), out string receiverConnectionId))
             {
-                await Clients.Client(receiverConnectionId).SendAsync("RerenderTab", new ApiResponse(tab));
+                await Clients.Client(receiverConnectionId).SendAsync("ReceiveRequestRerenderTab", new ApiResponse(tabname));
             }
         }
         #endregion

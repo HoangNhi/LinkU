@@ -22,5 +22,12 @@
         /// Sử dụng cho Profile Picture và Cover picture
         /// </summary>
         public static string[] AllowedPictureTypes = new[] { "image/jpeg", "image/png" };
+
+        /// <summary>
+        /// Số lượng thành viên tối đa 1 nhóm là 11 thành viên (1 Leader và 10 Member)
+        /// </summary>
+        public static int MaxGroupMember = 10;
+
+        public static string DefaultUrlNoPicture = "https://linkuv2.blob.core.windows.net/mediafiles/NoProfilePicture.jpg";
     }
 }

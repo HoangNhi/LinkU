@@ -86,5 +86,10 @@ namespace FE.Controllers
                 return Json(new { IsSuccess = false, Message = message, Data = "" });
             }
         }
+        
+        public IActionResult NoMessage()
+        {
+            return PartialView("~/Views/Shared/Empty/_NoMessagePartial.cshtml");
+        }
     }
 }

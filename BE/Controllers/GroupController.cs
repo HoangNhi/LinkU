@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.GROUP.Requests;
+using MODELS.GROUPMEMBER.Requests;
+using Newtonsoft.Json;
 
 namespace BE.Controllers
 {
@@ -168,10 +170,13 @@ namespace BE.Controllers
         }
         
         [HttpPost]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<ApiResponse>> CreateGroupWithMember([FromForm] POSTCreateGroupRequest request)
         {
             try
             {
+                request.Members = JsonConvert.DeserializeObject<List<POSTGroupMemberRequest>>(this.Request.Form["Members"]);
+
                 if (request != null && ModelState.IsValid)
                 {
                     var response = await _service.CreateGroupWithMember(request);

@@ -19,21 +19,15 @@ namespace MODELS.MESSAGESTATUS.Requests
         /// <summary>
         /// 0: Converstation - User to User; 1: Group - User to Group
         /// </summary>
-        [Required(AllowEmptyStrings = false, ErrorMessage = "TypeOfMessage không được để trống")]
-        public int TypeOfMessage { get; set; }
+        public int TypeOfConversation { get; set; }
 
         /// <summary>
-        /// Id của User hoặc của Group dựa theo TypeOfMessage
+        /// Id của User hoặc của Group dựa theo TypeOfConversation
         /// </summary>
         [Required(AllowEmptyStrings = false, ErrorMessage = "TargetId không được để trống")]
         public Guid TargetId { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "IsRead không được để trống")]
-        public bool IsRead { get; set; }
-
-        public DateTime? ReadAt { get; set; }
-
-        public int? UnreadCount { get; set; }
+        public Guid? LastReadMessageId { get; set; }
     }
 
     public class POSTMessageStatusRequestValidator : AbstractValidator<POSTConversationRequest>
@@ -41,9 +35,8 @@ namespace MODELS.MESSAGESTATUS.Requests
         public POSTMessageStatusRequestValidator()
         {
             RuleFor(x => x.UserId).NotEmpty().WithMessage("UserId không được để trống");
-            RuleFor(x => x.TypeOfMessage).NotEmpty().WithMessage("TypeOfMessage không được để trống");
+            RuleFor(x => x.TypeOfConversation).NotEmpty().WithMessage("Kiểu hội thoại không được để trống");
             RuleFor(x => x.TargetId).NotEmpty().WithMessage("TargetId không được để trống");
-            RuleFor(x => x.IsRead).NotEmpty().WithMessage("IsRead không được để trống");
         }
     }
 }

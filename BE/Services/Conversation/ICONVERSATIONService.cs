@@ -18,7 +18,7 @@ namespace BE.Services.Conversation
         /// Tạo conversation qua websocket SendPrivateMessage
         /// Hàm sẽ tạo conversation với cả 2 người dùng
         //// </summary>
-        BaseResponse<MODELConversation> InsertPrivateConversation(WSPrivateMessageInsertConversation request);
+        BaseResponse<Guid[]> InsertPrivateConversation(WSPrivateMessageInsertConversation request);
         BaseResponse<bool> CheckConversationExist(Guid userId, Guid targetId);
         BaseResponse<Dictionary<Guid, List<Guid>>> GetDictionaryConversationUserToUser();
         /// <summary>

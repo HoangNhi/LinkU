@@ -9,7 +9,7 @@ public partial class Message
 
     public Guid SenderId { get; set; }
 
-    public Guid ReceiverId { get; set; }
+    public Guid TargetId { get; set; }
 
     /// <summary>
     /// Id của tin nhắn được trả lời
@@ -18,17 +18,10 @@ public partial class Message
 
     public string Content { get; set; } = null!;
 
-    public bool IsCall { get; set; }
-
-    public bool IsFile { get; set; }
-
-    public string? TenFile { get; set; }
-
-    public string? TenMoRong { get; set; }
-
-    public double? DoLon { get; set; }
-
-    public string? Url { get; set; }
+    /// <summary>
+    /// 0 - tin nhắn thông thường, 1 - Tin nhắn chào mừng( sử dụng khi tạo group), 2 - Tin nhắn là File, 3 - Tin nhắn vừa text và file, 4 - Tin nhắn là 1 cuộc gọi điện
+    /// </summary>
+    public int MessageType { get; set; }
 
     public DateTime NgayTao { get; set; }
 
@@ -49,8 +42,6 @@ public partial class Message
     public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
 
     public virtual ICollection<MediaFile> MediaFiles { get; set; } = new List<MediaFile>();
-
-    public virtual User Receiver { get; set; } = null!;
 
     public virtual User Sender { get; set; } = null!;
 }

@@ -69,6 +69,7 @@ function ShowThongBaoThatBai(Message) {
 // Loading
 function showLoading(value) {
     if (value) {
+
         $.blockUI({
             message:
                 '<div class="loader-demo-box">' +
@@ -79,8 +80,11 @@ function showLoading(value) {
                 '<span></span>' +
                 '<span></span>' +
                 '</div>' +
-                '</div>'
+                '</div>',
+            css: { zIndex: 1055}
         });
+
+        $(".blockUI.blockOverlay").css("zIndex", 1055)
     }
     else {
         $.unblockUI();
@@ -106,7 +110,7 @@ function showLoadingElement(value, id) {
         $('#' + id).unblock();
     }
 }
-function ShowModal(html, size, extenClass = '') {
+function ShowModal(html, size, extenClass = []) {
     $('#modalContainer').removeClass().addClass("modal-dialog modal-dialog-centered");
     // Kích thước
     if (size != 'md')
@@ -115,8 +119,8 @@ function ShowModal(html, size, extenClass = '') {
     }
 
     // Thêm class nếu có
-    if (extenClass !== '') {
-        $('#modalContainer').addClass(extenClass)
+    if (extenClass.length > 0) {
+        extenClass.forEach(ec => $('#modalContainer').addClass(ec))
     }
 
     // Chèn html và hiển thị

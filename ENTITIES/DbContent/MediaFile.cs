@@ -12,7 +12,7 @@ public partial class MediaFile
     public string FileName { get; set; } = null!;
 
     /// <summary>
-    /// Enum: 0 - ProfilePicture, 1 -  CoverPicture, 2 - ChatImage, 3 - ChatFile, 4 - Avartar Group
+    /// Enum: 1 - ProfilePicture, 2 -  CoverPicture, 3 - ChatImage, 4 - ChatFile, 5 - Avartar Group
     /// </summary>
     public int FileType { get; set; }
 

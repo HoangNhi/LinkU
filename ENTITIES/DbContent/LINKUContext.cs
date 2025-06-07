@@ -45,6 +45,10 @@ public partial class LINKUContext : DbContext
         {
             entity.ToTable("Comment");
 
+            entity.HasIndex(e => e.PostId, "IX_Comment_PostId");
+
+            entity.HasIndex(e => e.UserId, "IX_Comment_UserId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
             entity.Property(e => e.NgayTao).HasColumnType("datetime");
@@ -76,6 +80,10 @@ public partial class LINKUContext : DbContext
 
             entity.ToTable("Conversation");
 
+            entity.HasIndex(e => e.LastReadMessageId, "IX_Conversation_LastReadMessageId");
+
+            entity.HasIndex(e => e.UserId, "IX_Conversation_UserId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
             entity.Property(e => e.NgayTao).HasColumnType("datetime");
@@ -106,6 +114,8 @@ public partial class LINKUContext : DbContext
         {
             entity.ToTable("FriendRequest");
 
+            entity.HasIndex(e => e.SenderId, "IX_FriendRequest_SenderId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Message).HasMaxLength(225);
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
@@ -131,6 +141,10 @@ public partial class LINKUContext : DbContext
         modelBuilder.Entity<Friendship>(entity =>
         {
             entity.ToTable("Friendship");
+
+            entity.HasIndex(e => e.UserId1, "IX_Friendship_UserId1");
+
+            entity.HasIndex(e => e.UserId2, "IX_Friendship_UserId2");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
@@ -181,6 +195,10 @@ public partial class LINKUContext : DbContext
         {
             entity.ToTable("GroupMember");
 
+            entity.HasIndex(e => e.GroupId, "IX_GroupMember_GroupId");
+
+            entity.HasIndex(e => e.UserId, "IX_GroupMember_UserId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
             entity.Property(e => e.NgayTao).HasColumnType("datetime");
@@ -215,6 +233,12 @@ public partial class LINKUContext : DbContext
 
             entity.ToTable("Like");
 
+            entity.HasIndex(e => e.CommentId, "IX_Like_CommentId");
+
+            entity.HasIndex(e => e.PostId, "IX_Like_PostId");
+
+            entity.HasIndex(e => e.UserId, "IX_Like_UserId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
             entity.Property(e => e.NgayTao).HasColumnType("datetime");
@@ -247,6 +271,12 @@ public partial class LINKUContext : DbContext
         modelBuilder.Entity<MediaFile>(entity =>
         {
             entity.HasIndex(e => e.Id, "IX_MediaFiles");
+
+            entity.HasIndex(e => e.GroupId, "IX_MediaFiles_GroupId");
+
+            entity.HasIndex(e => e.MessageId, "IX_MediaFiles_MessageId");
+
+            entity.HasIndex(e => e.OwnerId, "IX_MediaFiles_OwnerId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.FileName).HasMaxLength(255);
@@ -284,9 +314,16 @@ public partial class LINKUContext : DbContext
         {
             entity.ToTable("Message");
 
+            entity.HasIndex(e => e.TargetId, "IX_Message_ReceiverId");
+
+            entity.HasIndex(e => e.SenderId, "IX_Message_SenderId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.MessageType).HasComment("0 - tin nhắn thông thường, 1 - Tin nhắn chào mừng( sử dụng khi tạo group), 2 - Tin nhắn là File, 3 - Tin nhắn vừa text và file, 4 - Tin nhắn là 1 cuộc gọi điện");
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
-            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
             entity.Property(e => e.NgayXoa).HasColumnType("datetime");
             entity.Property(e => e.NguoiSua)
                 .HasMaxLength(256)
@@ -298,16 +335,8 @@ public partial class LINKUContext : DbContext
                 .HasMaxLength(256)
                 .IsUnicode(false);
             entity.Property(e => e.RefId).HasComment("Id của tin nhắn được trả lời");
-            entity.Property(e => e.TenMoRong)
-                .HasMaxLength(50)
-                .IsUnicode(false);
 
-            entity.HasOne(d => d.Receiver).WithMany(p => p.MessageReceivers)
-                .HasForeignKey(d => d.ReceiverId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Message_User1");
-
-            entity.HasOne(d => d.Sender).WithMany(p => p.MessageSenders)
+            entity.HasOne(d => d.Sender).WithMany(p => p.Messages)
                 .HasForeignKey(d => d.SenderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Message_User");
@@ -316,6 +345,8 @@ public partial class LINKUContext : DbContext
         modelBuilder.Entity<OTP>(entity =>
         {
             entity.ToTable("OTP");
+
+            entity.HasIndex(e => e.UserId, "IX_OTP_UserId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Code)
@@ -346,6 +377,8 @@ public partial class LINKUContext : DbContext
         {
             entity.ToTable("Post");
 
+            entity.HasIndex(e => e.UserId, "IX_Post_UserId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.MediaType).HasMaxLength(50);
             entity.Property(e => e.MediaUrl).HasMaxLength(200);
@@ -372,6 +405,8 @@ public partial class LINKUContext : DbContext
             entity.HasKey(e => e.Token).HasName("PK_RefreshToken_1");
 
             entity.ToTable("RefreshToken");
+
+            entity.HasIndex(e => e.UserId, "IX_RefreshToken_UserId");
 
             entity.Property(e => e.Token)
                 .HasMaxLength(100)
@@ -421,6 +456,8 @@ public partial class LINKUContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("User");
+
+            entity.HasIndex(e => e.RoleId, "IX_User_RoleId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.DateOfBirth).HasColumnType("datetime");

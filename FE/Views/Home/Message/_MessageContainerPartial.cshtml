@@ -32,8 +32,8 @@ else
         <div class="lh-1 py-3"
             style="font-size: 12px">@Data.Messages[i].GetDateTime()</div>
         <div class="row align-items-center @(Data.Messages[i].SenderId == Data.CurrentUser.Id ? "flex-row-reverse" : "")" style="margin-bottom: 12px;">
-            <div style="width: 48px; display: @(Data.Messages[i].SenderId == Data.CurrentUser.Id ? "none" : "auto")">
-                <img class="rounded-circle"
+            <div style="width: 48px; align-self: end; display: @(Data.Messages[i].SenderId == Data.CurrentUser.Id ? "none" : "auto")">
+                <img class="rounded-circle border-bottom border-2"
                         src="@(Data.Messages[i].SenderId == Data.CurrentUser.Id ? Data.CurrentUser.ProfilePicture : Data.FriendUser.ProfilePicture)"
                         style="height: 38px; width: 38px" />
 

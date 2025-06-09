@@ -2,7 +2,6 @@
 @model MODELS.BASE.GetListPagingResponse
 @{
     var data = Model.Data as List<MODELS.CONVERSATION.Dtos.MODELConversationGetListPaging>;
-    const int radius = 80; // Bán kính quỹ đạo từ center
     Dictionary<int, List<(int, int)>> positions = new Dictionary<int,List<(int, int)>>
     {
         { 2, [(-12, 0), (12, 0)] },
@@ -25,7 +24,7 @@ else
                 style="text-align: start; align-items: center; color: inherit; height: 72px"
                 data-mdb-ripple-init
                 data-mdb-ripple-color="dark"
-                onclick="transToChatScreen('@item.TargetId');
+                onclick="transToChatScreen('@item.TargetId', '@item.TypeOfConversation');
                          setActiveButton('@item.TargetId')
                          @(item.IsRead ? "" : $"updateConversationLatestMessage('{item.TargetId}')")">
             @* User to User *@

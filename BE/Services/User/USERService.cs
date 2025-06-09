@@ -125,10 +125,8 @@ namespace BE.Services.User
                                                  .FirstOrDefault(m => m.OwnerId == result.Id
                                                                 && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
                                                                 && !m.IsDeleted && m.IsActived);
-                    if (ProfilePicture != null)
-                    {
-                        result.ProfilePicture = ProfilePicture.Url;
-                    }
+                    
+                    result.ProfilePicture = ProfilePicture == null ? CommonConst.DefaultUrlNoPicture : ProfilePicture.Url;
 
                     var CoverPicture = _context.MediaFiles
                                                  .FirstOrDefault(m => m.OwnerId == result.Id

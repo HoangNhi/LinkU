@@ -385,12 +385,23 @@ namespace BE.Services.Conversation
         #region Private Function
         MODELMessage GetLatestMessage(Guid UserId, Guid TargetId)
         {
-            var message = _context.Messages.Where(m => (m.SenderId == UserId || m.SenderId == TargetId)
-                                                 && (m.TargetId == UserId || m.TargetId == TargetId)
-                                                 && !m.IsDeleted)
+            var conversation = _context.Conversations.FirstOrDefault(c => c.UserId == UserId && c.TargetId == TargetId && !c.IsDeleted);
+            ENTITIES.DbContent.Message message; 
+
+            if(conversation != null && conversation.TypeOfConversation == 1)
+            {
+                message = _context.Messages.Where(m => m.TargetId == TargetId && !m.IsDeleted)
                                            .OrderByDescending(m => m.NgayTao)
                                            .FirstOrDefault();
-
+            }
+            else
+            {
+                message = _context.Messages.Where(m => (m.SenderId == UserId || m.SenderId == TargetId)
+                                                    && (m.TargetId == UserId || m.TargetId == TargetId)
+                                                    && !m.IsDeleted)
+                                            .OrderByDescending(m => m.NgayTao)
+                                            .FirstOrDefault();
+            }
             return _mapper.Map<MODELMessage>(message);
         }
 

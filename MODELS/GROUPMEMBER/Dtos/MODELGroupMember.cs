@@ -1,4 +1,5 @@
 ﻿using MODELS.BASE;
+using MODELS.USER.Dtos;
 
 namespace MODELS.GROUPMEMBER.Dtos
 {
@@ -14,5 +15,7 @@ namespace MODELS.GROUPMEMBER.Dtos
         /// 1 - Member, 2 - Admin
         /// </summary>
         public int Role { get; set; } = 1;
+
+        public MODELUser User { get; set; } = new MODELUser();
     }
 }

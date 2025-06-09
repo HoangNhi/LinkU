@@ -22,5 +22,7 @@ namespace MODELS.MESSAGE.Dtos
         /// 0 - tin nhắn thông thường, 1 - Tin nhắn chào mừng( sử dụng khi tạo group), 2 - Tin nhắn là File, 3 - Tin nhắn vừa text và file, 4 - Tin nhắn là 1 cuộc gọi điện
         /// </summary>
         public int MessageType { get; set; }
+
+        public MODELUser Sender { get; set; } = null!;
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.FRIENDREQUEST.Dtos;
+using MODELS.GROUP.Dtos;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
 using MODELS.USER.Dtos;
@@ -24,22 +25,44 @@ namespace FE.Controllers
         }
 
         [HttpPost]
-        public ActionResult TransToChatScreen(GetByIdRequest request)
+        public ActionResult TransToChatScreen(GetMessageByIdAndTypeRequest request)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, request, HttpAction.Post);
-                    if (response.Success)
+                    // Tin nhắn thông thường - User to User
+                    if(request.MessageType == 0)
                     {
-                        var result = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                        result.ProfilePicture = GetProfilePicture(result.ProfilePicture);
-                        return PartialView("~/Views/Home/Message/_MessagePartial.cshtml", result);
+                        ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, request, HttpAction.Post);
+                        if (response.Success)
+                        {
+                            var result = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+                            result.ProfilePicture = GetProfilePicture(result.ProfilePicture);
+                            return PartialView("~/Views/Home/Message/_MessagePartial.cshtml", result);
+                        }
+                        else
+                        {
+                            throw new Exception(response.Message);
+                        }
+                    }
+                    // Tin nhắn nhóm - User to Group
+                    else if(request.MessageType == 1)
+                    {
+                        ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.GROUP_GET_BY_ID, request, HttpAction.Post);
+                        if (response.Success)
+                        {
+                            var result = JsonConvert.DeserializeObject<MODELGroup>(response.Data.ToString());
+                            return PartialView("~/Views/Home/Message/_MessageUserToGroupPartial.cshtml", result);
+                        }
+                        else
+                        {
+                            throw new Exception(response.Message);
+                        }
                     }
                     else
                     {
-                        throw new Exception(response.Message);
+                        throw new Exception("Loại tin nhắn không hợp lệ.");
                     }
                 }
                 else
@@ -94,13 +117,25 @@ namespace FE.Controllers
                     if (response.Success)
                     {
                         var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
-                        var DataResult = JsonConvert.DeserializeObject<MODELMessageGetListPaging>(result.Data.ToString());
+                        var DataResult = JsonConvert.DeserializeObject<List<MODELMessage>>(result.Data.ToString());
 
                         result.Data = DataResult;
-                        DataResult.CurrentUser.ProfilePicture = GetProfilePicture(DataResult.CurrentUser.ProfilePicture);
-                        DataResult.CurrentUser.CoverPicture = GetCoverPicture(DataResult.CurrentUser.CoverPicture);
-                        DataResult.FriendUser.ProfilePicture = GetProfilePicture(DataResult.FriendUser.ProfilePicture);
-                        DataResult.FriendUser.CoverPicture = GetCoverPicture(DataResult.FriendUser.CoverPicture);
+                        ViewBag.RowPerPage = request.RowPerPage;
+
+                        // Nếu chưa có tin nhắn thì lấy thông tin của người nhắn tin để hiển thị
+                        if (DataResult.Count == 0 && request.ConversationType == 0 && result.PageIndex == 1)
+                        {
+                            ApiResponse targetUser = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, new GetByIdRequest { Id = request.TargetId}, HttpAction.Post);
+                            if (targetUser.Success)
+                            {
+                                var targetUserData = JsonConvert.DeserializeObject<MODELUser>(targetUser.Data.ToString());
+                                ViewBag.TargetUser = targetUserData;
+                            }
+                            else
+                            {
+                                throw new Exception(targetUser.Message);
+                            }
+                        }
 
                         return PartialView("~/Views/Home/Message/_MessageContainerPartial.cshtml", result);
                     }

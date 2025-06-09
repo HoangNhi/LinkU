@@ -5,12 +5,15 @@ using BE.Services.GroupMember;
 using BE.Services.MediaFile;
 using BE.Services.Message;
 using BE.Services.MessageList;
+using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.GROUP.Dtos;
 using MODELS.GROUP.Requests;
+using MODELS.GROUPMEMBER.Dtos;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.MESSAGE.Requests;
 
@@ -24,8 +27,9 @@ namespace BE.Services.Group
         private readonly IMEDIAFILEService _mediaService;
         private readonly ICONVERSATIONService _conversationService;
         private readonly IMESSAGEService _messageService;
+        private readonly IUSERService _userService;
 
-        public GROUPService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IMEDIAFILEService mediaService, ICONVERSATIONService conversationService, IMESSAGEService messageService)
+        public GROUPService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IMEDIAFILEService mediaService, ICONVERSATIONService conversationService, IMESSAGEService messageService, IUSERService userService)
         {
             _context = context;
             _mapper = mapper;
@@ -33,6 +37,7 @@ namespace BE.Services.Group
             _mediaService = mediaService;
             _conversationService = conversationService;
             _messageService = messageService;
+            _userService = userService;
         }
 
         #region Common CRUD
@@ -46,12 +51,38 @@ namespace BE.Services.Group
             var response = new BaseResponse<MODELGroup>();
             try
             {
-                var group = _context.Groups.FirstOrDefault(g => g.Id == request.Id && !g.IsDeleted);
+                // Tìm kiếm nhóm
+                var group = _context.Groups.Where(g => g.Id == request.Id && !g.IsDeleted)
+                                           .Include(g => g.GroupMembers.Where(gm => !gm.IsDeleted))
+                                           .FirstOrDefault();
                 if (group == null)
                 {
                     throw new Exception("Nhóm không tồn tại");
                 }
+
+                // Gán kết quả
                 response.Data = _mapper.Map<MODELGroup>(group);
+
+                // Chèn tên người tạo
+                var CreateBy = _context.Users.FirstOrDefault(u => u.Username == group.NguoiTao && !u.IsDeleted);
+                response.Data.NguoiTao = CreateBy != null ? string.Concat(CreateBy.HoLot, " ", CreateBy.Ten) : group.NguoiTao;
+
+                // Lấy hình ảnh đại diện của nhóm
+                response.Data.AvartarUrl = _context.MediaFiles.FirstOrDefault(m => m.GroupId == group.Id
+                                            && m.FileType == (int)MODELS.COMMON.MediaFileType.GroupAvatar
+                                            && !m.IsDeleted && m.IsActived)?.Url;
+
+                // Chuyển đổi danh sách thành viên nhóm sang DTO
+                foreach (var member in group.GroupMembers)
+                {
+                    var user = _userService.GetById(new GetByIdRequest { Id = member.UserId });
+                    if (user.Error)
+                    {
+                        throw new Exception(user.Message);
+                    }
+
+                    response.Data.GroupMembers.FirstOrDefault(gm => gm.Id == member.Id).User = user.Data;
+                }
             }
             catch (Exception ex)
             {

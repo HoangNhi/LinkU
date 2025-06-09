@@ -41,22 +41,35 @@ namespace BE.Services.Message
                     new SqlParameter("@iTextSearch", request.TextSearch),
                     new SqlParameter("@iPageIndex", request.PageIndex - 1),
                     new SqlParameter("@iRowsPerPage", request.RowPerPage),
-                    new SqlParameter("@iCurrentId", request.CurrentId),
+                    new SqlParameter("@iUserId", request.UserId),
                     new SqlParameter("@iTargetId", request.TargetId),
+                    new SqlParameter("@iConversationType", request.ConversationType),
                     iTotalRow
                 };
 
-                var Messages = _context.ExcuteStoredProcedure<MODELMessage>("sp_MESSAGE_GetListPaging", parameters).ToList();
-                var res = new MODELMessageGetListPaging()
+                var result = _context.ExcuteStoredProcedure<MODELMessage>("sp_MESSAGE_GetListPaging", parameters).ToList();
+
+                if(request.ConversationType == 0)
                 {
-                    Messages = Messages,
-                    CurrentUser = _userService.GetById(new GetByIdRequest() { Id = request.CurrentId }).Data,
-                    FriendUser = _userService.GetById(new GetByIdRequest() { Id = request.TargetId }).Data
-                };
+                    var CurrentUser = _userService.GetById(new GetByIdRequest() { Id = request.UserId }).Data;
+                    var TargetId = _userService.GetById(new GetByIdRequest() { Id = request.TargetId }).Data;
+
+                    foreach (var item in result)
+                    {
+                        item.Sender = item.SenderId == request.UserId ? CurrentUser : TargetId;
+                    }
+                }
+                else
+                {
+                    foreach (var item in result)
+                    {
+                        item.Sender = _userService.GetById(new GetByIdRequest() { Id = item.SenderId }).Data;
+                    }
+                }
 
                 GetListPagingResponse resposeData = new GetListPagingResponse();
                 resposeData.PageIndex = request.PageIndex;
-                resposeData.Data = res;
+                resposeData.Data = result;
                 resposeData.TotalRow = Convert.ToInt32(iTotalRow.Value);
                 response.Data = resposeData;
             }

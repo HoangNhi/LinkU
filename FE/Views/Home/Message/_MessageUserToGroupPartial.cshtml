@@ -1,5 +1,20 @@
-﻿@model MODELS.USER.Dtos.MODELUser
-@* Style _MessagePartial.cshtml *@
+﻿@model MODELS.GROUP.Dtos.MODELGroup
+@{
+    Dictionary<int, List<(int, int)>> positions = new Dictionary<int, List<(int, int)>>
+{
+        { 2, [(-12, 0), (12, 0)] },
+        { 3, [(0, -12), (-12, 12), (12, 12)] },
+        { 4, [(-12, -12), (-12, 12), (12, 12), (12, -12)] }
+    };
+
+    Dictionary<int, List<(int, int)>> pos = new Dictionary<int, List<(int, int)>>
+    {
+        { 2, [(-16, 0), (16, 0)] },
+        { 3, [(0, -16), (-16, 16), (16, 16)] },
+        { 4, [(-16, -16), (-16, 16), (16, 16), (16, -16)] }
+    };
+}
+
 <style>
     #Message_Content:empty::before {
         content: attr(data-placeholder);
@@ -13,7 +28,6 @@
     }
 </style>
 
-@* Style _MessageContainerPartial *@
 <style>
     /* Container cha */
     .Mwrapper {
@@ -68,14 +82,64 @@
      style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
     <div class="card-header d-flex justify-content-between position-relative"
          style="padding: 10px 12px; box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px; border: 0">
-        <div class="d-flex">
-            <img class="rounded-circle"
-                 style="margin: 6px; object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
-                 width="36" height="36"
-                 src='@(Model.ProfilePicture)' />
-            <div class="d-flex align-items-center text-black lh-1"
-                 style="padding: 6px 6px 6px 2px; font-weight: 500;">
-                <span class="fs-6" style="text-align: start">@Model.HoVaTen</span>
+        <div class="d-flex align-items-center">
+            <!--Avartar-->
+            @if (!string.IsNullOrEmpty(Model.AvartarUrl))
+            {
+                <img class="rounded-circle me-1"
+                     style="object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
+                     width="36" height="36"
+                     src='@(Model.AvartarUrl)' />
+            }
+            else
+            {
+                <div class="circles-container me-2">
+                    @{
+                        int countMember = Model.GroupMembers.Count <= 4 ? Model.GroupMembers.Count : 4;
+                        int sub = 0;
+                    }
+                    @for (int i = 1; i <= countMember && i <= 4; i++)
+                    {
+                        if (i == 3 && Model.GroupMembers.Count > 4)
+                        {
+                            <div class="circle rounded-circle d-flex justify-content-center align-items-center text-white"
+                                 style="background-color: grey;
+                        transform: translate(calc(-50% + @(positions[countMember][i-1].Item1)px), calc(-50% + @(positions[countMember][i-1].Item2)px));
+                        z-index: @( i switch
+                        {
+                            2 => 0,
+                            1 => 5,
+                            3 => 3,
+                            4 => 4
+                        } )">
+                                @($"{Model.GroupMembers.Count - 3} +")
+                            </div>
+                            sub = 1;
+                        }
+                        else
+                        {
+                            <div class="circle rounded-circle d-flex justify-content-center align-items-center text-white"
+                                 style="background: no-repeat center / cover url(@Model.GroupMembers[i - 1 - sub].User.ProfilePicture);
+                        transform: translate(calc(-50% + @(positions[countMember][i-1].Item1)px), calc(-50% + @(positions[countMember][i-1].Item2)px));
+                        z-index: @( i switch
+                        {
+                            2 => 0,
+                            1 => 5,
+                            3 => 3,
+                            4 => 4
+                        } )">
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            <!--Title-->
+            <div class="d-flex flex-column align-items-start text-black">
+                <span class="fs-4">@Model.GroupName</span>
+                <span class="lh-1" style=" font-weight: 400; font-size: 0.8rem; color: var(--mdb-gray-900);">
+                    <i class="fa-regular fa-user"></i>
+                    @($"{Model.GroupMembers.Count} thành viên")
+                </span>
             </div>
         </div>
         <div class="d-flex">
@@ -118,6 +182,7 @@
         </div>
     </div>
 
+    @* Container chứa tin nhắn *@
     <div id="MessageWrapper" class="card-body p-0" style="height: calc(100% - 136px); overflow: auto">
         <div id="FriendStatus" class="position-absolute position-absolute w-100"></div>
         <div id="MessageContainer">
@@ -127,6 +192,7 @@
         </div>
     </div>
 
+    @* Nhập tin nhắn *@
     <div class="card-footer d-flex border-0"
          style="padding: 10px 8px">
         <button type="button"
@@ -180,7 +246,6 @@
     </div>
 </div>
 
-@* Script _MessagePartial *@
 <script>
     var currentPage = 1;
     var isLoading = false;
@@ -188,7 +253,6 @@
     var isDone = false;
 
     $(document).ready(function () {
-        GetFriendRequestStatus();
         GetMessage()
 
         var MessageContent = document.getElementById("Message_Content");
@@ -251,28 +315,6 @@
         }
     });
 
-    @*function ShowPopupAddFriend() {
-        $.ajax({
-            url: '@Url.Action("ShowAddFriendPopup", "Friend")',
-            type: 'GET',
-            data: { Id: '@Model.Id' },
-            success: function (data) {
-                ShowModal(data, "md")
-            }
-        });
-    }*@
-
-    function GetFriendRequestStatus() {
-        $.ajax({
-            url: '@Url.Action("GetFriendRequestStatus", "Message")',
-            type: 'GET',
-            data: { Id: '@Model.Id' },
-            success: function (data) {
-                $("#FriendStatus").html(data)
-            }
-        });
-    }
-
     function GetMessage() {
         if (isDone) return
         if (isLoading) return;
@@ -283,10 +325,11 @@
             url: '@Url.Action("GetListPaging", "Message")',
             type: 'POST',
             data: {
-                UserId: '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value',
+                UserId: '@ViewContext.GetClaimValue("UserId")',
                 TargetId: '@Model.Id',
                 PageIndex: currentPage,
-                RowPerPage: 15
+                RowPerPage: 15,
+                ConversationType: 1
             },
             success: function (data) {
                 if(data.isSuccess !== undefined && !data.isSuccess){
@@ -302,6 +345,11 @@
                         }
                         currentPage++;
                         isLoading = false;
+
+                        const $html = $('<div>').html(data); 
+                        if ($html.find('#welcome-flag[data-call-welcome="1"]').length) {
+                            addWellcomeSession();
+                        }
                     } else {
                         isDone = true;
                     }
@@ -326,7 +374,7 @@
             profileCard.style.display = 'none';
         }
 
-        // Tạo tin nhắn
+        // Tạo tin nhắns
         const div = document.createElement("div");
         div.innerHTML = `
                         <div class="lh-1 py-3"
@@ -334,7 +382,7 @@
                         <div class="row align-items-center ${sender === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? "flex-row-reverse" : ""}" style="margin-bottom: 12px;">
                             <div style="width: 48px; display: ${sender === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? "none" : "auto"}">
                                 <img class="rounded-circle"
-                                     src="@Model.ProfilePicture"
+                                     src="@Model"
                                      style="height: 38px; width: 38px" />
 
                             </div>
@@ -356,6 +404,91 @@
 
         // Gọi lại hàm xử lý display thời gian tạo tin nhắn
         filterTimeDivs();
+    }
+
+    function addWellcomeSession() {
+        const html = `
+        <div class="p-3 pt-4" style="justify-items: center">
+            @if (!string.IsNullOrEmpty(Model.AvartarUrl))
+            {
+                <img class="rounded-circle"
+                        style="object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
+                        width="36" height="36"
+                        src='@(Model.AvartarUrl)' />
+            }
+            else
+            {
+                <div class="circles-container mb-3">
+                    @{
+                        int countMember = Model.GroupMembers.Count <= 4 ? Model.GroupMembers.Count : 4;
+                        int sub = 0;
+                    }
+                    @for (int i = 1; i <= countMember && i <= 4; i++)
+                    {
+                        if (i == 3 && Model.GroupMembers.Count > 4)
+                        {
+                            <div class="circle rounded-circle d-flex justify-content-center align-items-center text-white"
+                                    style="background-color: grey; height: 40px; width: 40px;
+                                        transform: translate(calc(-50% + @(pos[countMember][i-1].Item1)px), calc(-50% + @(pos[countMember][i-1].Item2)px));
+                                        z-index: @( i switch
+                                        {
+                                            2 => 0,
+                                            1 => 5,
+                                            3 => 3,
+                                            4 => 4
+                                        } )">
+                                @($"{Model.GroupMembers.Count - 3} +")
+                            </div>
+                            sub = 1;
+                        }
+                        else
+                        {
+                            <div class="circle rounded-circle d-flex justify-content-center align-items-center text-white"
+                                    style="background: no-repeat center / cover url(@Model.GroupMembers[i - 1 - sub].User.ProfilePicture); height: 40px; width: 40px;
+                                        transform: translate(calc(-50% + @(pos[countMember][i-1].Item1)px), calc(-50% + @(pos[countMember][i-1].Item2)px));
+                                        z-index: @( i switch
+                                        {
+                                            2 => 0,
+                                            1 => 5,
+                                            3 => 3,
+                                            4 => 4
+                                        } )">
+                            </div>
+                        }
+                    }
+                </div>
+            }
+
+            <p class="fs-6 text-black mb-2" style="font-weight: 600; line-height: 20px">@Model.GroupName</p>
+            <p class="mb-2" style="line-height: 20px; font-size: .75rem; font-weight: 400; line-height: 16px">
+                @($"{Model.NguoiTao} đã tạo nhóm này")
+            </p>
+
+            <div class="d-flex pt-2 pb-3">
+                <div class="d-flex flex-column align-items-center" style="height: 54px; width: 72px">
+                    <button type="button" data-mdb-ripple-init
+                            class="btn btn-light position-relative rounded-circle"
+                            style="height: 0; width: 0; padding: 1.25rem">
+                        <i class="fa-solid fa-user-plus position-absolute-center fs-6 text-brown-900"></i>
+                    </button>
+                    <p class="m-0 mt-2 text-black" style="font-weight: 400; font-size: 0.75rem">Thêm</p>
+                </div>
+
+                <div class="d-flex flex-column align-items-center" style="height: 54px; width: 72px">
+                    <button type="button" data-mdb-ripple-init
+                            class="btn btn-light position-relative rounded-circle"
+                            style="height: 0; width: 0; padding: 1.25rem">
+                        <i class="fa-solid fa-pen position-absolute-center fs-6 text-brown-900"></i>
+                    </button>
+                    <p class="m-0 mt-2 text-black" style="font-weight: 400; font-size: 0.75rem">Tên</p>
+                </div>
+            </div>
+        </div>`
+
+        document.getElementById("ChatContainer").insertAdjacentHTML('afterbegin', html);
+
+        // Xác nhận đã tải hết tin nhắn
+        isDone = true;
     }
 </script>
 

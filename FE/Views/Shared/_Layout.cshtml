@@ -210,20 +210,21 @@
     </script>
 
     <script>
-        // Chuyển giao diện nhắn tin với User
-        function transToChatScreen(userId) {
+        // Chuyển giao diện nhắn tin với User hoặc nhóm
+        function transToChatScreen(id, type = '0') {
             event.stopPropagation(); // Ngăn sự kiện click lan lên div
 
             // Kiểm tra Message hiện tại có phải của UserId không?
             var TargetId = $('#TargetId').val();
             // Case 1: Tap Message hiện tại chưa được tải
-            if (TargetId === undefined || TargetId !== userId) {
+            if (TargetId === undefined || TargetId !== id) {
                 showLoading(true)
                 $.ajax({
                     url: "@Url.Action("TransToChatScreen", "Message")",
                     type: "POST",
                     data: {
-                        Id: userId
+                        Id: id,
+                        MessageType: type
                     },
                     success: function (response) {
                         showLoading(false)

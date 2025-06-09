@@ -29,5 +29,6 @@
         public static int MaxGroupMember = 10;
 
         public static string DefaultUrlNoPicture = "https://linkuv2.blob.core.windows.net/mediafiles/NoProfilePicture.jpg";
+        public static string DefaultUrlNoCoverPicture = "https://linkuv2.blob.core.windows.net/mediafiles/NoCoverPicture.jpg";
     }
 }

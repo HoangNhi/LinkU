@@ -1,4 +1,5 @@
 ﻿using MODELS.BASE;
+using MODELS.GROUPMEMBER.Dtos;
 
 namespace MODELS.GROUP.Dtos
 {
@@ -12,5 +13,14 @@ namespace MODELS.GROUP.Dtos
         /// True: public - Cho phép tham gia bằng Link, False: ngược lại
         /// </summary>
         public bool GroupType { get; set; } = true;
+
+        public List<MODELGroupMember> GroupMembers { get; set; } = new List<MODELGroupMember>();
+
+        /// <summary>
+        /// Url Avartar của nhóm, nếu không có thì sẽ sử dụng hình đại diện của các thành viên trong nhóm
+        /// </summary>
+        public string? AvartarUrl { get; set; }
+
+        public MODELGroupAvartar Avartar { get; set; } = new MODELGroupAvartar();
     }
 }

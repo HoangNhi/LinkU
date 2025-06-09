@@ -1,56 +1,54 @@
 ﻿@model MODELS.BASE.GetListPagingResponse
 @{
-    var Data = Model.Data as MODELS.MESSAGE.Dtos.MODELMessageGetListPaging;
-
+    var Data = Model.Data as List<MODELS.MESSAGE.Dtos.MODELMessage>;
+    var TargetUser = ViewBag.TargetUser as MODELS.USER.Dtos.MODELUser;
     var StyleMessage = new Dictionary<bool, string>()
-    {
+{
         {true, "MyMessage" },
         {false, "OtherMessage" },
     };
+    int RowPerPage = ViewBag.RowPerPage;
 }
-@if (Data.Messages.Count == 0 && Model.PageIndex == 1)
+
+@for (int i = Data.Count - 1; i >= 0; i--)
 {
-    <div class="profile-card rounded-5 mb-5">
-        <div class="p-3 d-flex" style="">
-            <img class="rounded-circle"
-                    src="@Data.FriendUser.ProfilePicture"
-                    style="min-width: 80px; width: 80px; height: 80px; object-fit: cover;"/>
-            <div class="d-flex flex-column text-start ms-3 justify-content-center">
-                <span class="fw-bold fs-5">@Data.FriendUser.HoVaTen</span>
-                <span class="fs-6 FirstMessageSuggestion" style="font-weight: 400">Hãy gửi tin nhắn đầu tiên để bắt đầu cuộc trò chuyện</span>
+    <div class="lh-1 py-3"
+         style="font-size: 12px">@Data[i].GetDateTime()</div>
+    if (Data[i].MessageType == 1)
+    {
+        <div class="row" style="margin-bottom: 12px;">
+            <div class="col-12">
+                <p class="m-0"
+                    style="font-size: 12px;">
+                    @Html.Raw(Data[i].Content)
+                </p>
             </div>
         </div>
-        <img src="@Data.FriendUser.CoverPicture"
-                height="200"
-                style="object-fit: cover; width: 100%;" />
-    </div>
-}
-else
-{
-    @for(int i = Data.Messages.Count - 1; i >= 0; i--)
+        <div id="welcome-flag" data-call-welcome="1"></div>
+    }
+    else
     {
-        <div class="lh-1 py-3"
-            style="font-size: 12px">@Data.Messages[i].GetDateTime()</div>
-        <div class="row align-items-center @(Data.Messages[i].SenderId == Data.CurrentUser.Id ? "flex-row-reverse" : "")" style="margin-bottom: 12px;">
-            <div style="width: 48px; align-self: end; display: @(Data.Messages[i].SenderId == Data.CurrentUser.Id ? "none" : "auto")">
-                <img class="rounded-circle border-bottom border-2"
-                        src="@(Data.Messages[i].SenderId == Data.CurrentUser.Id ? Data.CurrentUser.ProfilePicture : Data.FriendUser.ProfilePicture)"
-                        style="height: 38px; width: 38px" />
 
+        <div class="row align-items-center @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "flex-row-reverse" : "")" style="margin-bottom: 12px;">
+            <div style="width: 48px; align-self: end; display: @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "none" : "auto")">
+                <img class="rounded-circle border-bottom border-2"
+                        src="@(Data[i].Sender.ProfilePicture)"
+                        style="height: 38px; width: 38px" />
             </div>
             <div style="width: 70%;">
-                <p class="m-0 @StyleMessage[Data.Messages[i].SenderId == Data.CurrentUser.Id]"
-                    style="font-size: 14px; 
-                            width: fit-content; 
-                            padding: 8px 12px; 
-                            border-radius: 18px; 
-                            text-align: justify; 
-                            font-weight: 400;
-                            box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
-                    @Html.Raw(Data.Messages[i].Content)
+                <p class="m-0 @StyleMessage[Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId"))]"
+                    style="font-size: 14px;
+            width: fit-content;
+            padding: 8px 12px;
+            border-radius: 18px;
+            text-align: justify;
+            font-weight: 400;
+            box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
+                    @Html.Raw(Data[i].Content)
                 </p>
             </div>
             <div style="width: calc(30% - 48px)"></div>
         </div>
     }
 }
+

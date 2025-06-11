@@ -1,0 +1,431 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<style>
+    #AddMember_SearchContainer > div {
+        opacity: 1;
+        transition: opacity 0.2s ease;
+    }
+</style>
+
+@model List<MODELS.USER.Dtos.MODELUser>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAddGroupMember", @class = "w-100", @style = "height: 100%" }))
+{
+    <div class="modal-content"
+         style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
+        <div class="modal-header border-1 border-secondary">
+            <h1 class="modal-title fs-5 text-black">Thêm thành viên</h1>
+            <button type="button"
+                    class="btn-close btn-link rounded-circle"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark">
+            </button>
+        </div>
+        <div class="modal-body pb-0">
+            @* Search *@
+            <div class="SearchInputContainer d-flex w-100 align-items-center my-2 border border-secondary"
+                 style="background-color: rgba(134, 142, 153, .1); border-radius: 50px; overflow: hidden">
+                <i class="fas fa-search"
+                   style="padding: 0 4px 0 14px; line-height: 36px; background-color: rgba(0,0,0,0)"></i>
+                <input id="AddMember_SearchInput"
+                       class="w-100 border-0"
+                       style="background-color: rgba(0,0,0,0); outline: unset"
+                       type="search"
+                       placeholder="Tìm kiếm"
+                       autocomplete="off">
+            </div>
+
+            @* Selected Member *@
+            <div class="w-100 p-3 pb-0" style="height: 120px">
+                <div class="d-flex w-100 h-100 align-items-center justify-content-center none-select-member">
+                    <span style="font-size: 0.75rem; font-weight: 400">Chưa chọn người dùng nào</span>
+                </div>
+
+                <div id="selected-member-container" class="d-flex h-100 d-none" style="overflow-x: auto; overflow-y: hidden"></div>
+            </div>
+
+            @* Controller Pill *@
+            <ul class="nav d-none" role="tablist">s
+                <li class="nav-item w-100" role="presentation">
+                    <button type="button" role="tab"
+                            class="active"
+                            id="tab-member-full"
+                            data-bs-toggle="pill"
+                            data-bs-target="#pills-member-full"
+                            aria-controls="pills-member-full"
+                            aria-selected="true">
+                    </button>
+                </li>
+
+                <li class="nav-item w-100" role="presentation">
+                    <button type="button" role="tab"
+                            id="tab-member-search-result"
+                            data-bs-toggle="pill"
+                            data-bs-target="#pills-member-search-result"
+                            aria-controls="pills-member-search-result"
+                            aria-selected="true">
+                    </button>
+                </li>
+            </ul>
+
+            @* Pill *@
+            <div class="d-flex">
+                <!-- Div: Suggest Member -->
+                <div style="width: 100%; height: 320px; overflow-y: auto">
+                    <div class="tab-content h-100">
+                        <!-- Member Full --> 
+                        <div class="tab-pane fade show active h-100"
+                             id="pills-member-full"
+                             role="tabpanel"
+                             aria-labelledby="tab-member-full">
+                            
+                            <span class="py-2" style="font-size: .75rem; font-weight: 600; color: var(--mdb-gray-700); line-height: 1.5">Gợi ý</span>
+
+                            @foreach(var item in Model)
+                            {
+                                <div role="button" type="button" 
+                                     class="btn btn-link w-100 d-flex justify-content-between align-items-center p-0 px-2" 
+                                     data-mdb-ripple-init 
+                                     data-mdb-ripple-color="dark"
+                                     onclick="toggleCheckbox(this)"
+                                >
+                                    <div class="d-flex align-items-center">
+                                        <img src="@item.ProfilePicture" 
+                                             height="36" width="36"
+                                             class="rounded-circle m-2 ms-0 profilepicture"
+                                             style="box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px; object-fit: cover"/>
+                                        <span class="fs-6 text-black fullname" style="font-weight: 500">@item.HoVaTen</span>
+                                    </div>
+                                    <input data-value="@item.Id"
+                                           class="form-check-input rounded-circle checkbox"
+                                           style="pointer-events: none;"
+                                           type="checkbox" value=""
+                                           onclick="event.stopPropagation();"/>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Member Search Result -->
+                        <div class="tab-pane fade h-100"
+                             id="pills-member-search-result"
+                             role="tabpanel"
+                             aria-labelledby="tab-member-search-result">
+                            <div id="AddMember_SearchContainer" class="h-100">
+                                <!-- Loading -->
+                                <div id="AddMember_SearchResult_Loading" class="d-none">
+                                    @for (int i = 0; i < 2; i++)
+                                    {
+                                        <h6 class="placeholder bg-body-tertiary p-2 border-top border-bottom fw-bold w-100"></h6>
+                                        <div class="d-flex align-items-center px-3 py-2">
+                                            <div class="placeholder rounded-circle me-3" style="width: 16px; height: 16px;"></div>
+                                            <div class="placeholder rounded-circle me-3" style="width: 40px; height: 40px;"></div>
+                                            <div class="placeholder w-50" style="height: 14px;"></div>
+                                        </div>
+                                        <div class="d-flex align-items-center px-3 py-2">
+                                            <div class="placeholder rounded-circle me-3" style="width: 16px; height: 16px;"></div>
+                                            <div class="placeholder rounded-circle me-3" style="width: 40px; height: 40px;"></div>
+                                            <div class="placeholder w-50" style="height: 14px;"></div>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Search Result -->
+                                <div id="AddMember_SearchResult_Result" class="h-100 d-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer border-1 border-secondary">
+            <button type="submit" class="btn text-white fs-6 bg-brown-500 w-100" data-mdb-ripple-init data-mdb-ripple-color="dark">Thêm người</button>
+        </div>
+    </div>
+}
+
+<script>
+    var selectedMember = [], typingTimer, searchPageIndex = 1, searchRowPerPage = 15, searchIsDone = false, searchIsLoading = false;
+    var selectedMemberContainer = document.getElementById("selected-member-container")
+    var searchInput = document.getElementById("AddMember_SearchInput")
+    var searchLoading = document.getElementById("AddMember_SearchResult_Loading")
+    var searchResult = document.getElementById("AddMember_SearchResult_Result")
+    var notFound = `
+        <div class="container-fluid">
+            <div class="">
+                <h2 class="fs-4 fw-bold text-black mb-3 text-center" style="line-height: 1.5">Không Tìm Thấy Kết Quả</h2>
+
+                <p class="mb-4 fs-6 text-center" style="line-height: 1.5; font-weight: 400">
+                    Rất tiếc, chúng tôi không thể tìm thấy người dùng mà bạn đang tìm kiếm.
+                    Hãy thử lại với từ khóa khác hoặc kiểm tra lại chính tả.
+                </p>
+
+                <div class="note note-primary">
+                    <h6 class="text-primary mb-2 text-center"
+                        style="font-weight: 600;">
+                        <i class="fa-solid fa-lightbulb me-2"></i>
+                        Gợi ý tìm kiếm:
+                    </h6>
+                    <ul class="m-0">
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Kiểm tra lại chính tả và thử lại</li>
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Sử dụng từ khóa ngắn gọn hơn</li>
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Thử các từ đồng nghĩa khác</li>
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Loại bỏ các ký tự đặc biệt</li>
+                    </ul>
+                </div>
+            </div>
+        </div>`
+
+    $(document).ready(function ()
+    {
+        searchInput.addEventListener("input", (e) => {
+            // Xóa timeout cũ nếu còn
+            clearTimeout(typingTimer);
+
+            // Chuyển Opacity loading về 1
+            searchLoading.style.opacity = 1;
+
+            // Set display
+            if (searchLoading.classList.contains("d-none")) {
+                searchLoading.classList.remove("d-none")
+            }
+            if (!searchResult.classList.contains("d-none")) {
+                searchResult.classList.add("d-none")
+            }
+
+            // Chuyển lại trạng thái tìm kiếm
+            searchIsDone = false, searchIsLoading = false;
+
+            // Xử lý theo text search
+            if (e.target.value === '') {
+                // Quay trở lại Tab Suggest Member
+                let tabFullMember = new bootstrap.Tab("#tab-member-full");
+                tabFullMember.show()
+            } else {
+                // Chuyển sang tab tim kiếm
+                let tabMemberSearchResult = new bootstrap.Tab("#tab-member-search-result");
+                tabMemberSearchResult.show()
+
+                // Đặt lại timeout: nếu sau 800ms không gõ thì ẩn loading và hiện kết quả tìm kiếm
+                typingTimer = setTimeout(() => {
+                    searchResult.innerHTML = ``;
+                    // Render kết quả tìm kiếm
+                    SearchSuggestMember(e.target.value, 1, 15, () => {
+                        searchLoading.style.opacity = 0;
+                        // Sau 200ms thực hiện hiệu ứng transtion thì hiển thị kết quả
+                        setTimeout(() => {
+                            // Chuyển từ loading sang search result
+                            searchLoading.classList.add("d-none")
+                            searchResult.classList.remove("d-none")
+                        }, 200)
+                    })
+                }, 800);
+            }
+        })
+
+        $("#frmAddGroupMember").submit(function (event) {
+            event.preventDefault();
+
+            if (ValidateForm()) {
+                AddMember()
+            }
+        });
+    })
+
+    function toggleCheckbox(element) {
+        // Tìm fullname, profilepicture và checkbox bên trong element (div)
+        var fullname = element.querySelector(".fullname");
+        var profilePicture = element.querySelector(".profilepicture");
+        var checkbox = element.querySelector(".checkbox");
+
+        var allCheckbox = document.querySelectorAll(`.checkbox[data-value='${checkbox.getAttribute("data-value")}']`)
+
+        if (allCheckbox) {
+            // Xử lý Toggle cho cả tất cả button
+            allCheckbox.forEach(item => item.checked = !item.checked)
+
+            // Lấy thông tin
+            var nameText = fullname ? fullname.innerHTML : "";
+            var imageSrc = profilePicture ? profilePicture.src : "";
+
+            // Xử lý
+            if (checkbox.checked) {
+                var data = {
+                    id: checkbox.getAttribute("data-value"),
+                    name: nameText,
+                    profilepicture: imageSrc
+                }
+
+                selectedMember.push(data)
+            } else {
+                selectedMember = selectedMember.filter(i => i.id !== checkbox.getAttribute("data-value"));
+            }
+
+            renderSelectedMember();
+        }
+    }
+
+    function removeSelectedMember(id) {
+        selectedMember = selectedMember.filter(i => i.id !== id);
+        const checkbox = document.querySelector(".checkbox[id='" + id + "']");
+        if (checkbox) {
+            checkbox.checked = !checkbox.checked;
+        }
+
+        renderSelectedMember();
+    }
+
+    function renderSelectedMember() {
+        if (selectedMember.length === 0) {
+            $(".none-select-member").removeClass("d-none")
+            $("#selected-member-container").addClass("d-none")
+            $("#selected-member-container").html("")
+        } else {
+            $("#selected-member-container").removeClass("d-none")
+            $(".none-select-member").addClass("d-none")
+
+            selectedMemberContainer.innerHTML = ''
+
+            selectedMember.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "d-flex flex-column position-relative align-items-center py-2"
+                div.style.minWidth = "78px"
+                div.setAttribute("data-id", item.id)
+                div.innerHTML = `
+                    <div class="d-flex flex-column position-relative align-items-center py-2" style="min-width: 78px">
+                        <img src="${item.profilepicture}"
+                             class="rounded-circle"
+                             style="box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px; object-fit: cover "
+                             height="40" width="40" />
+                        <span class="mt-2 text-center" style="font-size: 0.75rem; font-weight: 400; line-height: 1.5">${item.name}</span>
+                        <button type="button" onclick="removeSelectedMember('${item.id}')"
+                                class="btn btn-light rounded-circle position-absolute d-flex align-items-center justify-content-center border-0"
+                                style="height: 0; width: 0; right: 15px; top: 5px; padding: 10px">
+                            <i class="fa-solid fa-xmark"
+                               style="font-size: .5rem; color: var(--mdb-gray-900);"></i>
+                        </button>
+                    </div>`
+
+                selectedMemberContainer.appendChild(div);
+            });
+        }
+    }
+
+    function SearchSuggestMember(textsearch, pageindex = 1, rowperpage = 15, callback)
+    {
+        if (searchIsDone) return
+        if (searchIsLoading) return;
+
+        searchIsLoading = true;
+         $.ajax({
+             url: "@Url.Action("GetListSuggestMember", "Group")",
+             type: "POST",
+             data: {
+                 TextSearch: textsearch,
+                 PageIndex: pageindex,
+                 RowPerPage: rowperpage,
+                 UserId: "@ViewContext.GetClaimValue("UserId")",
+                 GroupId: "@ViewBag.GroupId"
+             },
+             success: function (response) {
+                 searchPageIndex = pageindex, searchRowPerPage = rowperpage;
+                 searchIsLoading = false
+
+                 if (response.isSuccess) {
+                     var result = response.data
+
+                     if (result.totalRow === 0) {
+                         searchResult.innerHTML = notFound;
+                     } else {
+                         if (result.data.totalRow > pageindex * rowperpage || result.data.length === 0) {
+                             searchIsDone = false
+                         } else {
+                             searchIsDone = true
+                         }
+                         // Render Search Result
+                         result.data.forEach(item => {
+                             const div = document.createElement('div');
+                             div.className = "btn btn-link w-100 d-flex justify-content-between align-items-center p-0 px-2"
+                             div.setAttribute("data-mdb-ripple-init", "")
+                             div.setAttribute("data-mdb-ripple-color", "dark")
+                             div.role = "button"
+                             div.onclick = function () {
+                                 toggleCheckbox(this);
+                             };
+
+                             div.innerHTML = `
+                                <div class="d-flex align-items-center">
+                                    <img src="${item.profilePicture}"
+                                        height="36" width="36"
+                                        class="rounded-circle m-2 ms-0 profilepicture"
+                                        style="box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px; object-fit: cover"/>
+                                    <span class="fs-6 text-black fullname" style="font-weight: 500">${item.hoVaTen}</span>
+                                </div>
+                                <input data-value="${item.id}"
+                                       class="form-check-input rounded-circle checkbox" ${selectedMember.some(s => s.id === item.id) ? "checked" : "" }
+                                       style="pointer-events: none;"
+                                       type="checkbox" value=""
+                                       onclick="event.stopPropagation();"/>`
+
+                             searchResult.appendChild(div);
+                         })
+                     }
+                 } else {
+                     ShowThongBaoThatBai(response.message)
+                 }
+
+                 // Thực hiện callback
+                 if (callback !== undefined) {
+                     callback()
+                 }
+             },
+             error: function (xhr, error) {
+                 ShowThongBaoThatBai(error)
+             }
+         })
+    }
+
+    function ValidateForm() {
+        if (selectedMember === 0) {
+            ShowThongBaoThatBai("Vui lòng chọn ít nhất 1 người để thêm vào nhóm")
+            return false;
+        }
+
+        return true;
+    }
+
+    function AddMember() {
+        showLoading(true)
+        var data = {
+            GroupId: "@ViewBag.GroupId",
+            UserIds: selectedMember.map(item => item.id)
+        }
+
+        $.ajax({
+            url: "@Url.Action("AddMemberToGroup", "Group")",
+            type: "POST",
+            data: data,
+            success: function (response) {
+                showLoading(false)
+                if (response.isSuccess) {
+                    // Hiển thị thông báo thành công
+                    ShowThongBaoThanhCong("Thêm thành viên vào nhóm thành công")
+                    // Close Modal
+                    CloseModal()
+                } else {
+                    ShowThongBaoThatBai(response.message)
+                }
+            },
+            error: function (xhr, error) {
+                showLoading(false)
+                ShowThongBaoThatBai(error)
+            }
+        })
+    }
+</script>
+

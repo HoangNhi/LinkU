@@ -21,8 +21,9 @@
     {
         Text = 0,
         Welcome = 1, // Tin nhắn chào mừng (sử dụng khi tạo group)
-        File = 2, // Tin nhắn là File
-        TextAndFile = 3, // Tin nhắn vừa text và file
-        Call = 4 // Tin nhắn là một cuộc gọi điện
+        Notification = 2, // Tin nhắn thông báo (sử dụng khi có sự kiện mới trong group)
+        File = 3, // Tin nhắn là File
+        TextAndFile = 4, // Tin nhắn vừa text và file
+        Call = 5 // Tin nhắn là một cuộc gọi điện
     }
 }

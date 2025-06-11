@@ -73,6 +73,7 @@
         public const string GROUP_DELETE_LIST = "/Group/DeleteList";
         public const string GROUP_CREATE_GROUP_WITH_MEMBER = "/Group/CreateGroupWithMember";
         public const string GROUP_GET_LIST_MEMBER_CREATE_GROUP = "/Group/GetListMemberCreateGroup";
+        public const string GROUP_GET_LIST_SUGGEST_MEMBER = "/Group/GetListSuggestMember";
 
         // GROUPMEMBER
         public const string GROUPMEMBER_GET_LIST_PAGING = "/GroupMember/GetListPaging";
@@ -81,5 +82,6 @@
         public const string GROUPMEMBER_INSERT = "/GroupMember/Insert";
         public const string GROUPMEMBER_UPDATE = "/GroupMember/Update";
         public const string GROUPMEMBER_DELETE_LIST = "/GroupMember/DeleteList";
+        public const string GROUPMEMBER_ADD_MEMBER_TO_GROUP = "/GroupMember/AddMemberToGroup";
     }
 }

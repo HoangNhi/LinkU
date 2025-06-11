@@ -1,7 +1,6 @@
 ﻿using MODELS.BASE;
 using MODELS.GROUPMEMBER.Dtos;
 using MODELS.GROUPMEMBER.Requests;
-using MODELS.USER.Dtos;
 
 namespace BE.Services.GroupMember
 {
@@ -13,5 +12,6 @@ namespace BE.Services.GroupMember
         BaseResponse<MODELGroupMember> Insert(POSTGroupMemberRequest request);
         BaseResponse<MODELGroupMember> Update(POSTGroupMemberRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
+        BaseResponse AddMemberToGroup(POSTAddMemberToGroupRequest request);
     }
 }

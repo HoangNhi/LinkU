@@ -166,5 +166,30 @@ namespace BE.Controllers
                 return Ok(new ApiResponse(false, 500, ex.Message));
             }
         }
+
+        [HttpPost]
+        public ActionResult<ApiResponse> AddMemberToGroup(POSTAddMemberToGroupRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    var response = _service.AddMemberToGroup(request);
+                    if (response.Error)
+                    {
+                        throw new Exception(response.Message);
+                    }
+                    return Ok(new ApiResponse(true));
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelStateAPI(ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
     }
 }

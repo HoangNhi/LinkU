@@ -1,12 +1,14 @@
 ﻿@model MODELS.GROUP.Dtos.MODELGroup
 @{
+    // Avartar
     Dictionary<int, List<(int, int)>> positions = new Dictionary<int, List<(int, int)>>
-{
+    {
         { 2, [(-12, 0), (12, 0)] },
         { 3, [(0, -12), (-12, 12), (12, 12)] },
         { 4, [(-12, -12), (-12, 12), (12, 12), (12, -12)] }
     };
 
+    // Wellcome
     Dictionary<int, List<(int, int)>> pos = new Dictionary<int, List<(int, int)>>
     {
         { 2, [(-16, 0), (16, 0)] },
@@ -466,7 +468,7 @@
 
             <div class="d-flex pt-2 pb-3">
                 <div class="d-flex flex-column align-items-center" style="height: 54px; width: 72px">
-                    <button type="button" data-mdb-ripple-init
+                    <button type="button" data-mdb-ripple-init onclick="showModalAddMember()"
                             class="btn btn-light position-relative rounded-circle"
                             style="height: 0; width: 0; padding: 1.25rem">
                         <i class="fa-solid fa-user-plus position-absolute-center fs-6 text-brown-900"></i>
@@ -489,6 +491,32 @@
 
         // Xác nhận đã tải hết tin nhắn
         isDone = true;
+    }
+
+    function showModalAddMember() {
+        showLoading(true)
+        $.ajax({
+            url: "@Url.Action("ShowModalAddMember", "Group")",
+            type: "POST",
+            data: {
+                UserId: "@ViewContext.GetClaimValue("UserId")",
+                GroupId: "@Model.Id",
+                PageIndex: 1,
+                RowPerPage: 15
+            },
+            success: function (response) {
+                if (response.isSuccess === undefined) {
+                    ShowModal(response, "md", ['modal-dialog-scrollable'])
+                } else {
+                    ShowThongBaoThatBai(response.message)
+                }
+                showLoading(false)
+            },
+            error: function (xhr, error) {
+                ShowThongBaoThatBai(error)
+                showLoading(false)
+            }
+        })
     }
 </script>
 

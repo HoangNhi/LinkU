@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
 using BE.Helpers;
 using BE.Services.Conversation;
-using BE.Services.GroupMember;
 using BE.Services.MediaFile;
 using BE.Services.Message;
-using BE.Services.MessageList;
 using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
@@ -13,9 +11,11 @@ using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.GROUP.Dtos;
 using MODELS.GROUP.Requests;
-using MODELS.GROUPMEMBER.Dtos;
 using MODELS.MEDIAFILE.Requests;
+using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
+using MODELS.USER.Dtos;
+using Newtonsoft.Json;
 
 namespace BE.Services.Group
 {
@@ -267,23 +267,30 @@ namespace BE.Services.Group
                     }
                 }
 
+                // Tạo tin nhắn chào mừng
                 var UserId = _contextAccessor.GetClaim("name");
+                var messagecontent = new MODELMessageContent
+                {
+                    UserId = Guid.Parse(UserId),
+                    TargetId = request.Members.Select(m => m.UserId)
+                                      .Where(id => id != Guid.Parse(UserId)).ToList(),
+                };
+
                 if (string.IsNullOrEmpty(UserId))
                 {
                     throw new Exception("Lỗi trong lúc tạo nhóm");
                 }
 
-                // Tạo tin nhắn chào mừng
                 var message = _messageService.Insert(new PostMessageRequest
                 {
-                    Content = $"{validate.Data} được bạn thêm vào nhóm",
+                    Content = JsonConvert.SerializeObject(messagecontent),
                     SenderId = Guid.Parse(UserId),
                     TargetId = group.Id,
                     MessageType = (int)MessageType.Welcome,
                     IsSaveChange = false
                 });
 
-                if(message.Error)
+                if (message.Error)
                 {
                     throw new Exception(message.Message);
                 }
@@ -296,7 +303,8 @@ namespace BE.Services.Group
                         UserId = member.UserId,
                         TargetId = group.Id,
                         TypeOfConversation = 1,
-                        LastReadMessageId = member.Role == 1 ? null : message.Data.Id,   
+                        LastReadMessageId = member.Role == 1 ? null : message.Data.Id,
+                        IsSaveChange = false
                     });
 
                     if (conversation.Error)
@@ -339,14 +347,50 @@ namespace BE.Services.Group
             }
             return response;
         }
-        
-       
+
+        public BaseResponse<GetListPagingResponse> GetListSuggestMember(POSTGetListSuggestMemberRequest request)
+        {
+            var response = new BaseResponse<GetListPagingResponse>();
+            try
+            {
+                SqlParameter iTotalRow = new SqlParameter()
+                {
+                    ParameterName = "@oTotalRow",
+                    SqlDbType = System.Data.SqlDbType.BigInt,
+                    Direction = System.Data.ParameterDirection.Output
+                };
+
+                var parameters = new[]
+                {
+                    new SqlParameter("@iTextSearch", request.TextSearch),
+                    new SqlParameter("@iPageIndex", request.PageIndex - 1),
+                    new SqlParameter("@iRowsPerPage", request.RowPerPage),
+                    new SqlParameter("@iUserId", request.UserId),
+                    new SqlParameter("@iGroupId", request.GroupId),
+                    iTotalRow
+                };
+
+                var result = _context.ExcuteStoredProcedure<MODELUser>("sp_GROUP_GetListSuggestMember", parameters).ToList();
+
+                GetListPagingResponse responseData = new GetListPagingResponse();
+                responseData.PageIndex = request.PageIndex;
+                responseData.Data = result;
+                responseData.TotalRow = Convert.ToInt32(iTotalRow.Value);
+                response.Data = responseData;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
         #endregion
 
         #region Private Methods
-        BaseResponse<string> ValidateRequestCreateGroupWithMember(POSTCreateGroupRequest request)
+        BaseResponse ValidateRequestCreateGroupWithMember(POSTCreateGroupRequest request)
         {
-            var response = new BaseResponse<string>();
+            var response = new BaseResponse();
             try
             {
                 if (request.Members.Count > MODELS.COMMON.CommonConst.MaxGroupMember + 1)
@@ -360,9 +404,9 @@ namespace BE.Services.Group
                 }
 
                 // Kiểm tra User có tồn tại không
-                List<string> MemberNames = new List<string>();
                 var UserId = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
 
+                // Kiểm tra từng User
                 foreach (var member in request.Members)
                 {
                     var userExist = _context.Users.FirstOrDefault(u => u.Id == member.UserId && !u.IsDeleted);
@@ -372,12 +416,23 @@ namespace BE.Services.Group
                     }
                     else
                     {
-                        if (!member.UserId.ToString().Equals(UserId)){
-                            MemberNames.Add(userExist.Ten);
+                        if (!member.UserId.ToString().Equals(UserId))
+                        {
+                            // Kiểm tra xem người dùng có phải là bạn bè không
+                            var friendExist = _context.Friendships.FirstOrDefault(
+                                f => (
+                                        (f.UserId1 == Guid.Parse(UserId) && f.UserId2 == member.UserId)
+                                        || (f.UserId1 == member.UserId && f.UserId2 == Guid.Parse(UserId))
+                                    )
+                                && !f.IsDeleted);
+
+                            if (friendExist == null)
+                            {
+                                throw new Exception($"Người dùng {userExist.Ten} không phải là bạn bè của bạn");
+                            }
                         }
                     }
                 }
-                response.Data += $"{string.Join(", ", MemberNames)}";
 
                 // Nhóm phải có ít nhất 1 Admin
                 var IsOneAdmin = request.Members.Count(m => m.Role == 2);

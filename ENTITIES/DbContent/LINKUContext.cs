@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace ENTITIES.DbContent;
 
@@ -22,6 +20,8 @@ public partial class LINKUContext : DbContext
     public virtual DbSet<Group> Groups { get; set; }
 
     public virtual DbSet<GroupMember> GroupMembers { get; set; }
+
+    public virtual DbSet<GroupRequest> GroupRequests { get; set; }
 
     public virtual DbSet<Like> Likes { get; set; }
 
@@ -227,6 +227,26 @@ public partial class LINKUContext : DbContext
                 .HasConstraintName("FK_GroupMember_User");
         });
 
+        modelBuilder.Entity<GroupRequest>(entity =>
+        {
+            entity.ToTable("GroupRequest");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.NgaySua).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayXoa).HasColumnType("datetime");
+            entity.Property(e => e.NguoiSua)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiTao)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiXoa)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.State).HasComment("0 - Đang chờ, 1 - Đồng ý, 2 - Từ chối");
+        });
+
         modelBuilder.Entity<Like>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_like");
@@ -319,7 +339,7 @@ public partial class LINKUContext : DbContext
             entity.HasIndex(e => e.SenderId, "IX_Message_SenderId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.MessageType).HasComment("0 - tin nhắn thông thường, 1 - Tin nhắn chào mừng( sử dụng khi tạo group), 2 - Tin nhắn là File, 3 - Tin nhắn vừa text và file, 4 - Tin nhắn là 1 cuộc gọi điện");
+            entity.Property(e => e.MessageType).HasComment("0 - tin nhắn thông thường, 1 - Tin nhắn chào mừng( sử dụng khi tạo group), 2 - Tin nhắn thông báo các thay đổi của nhóm(đổi tên nhóm, thêm thành viên, chuyển nhóm trưởng), 3 - Tin nhắn là File, 4 - Tin nhắn vừa text và file, 5 - Tin nhắn là 1 cuộc gọi điện");
             entity.Property(e => e.NgaySua).HasColumnType("datetime");
             entity.Property(e => e.NgayTao)
                 .HasDefaultValueSql("(getdate())")

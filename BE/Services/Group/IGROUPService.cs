@@ -22,6 +22,7 @@ namespace BE.Services.Group
         Task<BaseResponse<MODELGroup>> CreateGroupWithMember(POSTCreateGroupRequest request);
 
         
-        BaseResponse<List<MODELMemberCreateGroup>> GetListMemberCreateGroup(); 
+        BaseResponse<List<MODELMemberCreateGroup>> GetListMemberCreateGroup();
+        BaseResponse<GetListPagingResponse> GetListSuggestMember(POSTGetListSuggestMemberRequest request);
     }
 }

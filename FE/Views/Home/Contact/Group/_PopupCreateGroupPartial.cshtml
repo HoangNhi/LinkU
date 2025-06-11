@@ -367,11 +367,11 @@
                 }, 400);
             }
         })
-        
+
         // Sự kiện Submit
          $("#frmGroup").submit(function (event) {
             event.preventDefault();
-            
+
             if(ValidateForm()){
                 CreateForm()
             }
@@ -614,7 +614,7 @@
             quantity.classList.remove('shake-animation');
         }, 500); // Animation kéo dài 0.3s, đợi 0.5s để đảm bảo hoàn thành
     }
-    
+
     function ValidateForm(){
         const GroupName = $("#GroupName").val()
         if(GroupName === ''){
@@ -638,7 +638,7 @@
         // Thêm các thuộc tính
         formData.append("GroupName", GroupName);
         formData.append("MemberIds", JSON.stringify(selectedMemberId))
-        
+
         // Thêm Avartar
         if(Avartar.length > 0){
             formData.append("Avatar", Avartar[0].file);
@@ -658,12 +658,14 @@
                     // Show thông báo thành công
                     ShowThongBaoThanhCong("Tạo nhóm thành công")
                     // Rerender Tab Conversation
-                    GetListPagingConversation()
+                    GetListPagingConversation(PageIndexConversation, RowPerPageConversation,() => setActiveButton(response.data.id.toLowerCase()), true)
                     // Send request rerender for member
                     SendRequestWSRerenderTab(selectedMemberId, "Conversation")
+                    // Chuyển sang Tab Message
+                    transToChatScreen(response.data.id, 1);
                 } else {
                     ShowThongBaoThatBai(response.message)
-                } 
+                }
             },
             error: function (xhr, error) {
                 showLoading(false)

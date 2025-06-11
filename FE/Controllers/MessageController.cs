@@ -53,7 +53,7 @@ namespace FE.Controllers
                         if (response.Success)
                         {
                             var result = JsonConvert.DeserializeObject<MODELGroup>(response.Data.ToString());
-                            return PartialView("~/Views/Home/Message/_MessageUserToGroupPartial.cshtml", result);
+                            return PartialView("~/Views/Home/Message/Group/_MessageUserToGroupPartial.cshtml", result);
                         }
                         else
                         {

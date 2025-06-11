@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.GROUP.Dtos;
+using MODELS.GROUP.Requests;
 using MODELS.GROUPMEMBER.Requests;
 using MODELS.MEDIAFILE.Dtos;
+using MODELS.USER.Dtos;
 using Newtonsoft.Json;
 
 namespace FE.Controllers
@@ -98,7 +100,8 @@ namespace FE.Controllers
 
                 if (response.Success)
                 {
-                    return Json(new { IsSuccess = true, Message = "", Data = "" });
+                    var result = JsonConvert.DeserializeObject<MODELGroup>(response.Data.ToString());
+                    return Json(new { IsSuccess = true, Message = "", Data = result });
                 }
                 else
                 {
@@ -111,7 +114,100 @@ namespace FE.Controllers
                 return Json(new { IsSuccess = false, Message = message, Data = "" });
             }
         }
+        
+        public IActionResult ShowModalAddMember(POSTGetListSuggestMemberRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.GROUP_GET_LIST_SUGGEST_MEMBER, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
+                        var data = JsonConvert.DeserializeObject<List<MODELUser>>(result.Data.ToString());
+                        ViewBag.GroupId = request.GroupId; // Lưu GroupId vào ViewBag để sử dụng trong View
 
+                        return PartialView("~/Views/Home/Message/Group/PopupAddMember.cshtml", data);
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        public IActionResult GetListSuggestMember(POSTGetListSuggestMemberRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.GROUP_GET_LIST_SUGGEST_MEMBER, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
+                        result.Data = JsonConvert.DeserializeObject<List<MODELUser>>(result.Data.ToString());
+                        
+                        return Json(new { IsSuccess = true, Data = result});
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult AddMemberToGroup(POSTAddMemberToGroupRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.GROUPMEMBER_ADD_MEMBER_TO_GROUP, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        return Json(new { IsSuccess = true });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message});
+            }
+        } 
+
+        #region Private Methodss
         void ValidateRequestCreateGroup(IFormCollection request)
         {
             // Kiểm tra xem có file không
@@ -140,5 +236,7 @@ namespace FE.Controllers
                 throw new Exception("Vui lòng chọn ít nhất 2 thành viên");
             }
         }
+
+        #endregion
     }
 }

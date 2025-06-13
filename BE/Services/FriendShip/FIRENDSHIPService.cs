@@ -1,8 +1,13 @@
 ﻿using AutoMapper;
+using BE.Helpers;
 using ENTITIES.DbContent;
+using Microsoft.Data.SqlClient;
 using MODELS.BASE;
+using MODELS.FRIENDREQUEST.Dtos;
+using MODELS.FRIENDREQUEST.Requests;
 using MODELS.FRIENDSHIP.Dtos;
 using MODELS.FRIENDSHIP.Requests;
+using MODELS.USER.Dtos;
 
 namespace BE.Services.FriendShip
 {
@@ -18,6 +23,7 @@ namespace BE.Services.FriendShip
             _mapper = mapper;
             _contextAccessor = contextAccessor;
         }
+
 
         public BaseResponse<MODELFriendship> Insert(POSTFriendshipRequest request)
         {
@@ -45,6 +51,44 @@ namespace BE.Services.FriendShip
                 _context.SaveChanges();
 
                 response.Data = _mapper.Map<MODELFriendship>(add);
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+        
+        public BaseResponse<GetListPagingResponse> GetListPaging(POSTFriendshipGetListPagingRequest request)
+        {
+            var response = new BaseResponse<GetListPagingResponse>();
+            try
+            {
+                SqlParameter iTotalRow = new SqlParameter()
+                {
+                    ParameterName = "@oTotalRow",
+                    SqlDbType = System.Data.SqlDbType.BigInt,
+                    Direction = System.Data.ParameterDirection.Output
+                };
+
+                var parameters = new SqlParameter[]
+                {
+                    new SqlParameter("@iUserId", request.UserId),
+                    new SqlParameter("@iTextSearch", request.TextSearch),
+                    new SqlParameter("@iPageIndex", request.PageIndex - 1),
+                    new SqlParameter("@iRowsPerPage", request.RowPerPage),
+                    iTotalRow
+                };
+
+                // Lấy dữ liệu
+                var result = _context.ExcuteStoredProcedure<MODELUser>("sp_FRIENDSHIP_GetListPaging", parameters).ToList();
+
+                GetListPagingResponse responseData = new GetListPagingResponse();
+                responseData.PageIndex = request.PageIndex;
+                responseData.Data = result;
+                responseData.TotalRow = Convert.ToInt32(iTotalRow.Value);
+                response.Data = responseData;
             }
             catch (Exception ex)
             {

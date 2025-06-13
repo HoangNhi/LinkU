@@ -111,6 +111,16 @@ namespace BE.Hubs
                     // Gửi yêu cầu cập nhật đến người nhận
                     await Clients.Client(senderConnectionId).SendAsync("UpdateFriendRequest", new ApiResponse(friendRequestModel.Data));
                 }
+
+                // Nếu đồng ý lời mới kết bạn thì cập nhập lại tab Friendship
+                if(friendRequestModel.Data.Status == 1)
+                {
+                    // Gửi yêu cầu cập nhật đến người nhận
+                    await Clients.Client(receiverConnectionId).SendAsync("UpdateFriendshipTab", new ApiResponse(friendRequestModel.Data));
+
+                    // Gửi yêu cầu cập nhật đến người nhận
+                    await Clients.Client(senderConnectionId).SendAsync("UpdateFriendshipTab", new ApiResponse(friendRequestModel.Data));
+                }
             }
         }
 

@@ -168,3 +168,64 @@ function ShowLightBox(src) {
 function CloseLightBox() {
     $("#lightboxModal").modal('hide')
 }
+
+var notFound = `
+        <div class="container-fluid">
+            <div class="">
+                <h2 class="fs-4 fw-bold text-black mb-3 text-center" style="line-height: 1.5">Không Tìm Thấy Kết Quả</h2>
+
+                <p class="mb-4 fs-6 text-center" style="line-height: 1.5; font-weight: 400">
+                    Rất tiếc, chúng tôi không thể tìm thấy người dùng mà bạn đang tìm kiếm.
+                    Hãy thử lại với từ khóa khác hoặc kiểm tra lại chính tả.
+                </p>
+
+                <div class="note note-primary">
+                    <h6 class="text-primary mb-2 text-center"
+                        style="font-weight: 600;">
+                        <i class="fa-solid fa-lightbulb me-2"></i>
+                        Gợi ý tìm kiếm:
+                    </h6>
+                    <ul class="m-0">
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Kiểm tra lại chính tả và thử lại</li>
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Sử dụng từ khóa ngắn gọn hơn</li>
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Thử các từ đồng nghĩa khác</li>
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Loại bỏ các ký tự đặc biệt</li>
+                    </ul>
+                </div>
+            </div>
+        </div>`
+
+
+var noFriends = `
+        <div class="container-fluid">
+            <div class="">
+                <h2 class="fs-4 fw-bold text-black mb-3 text-center" style="line-height: 1.5">Chưa Có Bạn Bè</h2>
+                <p class="mb-4 fs-6 text-center" style="line-height: 1.5; font-weight: 400">
+                    Bạn chưa kết bạn với ai cả. Hãy bắt đầu tìm kiếm và kết nối với những người bạn mới 
+                    để có trải nghiệm tuyệt vời hơn!
+                </p>
+                <div class="note note-primary">
+                    <h6 class="text-primary mb-2 text-center"
+                        style="font-weight: 600;">
+                        <i class="fa-solid fa-users me-2"></i>
+                        Bắt đầu kết bạn:
+                    </h6>
+                    <ul class="m-0">
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Tìm kiếm bạn bè qua tên hoặc email</li>
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Khám phá danh sách gợi ý bạn bè</li>
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Chia sẻ thông tin của bạn với người khác</li>
+                        <li class="mb-1" style="line-height: 1.5; color: var(--mdb-gray-700); font-weight: 400">Tham gia các nhóm cộng đồng</li>
+                    </ul>
+                </div>
+                <div class="text-center mt-4">
+                    <button type="button" class="btn btn-primary me-2" onclick="SwitchToTabFunctions('tab-conversation');if($('#TargetId').val() === '' || $('#TargetId').val() === undefined){SwitchToTabChatArea('tab-wellcome')}else{SwitchToTabChatArea('tab-chat-message')};$('#Conversation_SearchInput').focus();">
+                        <i class="fa-solid fa-user-plus me-1"></i>
+                        Tìm Bạn Bè
+                    </button>
+                    <button type="button" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-share me-1"></i>
+                        Chia Sẻ Hồ Sơ
+                    </button>
+                </div>
+            </div>
+        </div>`

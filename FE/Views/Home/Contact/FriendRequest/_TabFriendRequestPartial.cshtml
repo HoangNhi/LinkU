@@ -8,7 +8,7 @@
         <span class="material-symbols-outlined me-2 fs-1 text-brown-900">
             person_add
         </span>
-        <span class="fw-bold fs-6">Lời mời kết bạn</span>
+        <span class="fw-bold fs-6" style="line-height: 2.5rem">Lời mời kết bạn</span>
     </div>
 
     <div class="py-3" 
@@ -34,7 +34,7 @@
 
     function getFriendRequest(isSend) {
         $.ajax({
-            url: '@Url.Action("GetListPaging", "Friend")',
+            url: '@Url.Action("FriendRequestGetListPaging", "Friend")',
             type: 'GET',
             data: {
                 UserId: '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value',

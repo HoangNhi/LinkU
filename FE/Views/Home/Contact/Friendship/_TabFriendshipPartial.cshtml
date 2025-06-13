@@ -1,0 +1,166 @@
+﻿<div class="w-100 h-100" style="background-color: rgb(245, 245, 245)">
+    @* Header *@
+    <div class="p-3 bg-white d-flex align-items-center"
+         style="max-height: 80px; border-radius: 12px; box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
+        <span class="material-symbols-outlined me-2 fs-1 text-brown-900">
+            person
+        </span>
+        <span class="fw-bold fs-6" style="line-height: 2.5rem">Danh sách bạn bè</span>
+    </div>
+
+    <p id="friendshipTotal" class="my-3"></p>
+
+    <div class="p-2 bg-white rounded-3" style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset; height: calc(100% - 130px);">
+        @* Search *@
+        <div id="friendshipSearchInputContainer"
+             class="d-flex w-100 align-items-center my-2 border border-secondary"
+             style="background-color: rgba(134, 142, 153, .1); border-radius: 50px; overflow: hidden">
+            <i class="fas fa-search"
+               style="padding: 0 4px 0 14px; line-height: 36px; background-color: rgba(0,0,0,0)"></i>
+            <input id="friendshipSearchInput"
+                   class="w-100 border-0"
+                   style="background-color: rgba(0,0,0,0); outline: unset"
+                   type="search"
+                   placeholder="Tìm kiếm"
+                   autocomplete="off">
+        </div>
+        @* Container *@
+        <div id="friendship-container"
+             class="container"
+             style="overflow-y: auto;
+                    height: calc(100% - 60px);
+                    scrollbar-color: rgba(0, 0, 0, 0.3) rgba(245, 245, 245, 0);">
+        </div>
+    </div>
+</div>
+
+<script>
+    var friendshipPageIndex = 1; friendshipRowPerPage = 15, friendshipIsDone = false, friendshipIsLoading = false, friendshipTypingTimer = null;
+    const $friendshipSearchInput = $("#friendshipSearchInput"), friendshipSearchInput = document.getElementById("friendshipSearchInput"),
+        friendshipContainer = document.getElementById("friendship-container"),
+        friendshipTotal = document.getElementById("friendshipTotal")
+
+    $(document).ready(function () {
+        getListPagingFriendship()
+
+        // Cuộn trang
+        friendshipContainer.addEventListener('scroll', (e) => {
+            const scrollTop = friendshipContainer.scrollTop;
+            const docHeight = friendshipContainer.clientHeight;
+            const windowHeight = friendshipContainer.scrollHeight;
+
+            if (scrollTop + docHeight + 1 >= windowHeight) {
+                getListPagingFriendship(friendshipPageIndex + 1, friendshipRowPerPage);
+            }
+        })
+
+        // Input text search
+        friendshipSearchInput.addEventListener("input", () => {
+            // Xóa timeout cũ nếu còn
+            clearTimeout(friendshipTypingTimer);
+
+            // Chuyển lại trạng thái tìm kiếm
+            friendshipIsLoading = false, friendshipIsDone = false;
+
+            // Đặt lại timeout: nếu sau 800ms không gõ thì ẩn loading và hiện kết quả tìm kiếm
+            friendshipTypingTimer = setTimeout(() => {
+                friendshipContainer.innerHTML = ``;
+                // Render kết quả tìm kiếm
+                getListPagingFriendship(1, 15)
+            }, 800);
+        })
+
+    });
+
+    function getListPagingFriendship(pageindex = 1, rowperpage = 15, isRefresh = false) {
+        if (isRefresh) {
+            $.ajax({
+                url: '@Url.Action("FriendShipGetListPaging", "Friend")',
+                type: 'GET',
+                data: {
+                    UserId: '@ViewContext.GetClaimValue("UserId")',
+                    PageIndex: pageindex,
+                    RowPerPage: rowperpage,
+                    TextSearch: $friendshipSearchInput.val()
+                },
+                success: function (data) {
+                    if (data.trim() === "") {
+                        if (pageindex === 1) {
+                            friendshipContainer.innerHTML = notFound
+                        } 
+                    }
+                    else {
+                        const $html = $('<div>').html(data);
+                        if ($html.find('.friendshipTotalRow').length > 0) {
+                            friendshipTotal.innerHTML = `Bạn bè (${$html.find('.friendshipTotalRow')[0].innerHTML})`
+                        }
+
+                        friendshipContainer.innerHTML = data
+                    }
+                },
+                error: function (xhr, error) {
+                    ShowThongBaoThatBai(error)
+                }
+            });
+        } else {
+            if (friendshipIsDone) return;
+            if (friendshipIsLoading) return;
+
+            friendshipIsLoading = true;
+
+            $.ajax({
+                url: '@Url.Action("FriendShipGetListPaging", "Friend")',
+                type: 'GET',
+                data: {
+                    UserId: '@ViewContext.GetClaimValue("UserId")',
+                    PageIndex: pageindex,
+                    RowPerPage: rowperpage,
+                    TextSearch: $friendshipSearchInput.val()
+                },
+                success: function (data) {
+                    // Cập nhật số trang, số dòng và trạng thái loading
+                    friendshipPageIndex = pageindex
+                    friendshipRowPerPage = rowperpage
+                    friendshipIsLoading = false;
+
+                    if (data.trim() === "") {
+                        if (pageindex === 1) {
+                            if ($friendshipSearchInput.val() === '') {
+                                // Chưa có bạn
+                                const div = $("<div>").html(noFriends)
+                                div.addClass("h-100")
+                                div.css('align-content', 'center');
+                                friendshipContainer.innerHTML = div[0].outerHTML
+                            } else {
+                                // Không tìm thấy
+                                const div = $("<div>").html(notFound)
+                                div.addClass("h-100")
+                                div.css('align-content', 'center');
+                                friendshipContainer.innerHTML = div[0].outerHTML
+                            }
+                            friendshipTotal.innerHTML = `Bạn bè (0)`
+                        } else {
+                            friendshipIsDone = true;
+                        }
+
+                    }
+                    else {
+                        const $html = $('<div>').html(data);
+                        if ($html.find('.friendshipTotalRow').length > 0) {
+                            friendshipTotal.innerHTML = `Bạn bè (${$html.find('.friendshipTotalRow')[0].innerHTML})`
+                        }
+
+                        friendshipContainer.insertAdjacentHTML('beforeend', data)
+                    }
+                },
+                error: function (xhr, error) {
+                    friendshipIsLoading = false;
+                    ShowThongBaoThatBai(error)
+                }
+            });
+        }
+    }
+</script>
+
+
+

@@ -1,0 +1,24 @@
+﻿@model MODELS.BASE.GetListPagingResponse
+@{
+    var Data = Model.Data as List<MODELS.USER.Dtos.MODELUser>;
+}
+
+@if (Model.TotalRow == 0)
+{
+
+}
+else
+{
+    if (Model.PageIndex == 1)
+    {
+        <div class="friendshipTotalRow d-none">@Model.TotalRow</div>
+    }
+    foreach (var item in Data)
+    {
+        <div class="row align-items-center">
+            <img class="rounded-circle p-0 m-2 me-0" src="@item.ProfilePicture"
+                 style="height: 48px; width: 48px; object-fit: cover; box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;">
+            <span class="text-black" style="width: fit-content;">@item.HoVaTen</span>
+        </div>
+    }
+}

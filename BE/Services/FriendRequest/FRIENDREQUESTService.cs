@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BE.Helpers;
 using BE.Services.FriendShip;
+using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
@@ -17,13 +18,15 @@ namespace BE.Services.FriendRequest
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IFRIENDSHIPService _friendshipService;
+        private readonly IUSERService _userService;
 
-        public FRIENDREQUESTService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IFRIENDSHIPService friendshipService)
+        public FRIENDREQUESTService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IFRIENDSHIPService friendshipService, IUSERService userService)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
             _friendshipService = friendshipService;
+            _userService = userService;
         }
 
         public BaseResponse<GetListPagingResponse> GetListPaging(POSTFriendRequestGetListPagingRequest request)
@@ -53,9 +56,13 @@ namespace BE.Services.FriendRequest
                 // Lấy thông tin user
                 result.ForEach(x =>
                 {
-                    x.User = _mapper.Map<MODELUser>(_context.Users.Find(request.IsSend ? x.ReceiverId : x.SenderId));
-                    x.User.Password = null;
-                    x.User.PasswordSalt = null;
+                    var user = _userService.GetById(new GetByIdRequest { Id = request.IsSend ? x.ReceiverId : x.SenderId });
+                    if (user.Error)
+                    {
+                        throw new Exception(user.Message);
+                    }
+
+                    x.User = user.Data;
                 });
 
                 GetListPagingResponse responseData = new GetListPagingResponse();
@@ -118,12 +125,21 @@ namespace BE.Services.FriendRequest
                 var UserId = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "name").Value;
                 if (result.SenderId == Guid.Parse(UserId))
                 {
-                    response.Data.User = _mapper.Map<MODELUser>(_context.Users.Find(result.ReceiverId));
+                    var user = _userService.GetById(new GetByIdRequest { Id = result.ReceiverId });
+                    if (user.Error)
+                    {
+                        throw new Exception(user.Message);
+                    }
+                    response.Data.User = user.Data;
                 }
                 else
                 {
-                    var Sender = _context.Users.Find(result.SenderId);
-                    response.Data.User = _mapper.Map<MODELUser>(Sender);
+                    var user = _userService.GetById(new GetByIdRequest { Id = result.SenderId });
+                    if (user.Error)
+                    {
+                        throw new Exception(user.Message);
+                    }
+                    response.Data.User = user.Data;
                 }
             }
             catch (Exception ex)

@@ -114,7 +114,8 @@
                         data-bs-target="#pills-conversation"
                         aria-controls="pills-conversation"
                         aria-selected="true"
-                        onclick="SwitchToTabFunctions('tab-conversation')">
+                        onclick="SwitchToTabFunctions('tab-conversation')"
+                        >
                     <i class="fa-solid fa-comment icon-Functions"
                        style=""></i>
                     <span class="text-Functions">Đoạn chat</span>
@@ -285,8 +286,7 @@
              id="pills-friend"
              role="tabpanel"
              aria-labelledby="tab-friend">
-            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
-            Tab Friend
+            <!-- ~/Views/Home/Contact/Friendship/_TabFriendshipPartial.cshtml -->
         </div>
         <!-- Group -->
         <div class="tab-pane fade w-100"
@@ -324,6 +324,7 @@
         renderTabContact(false)
         GetProfilePicture();
         renderTabFriendRequest(false);
+        renderTabFriendship(false)
     });
 
     // Hiển thị
@@ -469,10 +470,9 @@
     }
 
     function SwitchToTabFunctions(id) {
-        changeFaRularToFaSolid(id)
-
         let tab = new bootstrap.Tab(document.getElementById(id));
         tab.show();
+        changeFaRularToFaSolid(id)
     }
 
     function SwitchToTabChatArea(id) {
@@ -519,7 +519,9 @@
             showLoading(true)
         }
         $.get('@Url.Action("Index", "Conversation")', function (data) {
-            showLoading(false)
+            if (isLoading) {
+                showLoading(false)
+            }
             $("#pills-conversation").html(data)
         });
     }
@@ -529,7 +531,9 @@
             showLoading(true)
         }
         $.get('@Url.Action("Index", "Contact")', function (data) {
-            showLoading(false)
+            if (isLoading) {
+                showLoading(false)
+            }
             $("#pills-contact").html(data)
         });
     }
@@ -539,8 +543,22 @@
             showLoading(true)
         }
         $.get('friendrequest', function (data) {
-            showLoading(false)
+            if (isLoading) {
+                showLoading(false)
+            }
             $("#pills-friend-request").html(data)
+        });
+    }
+
+    function renderTabFriendship(isLoading = false) {
+        if (isLoading) {
+            showLoading(true)
+        }
+        $.get('friendship', function (data) {
+            if (isLoading) {
+                showLoading(false)
+            }
+            $("#pills-friend").html(data)
         });
     }
 </script>

@@ -83,5 +83,8 @@
         public const string GROUPMEMBER_UPDATE = "/GroupMember/Update";
         public const string GROUPMEMBER_DELETE_LIST = "/GroupMember/DeleteList";
         public const string GROUPMEMBER_ADD_MEMBER_TO_GROUP = "/GroupMember/AddMemberToGroup";
+
+        // FRIENDSHIP
+        public const string FRIENDSHIP_GET_LIST_PAGING = "/FriendShip/GetListPaging";
     }
 }

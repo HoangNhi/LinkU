@@ -198,13 +198,20 @@
         connection.off("ReceiveRequestRerenderTab");
         connection.on("ReceiveRequestRerenderTab", function (response)
         {
-            console.log
             if (response.success) {
                 // Rerender Conversation
                 if (response.data === "Conversation") {
                     var TargetId = $("#TargetId").val()
                     GetListPagingConversation(PageIndexConversation, RowPerPageConversation, () => { setActiveButton(TargetId) })
                 }
+            }
+        });
+
+        // Nhận yêu cầu refresh tab
+        connection.off("UpdateFriendshipTab");
+        connection.on("UpdateFriendshipTab", function (response) {
+            if (response.success) {
+                getListPagingFriendship(1, friendshipRowPerPage * friendshipPageIndex, true);
             }
         });
     </script>

@@ -132,10 +132,7 @@ namespace BE.Services.User
                                                  .FirstOrDefault(m => m.OwnerId == result.Id
                                                                 && m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture
                                                                && !m.IsDeleted && m.IsActived);
-                    if (CoverPicture != null)
-                    {
-                        result.CoverPicture = CoverPicture.Url;
-                    }
+                    result.CoverPicture = CoverPicture == null ? CommonConst.DefaultUrlNoCoverPicture : CoverPicture.Url;
 
                     result.Password = "";
                     result.PasswordSalt = "";

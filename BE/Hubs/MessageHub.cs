@@ -1,16 +1,20 @@
 ﻿using BE.Services.Conversation;
 using BE.Services.FriendRequest;
+using BE.Services.GroupMember;
 using BE.Services.Message;
 using BE.Services.User;
 using Microsoft.AspNetCore.SignalR;
 using MODELS.BASE;
 using MODELS.CONVERSATION.Requests;
+using MODELS.GROUP.Requests;
+using MODELS.GROUPMEMBER.Dtos;
+using MODELS.GROUPMEMBER.Requests;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
 using MODELS.USER.Dtos;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using MODELS.GROUP.Requests;
+using System.Net.WebSockets;
 
 namespace BE.Hubs
 {
@@ -20,10 +24,11 @@ namespace BE.Hubs
         private readonly IMESSAGEService _messageService;
         private readonly ICONVERSATIONService _conversationService;
         private readonly IUSERService _userService;
+        private readonly IGROUPMEMBERService _groupMemberService;
         private static ConcurrentDictionary<string, string> _users = new();
         private static Dictionary<Guid, List<Guid>> _conversationUserToUser = new();
 
-        public MessageHub(IMESSAGEService messageService, IFRIENDREQUESTService friendRequestService, ICONVERSATIONService conversationService, IUSERService userService)
+        public MessageHub(IMESSAGEService messageService, IFRIENDREQUESTService friendRequestService, ICONVERSATIONService conversationService, IUSERService userService, IGROUPMEMBERService groupMemberService)
         {
             _messageService = messageService;
             _friendRequestService = friendRequestService;
@@ -39,6 +44,8 @@ namespace BE.Hubs
             {
                 _conversationUserToUser = conversationCurrent.Data;
             }
+
+            _groupMemberService = groupMemberService;
         }
 
         // Phương thức gửi tin nhắn tới tất cả client
@@ -162,6 +169,48 @@ namespace BE.Hubs
                         await SendSignalRRerenderTab(UserId, request.TabName);
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = "Lỗi hệ thống: " + ex.Message;
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Yêu cầu cập nhật lại Tab
+        /// </summary>
+        /// <returns></returns>
+        public async Task<BaseResponse> RequestRerenderTabOfGroupMember(WSRequestRerenderTabOfGroupMember request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Validate request
+                if (request.GroupId == Guid.Empty || request.UserId == Guid.Empty)
+                {
+                    throw new Exception("Nhóm và người dùng hiện tại không được để trống.");
+                }
+
+                var groupMember = _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = request.GroupId });
+                if (groupMember.Error)
+                {
+                    throw new Exception(groupMember.Message);
+                }
+
+
+                List<MODELGroupMember> membersWithoutCurrentUser = groupMember.Data.Where(m => m.UserId != request.UserId).ToList();
+
+                foreach (var member in membersWithoutCurrentUser)
+                {
+                    if (_users.TryGetValue(member.UserId.ToString(), out string receiverConnectionId))
+                    {
+                        // Gửi yêu cầu cập nhật đến người nhận
+                        await Clients.Client(receiverConnectionId).SendAsync("ReceiveRequestRerenderTabOfGroupMember", new ApiResponse(member.GroupId.ToString()));
+                    }
+                }
+
             }
             catch (Exception ex)
             {

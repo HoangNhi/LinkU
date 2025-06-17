@@ -59,6 +59,10 @@ public partial class User
 
     public virtual ICollection<GroupMember> GroupMembers { get; set; } = new List<GroupMember>();
 
+    public virtual ICollection<GroupRequest> GroupRequestReceivers { get; set; } = new List<GroupRequest>();
+
+    public virtual ICollection<GroupRequest> GroupRequestSenders { get; set; } = new List<GroupRequest>();
+
     public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
 
     public virtual ICollection<MediaFile> MediaFiles { get; set; } = new List<MediaFile>();

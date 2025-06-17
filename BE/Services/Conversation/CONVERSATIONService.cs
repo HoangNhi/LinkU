@@ -59,7 +59,12 @@ namespace BE.Services.Conversation
                     // Nếu chưa có hình ảnh đại diện thì lấy hình ảnh của các thành viên trong nhóm
                     if (item.TypeOfConversation == 1 && string.IsNullOrEmpty(item.TargetPicture))
                     {
-                        item.Avartar = GetGroupAvartar(new GetByIdRequest { Id = item.TargetId });
+                        var avatar = GetGroupAvartar(new GetByIdRequest { Id = item.TargetId });
+                        if (avatar.Error)
+                        {
+                            throw new Exception(avatar.Message);
+                        }
+                        item.Avartar = avatar.Data;
                     }
 
                     // Xử lý nội dung tin nhắn nếu tin nhắn là Welcome hoặc Notification
@@ -75,18 +80,28 @@ namespace BE.Services.Conversation
                         // Case 1: User hiện tại là người tạo ra message này
                         if (currentUser.Id == content.UserId)
                         {
-                            List<string> usernames = new List<string>();
-                            foreach (var userid in content.TargetId)
+                            // Nếu ta thêm ai đó vào nhóm
+                            if(content.TargetId.Count > 0)
                             {
-                                var user = _context.Users.Find(userid);
-                                if (user != null)
+                                List<string> usernames = new List<string>();
+                                foreach (var userid in content.TargetId)
                                 {
-                                    usernames.Add(string.Concat(user.HoLot, " ", user.Ten));
+                                    var user = _context.Users.Find(userid);
+                                    if (user != null)
+                                    {
+                                        usernames.Add(string.Concat(user.HoLot, " ", user.Ten));
+                                    }
                                 }
-                            }
 
-                            // Cập nhật nội dung tin nhắn
-                            item.LatestMessage = $"Bạn đã thêm {string.Join(", ", usernames)} vào nhóm";
+                                // Cập nhật nội dung tin nhắn
+                                item.LatestMessage = $"Bạn đã thêm {string.Join(", ", usernames)} vào nhóm";
+                            }
+                            // Nếu ta tham gia bằng Lời mời (GroupRequest)
+                            else
+                            {
+                                // Cập nhật nội dung tin nhắn
+                                item.LatestMessage = $"Bạn đã tham gia nhóm";
+                            }
                         }
                         // Case 2: Bạn là 1 trong những người nhận tin nhắn
                         else if (content.TargetId.Contains(currentUser.Id))
@@ -101,26 +116,36 @@ namespace BE.Services.Conversation
                         // Case 3: Bạn không phải là người tạo và cũng không phải là người nhận tin nhắn
                         else
                         {
-                            var user = _context.Users.Find(content.UserId);
-                            var usernames = new List<string>();
-                            foreach (var userid in content.TargetId)
+                            if(content.TargetId.Count > 0)
                             {
-                                var targetUser = _context.Users.Find(userid);
-                                if (targetUser != null)
+                                var user = _context.Users.Find(content.UserId);
+                                var usernames = new List<string>();
+                                foreach (var userid in content.TargetId)
                                 {
-                                    usernames.Add(string.Concat(targetUser.HoLot, " ", targetUser.Ten));
+                                    var targetUser = _context.Users.Find(userid);
+                                    if (targetUser != null)
+                                    {
+                                        usernames.Add(string.Concat(targetUser.HoLot, " ", targetUser.Ten));
+                                    }
+                                }
+
+                                if (user != null)
+                                {
+                                    // Cập nhật nội dung tin nhắn
+                                    item.LatestMessage = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm {string.Join(", ", usernames)} vào nhóm";
                                 }
                             }
-
-                            if (user != null)
+                            else
                             {
-                                // Cập nhật nội dung tin nhắn
-                                item.LatestMessage = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm {string.Join(", ", usernames)} vào nhóm";
+                                var user = _context.Users.Find(content.UserId);
+                                if (user != null)
+                                {
+                                    // Cập nhật nội dung tin nhắn
+                                    item.LatestMessage = $"{string.Concat(user.HoLot, " ", user.Ten)} đã tham gia nhóm";
+                                }
                             }
                         }
                     }
-
-                    
                 }
 
                 GetListPagingResponse resposeData = new GetListPagingResponse();
@@ -441,6 +466,50 @@ namespace BE.Services.Conversation
             return response;
         }
 
+        public BaseResponse<MODELGroupAvartar> GetGroupAvartar(GetByIdRequest request)
+        {
+            var response = new BaseResponse<MODELGroupAvartar>();
+            try
+            {
+                var Data = new MODELGroupAvartar();
+
+                // Lấy ra thông tin thành viên trong nhóm
+                var member = _context.GroupMembers.Where(gm => gm.GroupId == request.Id
+                                                        && !gm.IsDeleted).ToList();
+                if (!member.Any())
+                {
+                    throw new Exception("Không tìm thấy thông tin nhóm");
+                }
+
+                Data.UrlsAvartar = member.Select(mem => _context.MediaFiles
+                                                      .FirstOrDefault(
+                                                            med => med.OwnerId == mem.UserId
+                                                            && med.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
+                                                            && !med.IsDeleted && med.IsActived
+                                                      ))
+                                 .Where(med => med != null)
+                                 .Select(med => med.Url)
+                                 .Take(4).ToList();
+
+                // Nếu số lượng hình ảnh ít hơn 4 thì cần thêm hình ảnh mặc định
+                while (Data.UrlsAvartar.Count < 4 && Data.UrlsAvartar.Count < member.Count)
+                {
+                    Data.UrlsAvartar.Add(CommonConst.DefaultUrlNoPicture);
+                }
+
+                // Lấy ra thông tin số lượng thành viên nhóm
+                Data.CountMember = member.Count;
+
+                // Trả về dữ liệu
+                response.Data = Data;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
 
         #endregion
 
@@ -448,9 +517,9 @@ namespace BE.Services.Conversation
         MODELMessage GetLatestMessage(Guid UserId, Guid TargetId)
         {
             var conversation = _context.Conversations.FirstOrDefault(c => c.UserId == UserId && c.TargetId == TargetId && !c.IsDeleted);
-            ENTITIES.DbContent.Message message; 
+            ENTITIES.DbContent.Message message;
 
-            if(conversation != null && conversation.TypeOfConversation == 1)
+            if (conversation != null && conversation.TypeOfConversation == 1)
             {
                 message = _context.Messages.Where(m => m.TargetId == TargetId && !m.IsDeleted)
                                            .OrderByDescending(m => m.NgayTao)
@@ -467,39 +536,7 @@ namespace BE.Services.Conversation
             return _mapper.Map<MODELMessage>(message);
         }
 
-        MODELGroupAvartar GetGroupAvartar(GetByIdRequest request)
-        {
-            var Data = new MODELGroupAvartar();
 
-            // Lấy ra thông tin thành viên trong nhóm
-            var member = _context.GroupMembers.Where(gm => gm.GroupId == request.Id
-                                                    && !gm.IsDeleted).ToList();
-            if (!member.Any())
-            {
-                throw new Exception("Không tìm thấy thông tin nhóm");
-            }
-
-            Data.UrlsAvartar = member.Select(mem => _context.MediaFiles
-                                                  .FirstOrDefault(
-                                                        med => med.OwnerId == mem.UserId
-                                                        && med.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
-                                                        && !med.IsDeleted && med.IsActived
-                                                  ))
-                             .Where(med => med != null)
-                             .Select(med => med.Url)
-                             .Take(4).ToList();
-
-            // Nếu số lượng hình ảnh ít hơn 4 thì cần thêm hình ảnh mặc định
-            while (Data.UrlsAvartar.Count < 4 && Data.UrlsAvartar.Count < member.Count)
-            {
-                Data.UrlsAvartar.Add(CommonConst.DefaultUrlNoPicture);
-            }
-
-            // Lấy ra thông tin số lượng thành viên nhóm
-            Data.CountMember = member.Count;
-
-            return Data;
-        }
         #endregion
     }
 }

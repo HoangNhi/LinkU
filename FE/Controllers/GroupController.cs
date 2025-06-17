@@ -3,12 +3,17 @@ using FE.Services;
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
+using MODELS.FRIENDSHIP.Requests;
 using MODELS.GROUP.Dtos;
 using MODELS.GROUP.Requests;
+using MODELS.GROUPMEMBER.Dtos;
 using MODELS.GROUPMEMBER.Requests;
+using MODELS.GROUPREQUEST.Dtos;
+using MODELS.GROUPREQUEST.Requests;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.USER.Dtos;
 using Newtonsoft.Json;
+using System.Net.WebSockets;
 
 namespace FE.Controllers
 {
@@ -18,6 +23,7 @@ namespace FE.Controllers
         {
         }
 
+        
         public IActionResult ShowModalCreateGroup()
         {
             return PartialView("~/Views/Home/Contact/Group/_PopupCreateGroupPartial.cshtml");
@@ -188,7 +194,8 @@ namespace FE.Controllers
                     ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.GROUPMEMBER_ADD_MEMBER_TO_GROUP, request, HttpAction.Post);
                     if (response.Success)
                     {
-                        return Json(new { IsSuccess = true });
+                        var result = JsonConvert.DeserializeObject<MODELResponseAddMemberToGroup>(response.Data.ToString());
+                        return Json(new { IsSuccess = true, Data = result });
                     }
                     else
                     {
@@ -205,7 +212,77 @@ namespace FE.Controllers
                 string message = "Lỗi hệ thống: " + ex.Message;
                 return Json(new { IsSuccess = false, Message = message});
             }
-        } 
+        }
+
+
+        #region GroupRequest
+        [Route("grouprequest")]
+        public IActionResult GroupRequest()
+        {
+            return PartialView("~/Views/Home/Contact/GroupRequest/_TabGroupRequestPartial.cshtml");
+        }
+
+        public IActionResult GroupRequestGetListPaging(POSTGroupRequestGetListPagingRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.GROUPREQUEST_GET_LIST_PAGING, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
+                        result.Data = JsonConvert.DeserializeObject<List<MODELGroupRequestGetListPaging>>(result.Data.ToString());
+                        return PartialView($"~/Views/Home/Contact/GroupRequest/_GroupRequestGetListPagingPartial.cshtml", result);
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult UpdateStateGroupRequest(MODELS.GROUPREQUEST.Requests.POSTGroupInvitationRequest request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPIWithoutToken(URL_API.GROUPREQUEST_UPDATE, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        var result = JsonConvert.DeserializeObject<MODELS.GROUPREQUEST.Dtos.MODELGroupRequest>(response.Data.ToString());
+                        return Json(new { IsSuccess = true, Data = result });
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message });
+            }
+        }
+
+        #endregion
 
         #region Private Methodss
         void ValidateRequestCreateGroup(IFormCollection request)

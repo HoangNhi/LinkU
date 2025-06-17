@@ -1,0 +1,114 @@
+﻿@model MODELS.BASE.GetListPagingResponse
+@{
+    var Data = Model.Data as List<MODELS.GROUPREQUEST.Dtos.MODELGroupRequestGetListPaging>;
+
+    Dictionary<int, List<(int, int)>> positions = new Dictionary<int, List<(int, int)>>
+{
+        { 2, [(-12, 0), (12, 0)] },
+        { 3, [(0, -14), (-14, 14), (14, 14)] },
+        { 4, [(-14, -14), (-14, 14), (14, 14), (14, -14)] }
+    };
+}
+
+@if (Model.PageIndex == 1 && Model.TotalRow > 0)
+{
+    <div class="groupRequestTotalRow d-none">@Model.TotalRow</div>
+}
+
+@foreach (var item in Data)
+{
+    <div class="card"
+         style="width: 280px; height: 234px; 
+                box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset">
+        <div class="card-body p-3 pb-0">
+            @* Avartar, Tên nhóm, số lượng thành viên và thời gian gửi lời mời *@
+            <div class="d-flex align-items-center">
+                @if (!string.IsNullOrEmpty(item.Group.AvartarUrl))
+                {
+                    <img class="rounded-circle flex-shrink-0 me-3"
+                         style="object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
+                         width="60" height="60"
+                         src='@item.Group.AvartarUrl' />
+                }
+                else
+                {
+                    <div class="circles-container me-3 flex-shrink-0">
+                        @{
+                            int countMember = item.Group.Avartar.CountMember <= 4 ? item.Group.Avartar.CountMember : 4;
+                            int sub = 0;
+                        }
+                        @for (int i = 1; i <= countMember && i <= 4; i++)
+                        {
+                            if (i == 3 && item.Group.Avartar.CountMember > 4)
+                            {
+                                <div class="circle rounded-circle d-flex justify-content-center align-items-center text-white"
+                                     style="background-color: grey;
+                        transform: translate(calc(-50% + @(positions[countMember][i-1].Item1)px), calc(-50% + @(positions[countMember][i-1].Item2)px));
+                        z-index: @( i switch
+                        {
+                            2 => 0,
+                            1 => 5,
+                            3 => 3,
+                            4 => 4
+                        } )">
+                                    @($"{item.Group.Avartar.CountMember - 3} +")
+                                </div>
+                                sub = 1;
+                            }
+                            else
+                            {
+                                <div class="circle rounded-circle d-flex justify-content-center align-items-center text-white"
+                                     style="background: no-repeat center / cover url(@item.Group.Avartar.UrlsAvartar[i - 1 - sub]);
+                        transform: translate(calc(-50% + @(positions[countMember][i-1].Item1)px), calc(-50% + @(positions[countMember][i-1].Item2)px));
+                        z-index: @( i switch
+                        {
+                            2 => 0,
+                            1 => 5,
+                            3 => 3,
+                            4 => 4
+                        } )">
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+
+                <div>
+                    <div class="fw-bold fs-6 text-black"
+                         style="line-height: 1.5">
+                        @item.Group.GroupName
+                    </div>
+                    <div style="line-height: 1.5; font-size: .75rem">@($"{item.MemberCount} thành viên")</div>
+                    <div class="fw-light" style="font-size: .75rem; line-height: 1.5;">@item.DurationText</div>
+                </div>
+            </div>
+
+            @* Được mời bởi *@
+            <div class="my-2" style="font-size: 0.75rem; line-height: 1.5">Được mời bởi:</div>
+            <div class="mb-1 d-flex" style="gap: 8px">
+                @foreach (var sender in item.Senders)
+                {
+                    <img id="@($"{item.Group.Id}_{sender.Id}")"
+                         src="@sender.ProfilePicture"
+                         height="36" width="36"
+                         class="rounded-circle"
+                         style="box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+                                object-fit: cover"
+                         data-mdb-popover-init
+                         data-mdb-content="@($"<div class='text-black px-2 py-1' style='font-weight: 500'>{sender.HoVaTen}</div>")"
+                         data-mdb-trigger="hover"
+                         data-mdb-html="true"
+                         data-mdb-placement="top" />
+                }
+            </div>
+        </div>
+        @* Button *@
+        <div class="card-footer p-3 pt-0 text-end border-0">
+            <button type="button" class="btn btn-light" data-mdb-ripple-init onclick="RefuseRequest('@item.Id')">Từ chối</button>
+            <button type="button" class="btn btn-secondary" data-mdb-ripple-init onclick="AcceptRequest('@item.Id')">Tham gia</button>
+        </div>
+    </div>
+}
+
+
+

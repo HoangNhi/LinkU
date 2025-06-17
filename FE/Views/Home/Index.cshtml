@@ -325,6 +325,7 @@
         GetProfilePicture();
         renderTabFriendRequest(false);
         renderTabFriendship(false)
+        renderTabGroupRequest(false);
     });
 
     // Hiển thị
@@ -559,6 +560,18 @@
                 showLoading(false)
             }
             $("#pills-friend").html(data)
+        });
+    }
+
+    function renderTabGroupRequest(isLoading = false) {
+        if (isLoading) {
+            showLoading(true)
+        }
+        $.get('grouprequest', function (data) {
+            if (isLoading) {
+                showLoading(false)
+            }
+            $("#pills-group-request").html(data)
         });
     }
 </script>

@@ -8,6 +8,7 @@ using MODELS.GROUP.Dtos;
 using MODELS.GROUP.Requests;
 using MODELS.GROUPMEMBER.Dtos;
 using MODELS.GROUPMEMBER.Requests;
+using MODELS.GROUPREQUEST.Dtos;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.MESSAGE.Dtos;
@@ -64,6 +65,10 @@ namespace BE.AutoMapper
             // GroupMember
             CreateMap<GroupMember, MODELGroupMember>().ReverseMap();
             CreateMap<GroupMember, POSTGroupMemberRequest>().ReverseMap();
+
+            // GruopRequest
+            CreateMap<GroupRequest, MODELGroupRequest>().ReverseMap();
+            CreateMap<GroupRequest, MODELS.GROUPREQUEST.Requests.POSTGroupInvitationRequest>().ReverseMap();
         }
     }
 }

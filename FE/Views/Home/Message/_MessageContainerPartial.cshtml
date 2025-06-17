@@ -10,45 +10,68 @@
     int RowPerPage = ViewBag.RowPerPage;
 }
 
-@for (int i = Data.Count - 1; i >= 0; i--)
+@if (Data.Count == 0 && Model.PageIndex == 1)
 {
-    <div class="lh-1 py-3"
-         style="font-size: 12px">@Data[i].GetDateTime()</div>
-    if (Data[i].MessageType == 1 || Data[i].MessageType == 2)
-    {
-        <div class="row" style="margin-bottom: 12px;">
-            <div class="col-12">
-                <p class="m-0"
-                    style="font-size: 12px;">
-                    @Html.Raw(Data[i].Content)
-                </p>
+    <div class="profile-card rounded-5 mb-5">
+        <div class="p-3 d-flex" style="">
+            <img class="rounded-circle"
+                 src="@TargetUser.ProfilePicture"
+                 style="min-width: 80px; width: 80px; height: 80px; object-fit: cover;" />
+            <div class="d-flex flex-column text-start ms-3 justify-content-center">
+                <span class="fw-bold fs-5">@TargetUser.HoVaTen</span>
+                <span class="fs-6 FirstMessageSuggestion" style="font-weight: 400">Hãy gửi tin nhắn đầu tiên để bắt đầu cuộc trò chuyện</span>
             </div>
         </div>
-        <div id="welcome-flag" data-call-welcome="1"></div>
-    }
-    else
+        <img src="@TargetUser.CoverPicture"
+             height="200"
+             style="object-fit: cover; width: 100%;" />
+    </div>
+}
+else
+{
+    @for (int i = Data.Count - 1; i >= 0; i--)
     {
+        <div class="lh-1 py-3"
+             style="font-size: 12px">@Data[i].GetDateTime()
+        </div>
+        if (Data[i].MessageType == 1 || Data[i].MessageType == 2)
+        {
+            <div class="row" style="margin-bottom: 12px;">
+                <div class="col-12">
+                    <p class="m-0"
+                        style="font-size: 12px;">
+                        @Html.Raw(Data[i].Content)
+                    </p>
+                </div>
+            </div>
+            <div id="welcome-flag" data-call-welcome="1"></div>
+        }
+        else
+        {
 
-        <div class="row align-items-center @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "flex-row-reverse" : "")" style="margin-bottom: 12px;">
-            <div style="width: 48px; align-self: end; display: @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "none" : "auto")">
-                <img class="rounded-circle border-bottom border-2"
-                        src="@(Data[i].Sender.ProfilePicture)"
-                        style="height: 38px; width: 38px" />
+            <div class="row align-items-center @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "flex-row-reverse" : "")" style="margin-bottom: 12px;">
+                <div style="width: 48px; align-self: end; display: @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "none" : "auto")">
+                    <img class="rounded-circle border-bottom border-2"
+                            src="@(Data[i].Sender.ProfilePicture)"
+                            style="height: 38px; width: 38px" />
+                </div>
+                <div style="width: 70%;">
+                    <p class="m-0 @StyleMessage[Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId"))]"
+                        style="font-size: 14px;
+                                width: fit-content;
+                                padding: 8px 12px;
+                                border-radius: 18px;
+                                text-align: justify;
+                                font-weight: 400;
+                                box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
+                        @Html.Raw(Data[i].Content)
+                    </p>
+                </div>
+                <div style="width: calc(30% - 48px)"></div>
             </div>
-            <div style="width: 70%;">
-                <p class="m-0 @StyleMessage[Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId"))]"
-                    style="font-size: 14px;
-            width: fit-content;
-            padding: 8px 12px;
-            border-radius: 18px;
-            text-align: justify;
-            font-weight: 400;
-            box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
-                    @Html.Raw(Data[i].Content)
-                </p>
-            </div>
-            <div style="width: calc(30% - 48px)"></div>
-        </div>
+        }
     }
 }
+
+
 

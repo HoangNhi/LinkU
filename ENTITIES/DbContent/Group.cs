@@ -32,5 +32,7 @@ public partial class Group
 
     public virtual ICollection<GroupMember> GroupMembers { get; set; } = new List<GroupMember>();
 
+    public virtual ICollection<GroupRequest> GroupRequests { get; set; } = new List<GroupRequest>();
+
     public virtual ICollection<MediaFile> MediaFiles { get; set; } = new List<MediaFile>();
 }

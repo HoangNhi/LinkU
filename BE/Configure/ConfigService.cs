@@ -6,10 +6,10 @@ using BE.Services.FriendRequest;
 using BE.Services.FriendShip;
 using BE.Services.Group;
 using BE.Services.GroupMember;
+using BE.Services.GroupRequest;
 using BE.Services.Mail;
 using BE.Services.MediaFile;
 using BE.Services.Message;
-using BE.Services.MessageList;
 using BE.Services.OTP;
 using BE.Services.SMS;
 using BE.Services.User;
@@ -132,6 +132,7 @@ namespace BE.Configure
             builder.Services.AddTransient<ICONVERSATIONService, CONVERSATIONService>();
             builder.Services.AddTransient<IGROUPService, GROUPService>();
             builder.Services.AddTransient<IGROUPMEMBERService, GROUPMEMBERService>();
+            builder.Services.AddTransient<IGROUPREQUESTService, GROUPREQUESTService>();
         }
     }
 }

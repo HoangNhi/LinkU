@@ -229,3 +229,11 @@ var noFriends = `
                 </div>
             </div>
         </div>`
+
+var noGroupRequest = `
+     <div class="container-fluid text-center">
+        <img src="/asset/Group.png" height = "200" />
+        <h4>Không có lời mời nào</h4>
+        <p>Bạn chưa có lời mời tham gia nhóm nào.</p>
+    </div>
+`

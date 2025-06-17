@@ -199,10 +199,17 @@
         connection.on("ReceiveRequestRerenderTab", function (response)
         {
             if (response.success) {
-                // Rerender Conversation
-                if (response.data === "Conversation") {
-                    var TargetId = $("#TargetId").val()
-                    GetListPagingConversation(PageIndexConversation, RowPerPageConversation, () => { setActiveButton(TargetId) })
+                switch (response.data) {
+                    // Rerender Conversation
+                    case "Conversation":
+                        var TargetId = $("#TargetId").val()
+                        GetListPagingConversation(PageIndexConversation, RowPerPageConversation, () => { setActiveButton(TargetId) })
+                        break;
+
+                    // Rerender GroupRequest
+                    case "GroupRequest":
+                        getListPaginggroupRequest(null, null, true, null);
+                        break;
                 }
             }
         });
@@ -214,6 +221,27 @@
                 getListPagingFriendship(1, friendshipRowPerPage * friendshipPageIndex, true);
             }
         });
+
+        // Nhận yêu cầu refresh tab khi có thành viên mới tham gia nhóm
+        connection.off("ReceiveRequestRerenderTabOfGroupMember");
+        connection.on("ReceiveRequestRerenderTabOfGroupMember", function (response) {
+            if (!response.success) {
+                ShowThongBaoThatBai(response.message)
+            } else {
+                var TargetId = $("#TargetId").val()
+                // Rerender Conversation
+                GetListPagingConversation(PageIndexConversation, RowPerPageConversation, () => { setActiveButton(TargetId) })
+
+                // Xử lý khi Tab Message đã được tải
+                if (TargetId === response.data || TargetId === response.data) {
+                    // Update lại tin nhắn mới nhất
+                    updateConversationLatestMessage(TargetId)
+                    // Refresh lại trang
+                    GetMessage(true)
+                }
+            }
+        });
+
     </script>
 
     <script>

@@ -317,47 +317,82 @@
         }
     });
 
-    function GetMessage() {
-        if (isDone) return
-        if (isLoading) return;
-        isLoading = true;
+    function GetMessage(isRefresh = false) {
+        if (isRefresh) {
+            var location = ChatBox.scrollHeight
+            $.ajax({
+                url: '@Url.Action("GetListPaging", "Message")',
+                type: 'POST',
+                data: {
+                    UserId: '@ViewContext.GetClaimValue("UserId")',
+                    TargetId: '@Model.Id',
+                    PageIndex: 1,
+                    RowPerPage: 15 * currentPage,
+                    ConversationType: 1
+                },
+                success: function (data) {
+                    if(data.isSuccess !== undefined && !data.isSuccess){
+                        ShowThongBaoThatBai(data.message)
+                    }else{
+                        if (data.trim() !== '') {
+                            document.getElementById('ChatContainer').innerHTML = data;
+                            filterTimeDivs();
+                            if (currentPage === 1) {
+                                scrollToBottom();
+                            } else {
+                                ChatBox.scrollTop = ChatBox.scrollHeight - location;
+                            }
 
-        var location = ChatBox.scrollHeight
-        $.ajax({
-            url: '@Url.Action("GetListPaging", "Message")',
-            type: 'POST',
-            data: {
-                UserId: '@ViewContext.GetClaimValue("UserId")',
-                TargetId: '@Model.Id',
-                PageIndex: currentPage,
-                RowPerPage: 15,
-                ConversationType: 1
-            },
-            success: function (data) {
-                if(data.isSuccess !== undefined && !data.isSuccess){
-                    ShowThongBaoThatBai(data.message)
-                }else{
-                    if (data.trim() !== '') {
-                        document.getElementById('ChatContainer').insertAdjacentHTML('afterbegin', data);
-                        filterTimeDivs();
-                        if (currentPage === 1) {
-                            scrollToBottom();
-                        } else {
-                            ChatBox.scrollTop = ChatBox.scrollHeight - location;
+                            const $html = $('<div>').html(data);
+                            if ($html.find('#welcome-flag[data-call-welcome="1"]').length) {
+                                addWellcomeSession();
+                            }
                         }
-                        currentPage++;
-                        isLoading = false;
-
-                        const $html = $('<div>').html(data); 
-                        if ($html.find('#welcome-flag[data-call-welcome="1"]').length) {
-                            addWellcomeSession();
-                        }
-                    } else {
-                        isDone = true;
                     }
                 }
-            }
-        });
+            });
+        } else {
+            if (isDone) return
+            if (isLoading) return;
+            isLoading = true;
+
+            var location = ChatBox.scrollHeight
+            $.ajax({
+                url: '@Url.Action("GetListPaging", "Message")',
+                type: 'POST',
+                data: {
+                    UserId: '@ViewContext.GetClaimValue("UserId")',
+                    TargetId: '@Model.Id',
+                    PageIndex: currentPage,
+                    RowPerPage: 15,
+                    ConversationType: 1
+                },
+                success: function (data) {
+                    if(data.isSuccess !== undefined && !data.isSuccess){
+                        ShowThongBaoThatBai(data.message)
+                    }else{
+                        if (data.trim() !== '') {
+                            document.getElementById('ChatContainer').insertAdjacentHTML('afterbegin', data);
+                            filterTimeDivs();
+                            if (currentPage === 1) {
+                                scrollToBottom();
+                            } else {
+                                ChatBox.scrollTop = ChatBox.scrollHeight - location;
+                            }
+                            currentPage++;
+                            isLoading = false;
+
+                            const $html = $('<div>').html(data);
+                            if ($html.find('#welcome-flag[data-call-welcome="1"]').length) {
+                                addWellcomeSession();
+                            }
+                        } else {
+                            isDone = true;
+                        }
+                    }
+                }
+            });
+        }
     }
 </script>
 

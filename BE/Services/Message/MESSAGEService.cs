@@ -80,18 +80,28 @@ namespace BE.Services.Message
                             // Case 1: User hiện tại là người tạo ra message này
                             if(currentUser.Id == content.UserId)
                             {
-                                List<string> usernames = new List<string>();
-                                foreach(var userid in content.TargetId)
+                                // Nếu ta thêm ai đó vào nhóm
+                                if (content.TargetId.Count > 0)
                                 {
-                                    var user = _context.Users.Find(userid);
-                                    if(user != null)
+                                    List<string> usernames = new List<string>();
+                                    foreach (var userid in content.TargetId)
                                     {
-                                        usernames.Add(string.Concat(user.HoLot, " ", user.Ten));
+                                        var user = _context.Users.Find(userid);
+                                        if (user != null)
+                                        {
+                                            usernames.Add(string.Concat(user.HoLot, " ", user.Ten));
+                                        }
                                     }
-                                }
 
-                                // Cập nhật nội dung tin nhắn
-                                item.Content = $"Bạn đã thêm {string.Join(", ", usernames)} vào nhóm";
+                                    // Cập nhật nội dung tin nhắn
+                                    item.Content = $"Bạn đã thêm {string.Join(", ", usernames)} vào nhóm";
+                                }
+                                // Nếu ta tham gia bằng Lời mời (GroupRequest)
+                                else
+                                {
+                                    // Cập nhật nội dung tin nhắn
+                                    item.Content = $"Bạn đã tham gia nhóm";
+                                }
                             }
                             // Case 2: Bạn là 1 trong những người nhận tin nhắn
                             else if (content.TargetId.Contains(currentUser.Id))
@@ -106,21 +116,33 @@ namespace BE.Services.Message
                             // Case 3: Bạn không phải là người tạo và cũng không phải là người nhận tin nhắn
                             else
                             {
-                                var user = _context.Users.Find(content.UserId);
-                                var usernames = new List<string>();
-                                foreach (var userid in content.TargetId)
+                                if (content.TargetId.Count > 0)
                                 {
-                                    var targetUser = _context.Users.Find(userid);
-                                    if (targetUser != null)
+                                    var user = _context.Users.Find(content.UserId);
+                                    var usernames = new List<string>();
+                                    foreach (var userid in content.TargetId)
                                     {
-                                        usernames.Add(string.Concat(targetUser.HoLot, " ", targetUser.Ten));
+                                        var targetUser = _context.Users.Find(userid);
+                                        if (targetUser != null)
+                                        {
+                                            usernames.Add(string.Concat(targetUser.HoLot, " ", targetUser.Ten));
+                                        }
+                                    }
+
+                                    if (user != null)
+                                    {
+                                        // Cập nhật nội dung tin nhắn
+                                        item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm {string.Join(", ", usernames)} vào nhóm";
                                     }
                                 }
-
-                                if (user != null)
+                                else
                                 {
-                                    // Cập nhật nội dung tin nhắn
-                                    item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm {string.Join(", ", usernames)} vào nhóm";
+                                    var user = _context.Users.Find(content.UserId);
+                                    if (user != null)
+                                    {
+                                        // Cập nhật nội dung tin nhắn
+                                        item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã tham gia nhóm";
+                                    }
                                 }
                             }
                         }

@@ -388,8 +388,22 @@
             success: function (response) {
                 showLoading(false)
                 if (response.isSuccess) {
-                    // Hiển thị thông báo thành công
-                    ShowThongBaoThanhCong("Thêm thành viên vào nhóm thành công")
+                    // Hiển thị thông báo và gửi yêu cầu signalr refresh tab group request (nếu có)
+                    if (response.data.newMemberIds.length > 0) {
+                        ShowThongBaoThanhCong("Thêm thành viên vào nhóm thành công")
+                        SendRequestWSRerenderTab(response.data.newMemberIds, "Conversation")
+                        // Update lại tin nhắn mới nhất
+                        updateConversationLatestMessage(TargetId)
+                        // Refresh lại trang
+                        GetMessage(true)
+                    } else if (response.data.invitedUserIds.length > 0) {
+                        ShowThongBaoThanhCong("Gửi lời mời thành công")
+                    }
+
+                    if (response.data.invitedUserIds.length > 0) {
+                        SendRequestWSRerenderTab(response.data.invitedUserIds, "GroupRequest")
+                    }
+
                     // Close Modal
                     CloseModal()
                 } else {

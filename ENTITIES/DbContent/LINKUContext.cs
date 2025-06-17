@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace ENTITIES.DbContent;
 
@@ -245,6 +247,21 @@ public partial class LINKUContext : DbContext
                 .HasMaxLength(256)
                 .IsUnicode(false);
             entity.Property(e => e.State).HasComment("0 - Đang chờ, 1 - Đồng ý, 2 - Từ chối");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.GroupRequests)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GroupRequest_Group");
+
+            entity.HasOne(d => d.Receiver).WithMany(p => p.GroupRequestReceivers)
+                .HasForeignKey(d => d.ReceiverId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GroupRequest_User1");
+
+            entity.HasOne(d => d.Sender).WithMany(p => p.GroupRequestSenders)
+                .HasForeignKey(d => d.SenderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GroupRequest_User");
         });
 
         modelBuilder.Entity<Like>(entity =>

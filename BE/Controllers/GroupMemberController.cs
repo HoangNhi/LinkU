@@ -179,7 +179,7 @@ namespace BE.Controllers
                     {
                         throw new Exception(response.Message);
                     }
-                    return Ok(new ApiResponse(true));
+                    return Ok(new ApiResponse(response.Data));
                 }
                 else
                 {

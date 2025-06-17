@@ -33,4 +33,10 @@ public partial class GroupRequest
     public bool IsDeleted { get; set; }
 
     public bool IsActived { get; set; }
+
+    public virtual Group Group { get; set; } = null!;
+
+    public virtual User Receiver { get; set; } = null!;
+
+    public virtual User Sender { get; set; } = null!;
 }

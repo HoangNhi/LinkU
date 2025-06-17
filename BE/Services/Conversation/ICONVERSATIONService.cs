@@ -1,5 +1,6 @@
 ﻿using MODELS.BASE;
 using MODELS.CONVERSATION.Requests;
+using MODELS.GROUP.Dtos;
 using MODELS.MESSAGESTATUS.Dtos;
 using MODELS.MESSAGESTATUS.Requests;
 
@@ -27,6 +28,8 @@ namespace BE.Services.Conversation
         BaseResponse<bool> RoolbackDelete(GetByIdRequest request);
 
         BaseResponse UpdateLatestMessage(Guid UserId, Guid TargetId);
+
+        BaseResponse<MODELGroupAvartar> GetGroupAvartar(GetByIdRequest request);
 
         #endregion
     }

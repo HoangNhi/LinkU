@@ -109,7 +109,7 @@ else
 
                     <div class="row">
                         <span class="mt-1 col-11 text-truncate" style="font-size: 0.75rem; line-height: 1.5">
-                            @if (item.LatestMessageType == 1)
+                            @if (item.LatestMessageType == 1 || item.LatestMessageType == 2)
                             {
                                 @($"{HttpUtility.HtmlDecode(item.LatestMessage)}")
                             }

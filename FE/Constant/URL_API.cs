@@ -86,5 +86,9 @@
 
         // FRIENDSHIP
         public const string FRIENDSHIP_GET_LIST_PAGING = "/FriendShip/GetListPaging";
+
+        // GROUPREQUEST
+        public const string GROUPREQUEST_GET_LIST_PAGING = "/GroupRequest/GetListPaging";
+        public const string GROUPREQUEST_UPDATE = "/GroupRequest/Update";
     }
 }

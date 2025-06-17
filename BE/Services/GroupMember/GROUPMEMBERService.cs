@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using AutoMapper.Execution;
 using BE.Helpers;
 using BE.Services.Conversation;
 using BE.Services.Group;
 using BE.Services.Message;
+using BE.Services.User;
 using ENTITIES.DbContent;
 using MODELS.BASE;
 using MODELS.COMMON;
@@ -23,8 +23,9 @@ namespace BE.Services.GroupMember
         private readonly IGROUPService _groupService;
         private readonly IMESSAGEService _messageService;
         private readonly ICONVERSATIONService _conversationService;
+        private readonly IUSERService _userService;
 
-        public GROUPMEMBERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IGROUPService groupService, IMESSAGEService messageService, ICONVERSATIONService conversationService)
+        public GROUPMEMBERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IGROUPService groupService, IMESSAGEService messageService, ICONVERSATIONService conversationService, IUSERService userService)
         {
             _context = context;
             _mapper = mapper;
@@ -32,6 +33,7 @@ namespace BE.Services.GroupMember
             _groupService = groupService;
             _messageService = messageService;
             _conversationService = conversationService;
+            _userService = userService;
         }
 
         public BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request)
@@ -195,11 +197,12 @@ namespace BE.Services.GroupMember
             return response;
         }
 
-        public BaseResponse AddMemberToGroup(POSTAddMemberToGroupRequest request)
+        public BaseResponse<MODELResponseAddMemberToGroup> AddMemberToGroup(POSTAddMemberToGroupRequest request)
         {
-            var response = new BaseResponse();
+            var response = new BaseResponse<MODELResponseAddMemberToGroup>();
             try
             {
+                var result = new MODELResponseAddMemberToGroup();
                 var UserId = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
                 MODELMessageContent content = new MODELMessageContent();
                 content.UserId = Guid.Parse(UserId);
@@ -245,22 +248,43 @@ namespace BE.Services.GroupMember
                                 )
                             && !f.IsDeleted);
 
+                        // Không phải là bạn thì gửi lời mời vào nhóm
                         if (friendExist == null)
                         {
-                            var invitation = new ENTITIES.DbContent.GroupRequest
+                            // Kiểm tra người dùng này đã gửi lời mời trước đó chưa
+                            var checkGroupRequest = _context.GroupRequests.FirstOrDefault(x => x.SenderId == Guid.Parse(UserId)
+                                                                                         && x.ReceiverId == item
+                                                                                         && x.GroupId == request.GroupId
+                                                                                         && !x.IsDeleted
+                                                                                         && x.State == 0);
+                            // Case 1: Chưa có lời mời thì sẽ tạo lời mời
+                            if(checkGroupRequest == null)
                             {
-                                Id = Guid.NewGuid(),
-                                GroupId = request.GroupId,
-                                SenderId = Guid.Parse(UserId),
-                                ReceiverId = item,
-                                State = 0, // 0 - Đang chờ
-                                NgayTao = DateTime.Now,
-                                NguoiTao = _contextAccessor.HttpContext.User.Identity.Name,
-                                NgaySua = DateTime.Now,
-                                NguoiSua = _contextAccessor.HttpContext.User.Identity.Name,
-                            };
+                                var invitation = new ENTITIES.DbContent.GroupRequest
+                                {
+                                    Id = Guid.NewGuid(),
+                                    GroupId = request.GroupId,
+                                    SenderId = Guid.Parse(UserId),
+                                    ReceiverId = item,
+                                    State = 0, // 0 - Đang chờ
+                                    NgayTao = DateTime.Now,
+                                    NguoiTao = _contextAccessor.HttpContext.User.Identity.Name,
+                                    NgaySua = DateTime.Now,
+                                    NguoiSua = _contextAccessor.HttpContext.User.Identity.Name,
+                                };
 
-                            _context.GroupRequests.Add(invitation);
+                                _context.GroupRequests.Add(invitation);
+                            }
+                            // Case 2: Nếu có lời mời thì sẽ update lại thời gian gửi lời mời
+                            else
+                            {
+                                checkGroupRequest.NgaySua = DateTime.Now;
+                                checkGroupRequest.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
+
+                                _context.GroupRequests.Update(checkGroupRequest);
+                            }
+
+                            result.InvitedUserIds.Add(item);
                         }
                         else
                         {
@@ -278,17 +302,20 @@ namespace BE.Services.GroupMember
                             };
 
                             _context.GroupMembers.Add(add);
-                        }
 
-                        // Tạo Conversation
-                        var conversation = _conversationService.Insert(new MODELS.MESSAGESTATUS.Requests.POSTConversationRequest
-                        {
-                            UserId = item,
-                            TargetId = request.GroupId,
-                            TypeOfConversation = 1,
-                            LastReadMessageId = latestMessage == null ? null : latestMessage.Id,
-                            IsSaveChange = false
-                        });
+
+                            // Tạo Conversation
+                            var conversation = _conversationService.Insert(new MODELS.MESSAGESTATUS.Requests.POSTConversationRequest
+                            {
+                                UserId = item,
+                                TargetId = request.GroupId,
+                                TypeOfConversation = 1,
+                                LastReadMessageId = latestMessage == null ? null : latestMessage.Id,
+                                IsSaveChange = false
+                            });
+
+                            result.NewMemberIds.Add(item);
+                        }
                     }
                     else
                     {
@@ -317,6 +344,45 @@ namespace BE.Services.GroupMember
                 }
 
                 _context.SaveChanges();
+
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public BaseResponse<List<MODELGroupMember>> GetListByGroupId(GetByIdRequest request)
+        {
+            var response = new BaseResponse<List<MODELGroupMember>>();
+            try
+            {
+                var groupMembers = _context.GroupMembers
+                    .Where(gm => gm.GroupId == request.Id && !gm.IsDeleted)
+                    .ToList();
+
+                if (groupMembers.Count == 0)
+                {
+                    throw new Exception("Không có thành viên nào trong nhóm này");
+                }
+                response.Data = _mapper.Map<List<MODELGroupMember>>(groupMembers);
+
+                //foreach (var member in response.Data)
+                //{
+                //    // Lấy thông tin người dùng từ bảng Users
+                //    var user = _context.Users.Find(member.UserId);
+                //    if (user != null)
+                //    {
+                //        member.User = ;
+                //    }
+                //    else
+                //    {
+                //        throw new Exception($"Người dùng với ID {member.UserId} không tồn tại");
+                //    }
+                //}
             }
             catch (Exception ex)
             {

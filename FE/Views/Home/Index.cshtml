@@ -152,7 +152,7 @@
                         aria-selected="true"
                         onclick="SwitchToTabFunctions('tab-contact')">
                     <i class="fa-regular fa-address-book icon-Functions"></i>
-                    <span class="text-Functions">Tin nhắn đang chờ</span>
+                    <span class="text-Functions">Danh bạ</span>
                 </button>
             </li>
         </ul>
@@ -293,7 +293,7 @@
              id="pills-group"
              role="tabpanel"
              aria-labelledby="tab-group">
-            <!-- ~/Views/Home/Message/_MessagePartial.cshtml -->
+            <!-- ~/Views/Home/Contact/Group/_TabGroupPartial.cshtml -->
             Tab Group
         </div>
 
@@ -326,6 +326,7 @@
         renderTabFriendRequest(false);
         renderTabFriendship(false)
         renderTabGroupRequest(false);
+        renderTabGroup(false);
     });
 
     // Hiển thị
@@ -572,6 +573,18 @@
                 showLoading(false)
             }
             $("#pills-group-request").html(data)
+        });
+    }
+
+    function renderTabGroup(isLoading = false) {
+        if (isLoading) {
+            showLoading(true)
+        }
+        $.get('group', function (data) {
+            if (isLoading) {
+                showLoading(false)
+            }
+            $("#pills-group").html(data)
         });
     }
 </script>

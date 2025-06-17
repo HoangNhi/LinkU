@@ -1,0 +1,92 @@
+﻿@model MODELS.BASE.GetListPagingResponse
+@{
+    var Data = Model.Data as List<MODELS.GROUP.Dtos.MODELGroup>;
+
+    Dictionary<int, List<(int, int)>> positions = new Dictionary<int, List<(int, int)>>
+{
+        { 2, [(-12, 0), (12, 0)] },
+        { 3, [(0, -14), (-14, 14), (14, 14)] },
+        { 4, [(-14, -14), (-14, 14), (14, 14), (14, -14)] }
+    };
+}
+
+@if (Model.TotalRow == 0)
+{
+
+}
+else
+{
+    if (Model.PageIndex == 1 && Model.TotalRow > 0)
+    {
+        <div class="groupTotalRow d-none">@Model.TotalRow</div>
+    }
+    foreach (var item in Data)
+    {
+        <button type="button" 
+                class="btn btn-link w-100 p-0" 
+                data-mdb-ripple-init 
+                data-mdb-ripple-color="dark"
+                onclick="handleClickEventGroupButton('@item.Id')">
+            <div class="d-flex align-items-center">
+                @if (!string.IsNullOrEmpty(item.AvartarUrl))
+                {
+                    <img class="rounded-circle flex-shrink-0 me-3"
+                         style="object-fit: cover; box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;"
+                         width="60" height="60"
+                         src='@item.AvartarUrl' />
+                }
+                else
+                {
+                    <div class="circles-container flex-shrink-0 mx-3">
+                        @{
+                            int countMember = item.Avartar.CountMember <= 4 ? item.Avartar.CountMember : 4;
+                            int sub = 0;
+                        }
+                        @for (int i = 1; i <= countMember && i <= 4; i++)
+                        {
+                            if (i == 3 && item.Avartar.CountMember > 4)
+                            {
+                                <div class="circle rounded-circle d-flex justify-content-center align-items-center text-white"
+                                     style="background-color: grey;
+                                        transform: translate(calc(-50% + @(positions[countMember][i-1].Item1)px), calc(-50% + @(positions[countMember][i-1].Item2)px));
+                                        z-index: @( i switch
+                                        {
+                                            2 => 0,
+                                            1 => 5,
+                                            3 => 3,
+                                            4 => 4
+                                        } )">
+                                    @($"{item.Avartar.CountMember - 3} +")
+                                </div>
+                                sub = 1;
+                            }
+                            else
+                            {
+                                <div class="circle rounded-circle d-flex justify-content-center align-items-center text-white"
+                                     style="background: no-repeat center / cover url(@item.Avartar.UrlsAvartar[i - 1 - sub]);
+                                        transform: translate(calc(-50% + @(positions[countMember][i-1].Item1)px), calc(-50% + @(positions[countMember][i-1].Item2)px));
+                                        z-index: @( i switch
+                                        {
+                                            2 => 0,
+                                            1 => 5,
+                                            3 => 3,
+                                            4 => 4
+                                        } )">
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+                <div class="d-flex flex-column text-start border-bottom border-secondary w-100 justify-content-center" 
+                     style="height: 76px">
+                    <div class="fw-bold fs-6 text-black"
+                         style="line-height: 1.5">
+                        @item.GroupName
+                    </div>
+                    <div class="pt-1"></div>
+                    <div class="text-muted" style="line-height: 1.5; font-size: .75rem; font-weight: 500">@($"{item.CountMember} thành viên")</div>
+                </div>
+            </div>
+        </button>
+    }
+}

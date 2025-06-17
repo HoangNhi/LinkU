@@ -22,5 +22,7 @@ namespace MODELS.GROUP.Dtos
         public string? AvartarUrl { get; set; }
 
         public MODELGroupAvartar Avartar { get; set; } = new MODELGroupAvartar();
+
+        public int CountMember { get; set; } = 0;
     }
 }

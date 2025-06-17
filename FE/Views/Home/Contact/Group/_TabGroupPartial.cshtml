@@ -1,0 +1,191 @@
+﻿<style>
+    #group-container .circles-container {
+        position: relative;
+        width: 60px;
+        height: 60px;
+    }
+</style>
+
+<div class="w-100 h-100" style="background-color: rgb(245, 245, 245)">
+    @* Header *@
+    <div class="p-3 bg-white d-flex align-items-center"
+         style="max-height: 80px; border-radius: 12px; box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
+        <span class="material-symbols-outlined me-2 fs-1 text-brown-900">
+            group
+        </span>
+        <span class="fw-bold fs-6" style="line-height: 2.5rem">Danh sách nhóm</span>
+    </div>
+
+    <p id="groupTotal" class="my-3">Nhóm (0)</p>
+
+    <div class="p-2 bg-white rounded-3" style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset; height: calc(100% - 130px);">
+        @* Search *@
+        <div id="groupSearchInputContainer"
+             class="d-flex w-100 align-items-center my-2 border border-secondary"
+             style="background-color: rgba(134, 142, 153, .1); border-radius: 50px; overflow: hidden">
+            <i class="fas fa-search"
+               style="padding: 0 4px 0 14px; line-height: 36px; background-color: rgba(0,0,0,0)"></i>
+            <input id="groupSearchInput"
+                   class="w-100 border-0"
+                   style="background-color: rgba(0,0,0,0); outline: unset"
+                   type="search"
+                   placeholder="Tìm kiếm"
+                   autocomplete="off">
+        </div>
+        @* Container *@
+        <div id="group-container"
+             class=""
+             style="overflow-y: auto;
+                    height: calc(100% - 60px);
+                    scrollbar-color: rgba(0, 0, 0, 0.3) rgba(245, 245, 245, 0);">
+        </div>
+    </div>
+</div>
+
+<script>
+    var groupPageIndex = 1; groupRowPerPage = 15, groupIsDone = false, groupIsLoading = false, groupTypingTimer = null;
+    const $groupSearchInput = $("#groupSearchInput"), groupSearchInput = document.getElementById("groupSearchInput"),
+        groupContainer = document.getElementById("group-container"),
+        groupTotal = document.getElementById("groupTotal")
+
+    $(document).ready(function () {
+        GetListPagingGroup()
+
+        // Cuộn trang
+        groupContainer.addEventListener('scroll', (e) => {
+            const scrollTop = groupContainer.scrollTop;
+            const docHeight = groupContainer.clientHeight;
+            const windowHeight = groupContainer.scrollHeight;
+
+            if (scrollTop + docHeight + 1 >= windowHeight) {
+                GetListPagingGroup(groupPageIndex + 1, groupRowPerPage);
+            }
+        })
+
+        // Input text search
+        groupSearchInput.addEventListener("input", () => {
+            // Xóa timeout cũ nếu còn
+            clearTimeout(groupTypingTimer);
+
+            // Chuyển lại trạng thái tìm kiếm
+            groupIsLoading = false, groupIsDone = false;
+
+            // Đặt lại timeout: nếu sau 800ms không gõ thì ẩn loading và hiện kết quả tìm kiếm
+            groupTypingTimer = setTimeout(() => {
+                groupContainer.innerHTML = ``;
+                // Render kết quả tìm kiếm
+                GetListPagingGroup(1, 15)
+            }, 800);
+        })
+
+    });
+
+    function GetListPagingGroup(pageindex = 1, rowperpage = 15, isRefresh = false) {
+        if (isRefresh) {
+            $.ajax({
+                url: '@Url.Action("GroupGetListPaging", "Group")',
+                type: 'GET',
+                data: {
+                    UserId: '@ViewContext.GetClaimValue("UserId")',
+                    PageIndex: 1,
+                    RowPerPage: rowperpage * pageindex,
+                    TextSearch: $groupSearchInput.val()
+                },
+                success: function (data) {
+                    if (data.trim() === "") {
+                        if (pageindex === 1) {
+                            if ($groupSearchInput.val() === '') {
+                                // Chưa có nhóm
+                                const div = $("<div>").html(noGroup)
+                                div.addClass("h-100")
+                                div.css('align-content', 'center');
+                                groupContainer.innerHTML = div[0].outerHTML
+                            } else {
+                                // Không tìm thấy
+                                const div = $("<div>").html(notFound)
+                                div.addClass("h-100")
+                                div.css('align-content', 'center');
+                                groupContainer.innerHTML = div[0].outerHTML
+                            }
+                            groupTotal.innerHTML = `Nhóm (0)`
+                        }
+                    }
+                    else {
+                        const $html = $('<div>').html(data);
+                        if ($html.find('.groupTotalRow').length > 0) {
+                            groupTotal.innerHTML = `Nhóm (${$html.find('.groupTotalRow')[0].innerHTML})`
+                        }
+                        groupContainer.innerHTML = data
+                    }
+                },
+                error: function (xhr, error) {
+                    ShowThongBaoThatBai(error)
+                }
+            });
+        } else {
+            if (groupIsDone) return;
+            if (groupIsLoading) return;
+
+            groupIsLoading = true;
+
+            $.ajax({
+                url: '@Url.Action("GroupGetListPaging", "Group")',
+                type: 'GET',
+                data: {
+                    UserId: '@ViewContext.GetClaimValue("UserId")',
+                    PageIndex: pageindex,
+                    RowPerPage: rowperpage,
+                    TextSearch: $groupSearchInput.val()
+                },
+                success: function (data) {
+                    // Cập nhật số trang, số dòng và trạng thái loading
+                    groupPageIndex = pageindex
+                    groupRowPerPage = rowperpage
+                    groupIsLoading = false;
+
+                    if (data.trim() === "") {
+                        if (pageindex === 1) {
+                            if ($groupSearchInput.val() === '') {
+                                // Chưa có nhóm
+                                const div = $("<div>").html(noGroup)
+                                div.addClass("h-100")
+                                div.css('align-content', 'center');
+                                groupContainer.innerHTML = div[0].outerHTML
+                            } else {
+                                // Không tìm thấy
+                                const div = $("<div>").html(notFound)
+                                div.addClass("h-100")
+                                div.css('align-content', 'center');
+                                groupContainer.innerHTML = div[0].outerHTML
+                            }
+                            groupTotal.innerHTML = `Nhóm (0)`
+                        } else {
+                            groupIsDone = true;
+                        }
+
+                    }
+                    else {
+                        const $html = $('<div>').html(data);
+                        if ($html.find('.groupTotalRow').length > 0) {
+                            groupTotal.innerHTML = `Nhóm (${$html.find('.groupTotalRow')[0].innerHTML})`
+                        }
+
+                        groupContainer.insertAdjacentHTML('beforeend', data)
+                    }
+                },
+                error: function (xhr, error) {
+                    groupIsLoading = false;
+                    ShowThongBaoThatBai(error)
+                }
+            });
+        }
+    }
+
+    function handleClickEventGroupButton(id) {
+        // Chuyển sang tab message
+        setActiveButton(id)
+        transToChatScreen(id, 1)
+        SwitchToTabFunctions('tab-conversation');
+        SwitchToTabChatArea('tab-chat-message');
+    }
+</script>

@@ -232,6 +232,9 @@
                 // Rerender Conversation
                 GetListPagingConversation(PageIndexConversation, RowPerPageConversation, () => { setActiveButton(TargetId) })
 
+                // Refresh Group
+                GetListPagingGroup(groupPageIndex, groupRowPerPage, true);
+
                 // Xử lý khi Tab Message đã được tải
                 if (TargetId === response.data || TargetId === response.data) {
                     // Update lại tin nhắn mới nhất

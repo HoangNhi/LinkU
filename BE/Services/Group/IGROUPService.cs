@@ -7,7 +7,7 @@ namespace BE.Services.Group
 {
     public interface IGROUPService
     {
-        BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request);
+        BaseResponse<GetListPagingResponse> GetListPaging(POSTGroupGetListPagingRequest request);
         BaseResponse<MODELGroup> GetById(GetByIdRequest request);
         BaseResponse<POSTGroupRequest> GetByPost(GetByIdRequest request);
         BaseResponse<MODELGroup> Insert(POSTGroupRequest request);

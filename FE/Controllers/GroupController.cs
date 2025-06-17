@@ -284,6 +284,45 @@ namespace FE.Controllers
 
         #endregion
 
+        #region Group
+        [Route("group")]
+        public IActionResult Group()
+        {
+            return PartialView("~/Views/Home/Contact/Group/_TabGroupPartial.cshtml");
+        }
+
+        public IActionResult GroupGetListPaging(POSTGroupGetListPagingRequest request)
+        {
+            try
+            {
+                if (request != null && ModelState.IsValid)
+                {
+                    ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.GROUP_GET_LIST_PAGING, request, HttpAction.Post);
+                    if (response.Success)
+                    {
+                        var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
+                        result.Data = JsonConvert.DeserializeObject<List<MODELGroup>>(result.Data.ToString());
+                        return PartialView($"~/Views/Home/Contact/Group/_GroupGetListPagingPartial.cshtml", result);
+                    }
+                    else
+                    {
+                        throw new Exception(response.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception(CommonFunc.GetModelState(this.ModelState));
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+        #endregion
+
+
         #region Private Methodss
         void ValidateRequestCreateGroup(IFormCollection request)
         {

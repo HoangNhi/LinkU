@@ -264,7 +264,10 @@
                     // Refresh GroupRequest
                     getListPaginggroupRequest(null, null, true, () => { showLoading(false) })
 
-                    // Rerender Conversation
+                    // Refresh Group
+                    GetListPagingGroup(groupPageIndex, groupRowPerPage, true);
+
+                    // Refresh Conversation
                     GetListPagingConversation(PageIndexConversation, RowPerPageConversation, () =>
                     {
                         // Chuyển sang tab message
@@ -279,6 +282,7 @@
                             GroupId: response.data.groupId
                         }
                         connection.invoke("RequestRerenderTabOfGroupMember", data);
+
                     })
                 }
             },

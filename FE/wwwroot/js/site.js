@@ -237,3 +237,14 @@ var noGroupRequest = `
         <p>Bạn chưa có lời mời tham gia nhóm nào.</p>
     </div>
 `
+
+var noGroup = `
+     <div class="container-fluid text-center">
+        <img src="/asset/Group.png" height = "200" />
+        <h4>Khám phá các nhóm thú vị</h4>
+        <p  class="text-break"
+            style="width: 60%; justify-self: center;">
+            Tham gia các cộng đồng để kết nối với những người có cùng sở thích và chia sẻ những trải nghiệm tuyệt vời
+        </p>
+    </div>
+`

@@ -41,9 +41,57 @@ namespace BE.Services.Group
         }
 
         #region Common CRUD
-        public BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request)
+        public BaseResponse<GetListPagingResponse> GetListPaging(POSTGroupGetListPagingRequest request)
         {
-            throw new NotImplementedException();
+            var response = new BaseResponse<GetListPagingResponse>();
+            try
+            {
+                SqlParameter iTotalRow = new SqlParameter()
+                {
+                    ParameterName = "@oTotalRow",
+                    SqlDbType = System.Data.SqlDbType.BigInt,
+                    Direction = System.Data.ParameterDirection.Output
+                };
+
+                var parameters = new[]
+                {
+                    new SqlParameter("@iTextSearch", request.TextSearch),
+                    new SqlParameter("@iPageIndex", request.PageIndex - 1),
+                    new SqlParameter("@iRowsPerPage", request.RowPerPage),
+                    new SqlParameter("@iUserId", request.UserId),
+                    iTotalRow
+                };
+
+                // Lấy dữ liệu
+                var result = _context.ExcuteStoredProcedure<MODELGroup>("sp_GROUP_GetListPaging", parameters).ToList();
+
+                // Xử lý dữ liệu
+                foreach (var item in result)
+                {
+                    // Lấy hình ảnh đại diện của nhóm
+                    if (string.IsNullOrEmpty(item.AvartarUrl))
+                    {
+                        var avatar = _conversationService.GetGroupAvartar(new GetByIdRequest { Id = item.Id });
+                        if (avatar.Error)
+                        {
+                            throw new Exception(avatar.Message);
+                        }
+                        item.Avartar = avatar.Data;
+                    }
+                }
+
+                GetListPagingResponse resposeData = new GetListPagingResponse();
+                resposeData.PageIndex = request.PageIndex;
+                resposeData.Data = result;
+                resposeData.TotalRow = Convert.ToInt32(iTotalRow.Value);
+                response.Data = resposeData;
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
         }
 
         public BaseResponse<MODELGroup> GetById(GetByIdRequest request)

@@ -177,6 +177,15 @@
                       left: 50%;
                       transform: translate(-50%, -50%);"></i>
         </button>
+
+        <!-- Thông báo tin nhắn mới -->
+        <div class="new-message-indicator d-none" id="newMessageIndicator" onclick="scrollToBottom()">
+            <div class="new-msg-btn">
+                <span class="badge-dot" id="messageCount"></span>
+                <span class="text">Tin nhắn mới</span>
+                <i class="fas fa-chevron-down icon"></i>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -184,8 +193,12 @@
 <script>
     var currentPage = 1;
     var isLoading = false;
+    let newMessageCount = 0;
     // Biến kiểm tra đã lấy hết dữ liệu trong db hay chưa
     var isDone = false;
+
+    const newMessageIndicator = document.getElementById('newMessageIndicator');
+    const messageCountBadge = document.getElementById('messageCount');
 
     $(document).ready(function () {
         GetFriendRequestStatus();
@@ -249,18 +262,13 @@
         if (scrollTop === 0) {
             GetMessage();
         }
-    });
 
-    @*function ShowPopupAddFriend() {
-        $.ajax({
-            url: '@Url.Action("ShowAddFriendPopup", "Friend")',
-            type: 'GET',
-            data: { Id: '@Model.Id' },
-            success: function (data) {
-                ShowModal(data, "md")
+        if (scrollTop + docHeight + 1 >= ChatBox.scrollHeight) {
+            if (newMessageCount > 0) {
+                hideNewMessageIndicator();
             }
-        });
-    }*@
+        }
+    });
 
     function GetFriendRequestStatus() {
         $.ajax({
@@ -294,7 +302,9 @@
                 }else{
                     if (data.trim() !== '') {
                         document.getElementById('ChatContainer').insertAdjacentHTML('afterbegin', data);
+                        // Gọi lại hàm xử lý display thời gian tạo, tên và ảnh đại diện của người tạo tin nhắn
                         filterTimeDivs();
+                        groupUserMessages();
                         if (currentPage === 1) {
                             scrollToBottom();
                         } else {
@@ -309,17 +319,45 @@
             }
         });
     }
+
+    // Hiển thị thông báo tin nhắn mới
+    function showNewMessageIndicator() {
+        newMessageCount++;
+        messageCountBadge.textContent = newMessageCount;
+        messageCountBadge.parentNode.querySelector('span:nth-child(2)').textContent = newMessageCount === 1 ? 'tin nhắn mới' : 'tin nhắn mới';
+        newMessageIndicator.classList.remove('d-none');
+        newMessageIndicator.classList.remove('hiding');
+    }
+
+    // Ẩn thông báo tin nhắn mới
+    function hideNewMessageIndicator() {
+        newMessageIndicator.classList.add('hiding');
+        setTimeout(() => {
+            newMessageIndicator.classList.add('d-none');
+            newMessageIndicator.classList.remove('hiding');
+            newMessageCount = 0;
+        }, 300);
+    }
 </script>
 
 @* Script _MessageContainerPartial *@
 <script>
     function scrollToBottom() {
         const chatBox = document.getElementById("MessageWrapper");
-        chatBox.scrollTop = chatBox.scrollHeight;
+        chatBox.scrollTo({
+            top: chatBox.scrollHeight,
+            behavior: 'smooth'
+        });
+
+        if (newMessageCount > 0) {
+            setTimeout(() => {
+                hideNewMessageIndicator();
+            }, 500);
+        }
     }
 
     // Append tin nhắn
-    function appendMessage(sender, message, ngaytao) {
+    function appendMessage(data) {
         // Ẩn profile card
         const profileCard = document.querySelector('.profile-card');
         if (profileCard) {
@@ -330,16 +368,18 @@
         const div = document.createElement("div");
         div.innerHTML = `
                         <div class="lh-1 py-3"
-                            style="font-size: 12px">${ngaytao}</div>
-                        <div class="row align-items-center ${sender === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? "flex-row-reverse" : ""}" style="margin-bottom: 12px;">
-                            <div style="width: 48px; display: ${sender === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? "none" : "auto"}">
-                                <img class="rounded-circle"
+                            style="font-size: 12px">${data.dateTime}</div>
+                        <div class="row align-items-center ${data.senderId === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? "flex-row-reverse" : ""}"
+                             style="margin-bottom: 12px;"
+                             data-userid = "${data.senderId}">
+                            <div style="width: 48px; align-self: end; display: ${data.senderId === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? "none" : "auto"}">
+                                <img class="rounded-circle border-bottom border-2"
                                      src="@Model.ProfilePicture"
-                                     style="height: 38px; width: 38px" />
+                                     style="height: 38px; width: 38px; object-fit: cover" />
 
                             </div>
                             <div style="width: 70%;">
-                                <p class="m-0 ${sender === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? 'MyMessage' : 'OtherMessage'}"
+                                <p class="m-0 ${data.senderId === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? 'MyMessage' : 'OtherMessage'}"
                                    style="font-size: 14px;
                                           width: fit-content;
                                           padding: 8px 12px;
@@ -347,57 +387,11 @@
                                           text-align: justify;
                                           font-weight: 400;
                                           box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
-                                      ${message}
+                                      ${data.message}
                                 </p>
                             </div>
                             <div style="width: calc(30% - 48px)"></div>
                         </div>`;
         document.getElementById("ChatContainer").appendChild(div);
-
-        // Gọi lại hàm xử lý display thời gian tạo tin nhắn
-        filterTimeDivs();
-    }
-</script>
-
-@* Script xử lý hiển thị thời gian *@
-<script>
-    function parseVietnameseDate(dateStr) {
-        const regex = /(\d{2}):(\d{2}) (\d{2}) tháng (\d{2}), (\d{4})/;
-        const match = dateStr.match(regex);
-        if (!match) return null;
-
-        const [_, hour, minute, day, month, year] = match.map(Number);
-        return new Date(year, month - 1, day, hour, minute);
-    }
-
-    // Hàm hiển thị thời gian tin nhắn
-    // Nếu 2 tin nhắn cách nhau hơn 30 phút sẽ hiển thị thời gian
-    // Thời gian sẽ được so sánh với tin nhắn trước đó
-    function filterTimeDivs() {
-        const container = document.getElementById("ChatContainer");
-        const timeDivs = Array.from(container.querySelectorAll("div.lh-1.py-3"));
-
-        let prevTime = null;
-
-        timeDivs.forEach((div, index) => {
-            const currentTime = parseVietnameseDate(div.textContent.trim());
-
-            if (!currentTime) return;
-
-            if (index === 0) {
-                div.style.display = "block";
-                prevTime = currentTime;
-                return;
-            }
-
-            const diffMinutes = (currentTime - prevTime) / 1000 / 60;
-
-            if (diffMinutes >= 30) {
-                div.style.display = "block";
-                prevTime = currentTime;
-            } else {
-                div.style.display = "none";
-            }
-        });
     }
 </script>

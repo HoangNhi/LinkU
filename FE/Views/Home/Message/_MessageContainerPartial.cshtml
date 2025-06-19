@@ -8,6 +8,7 @@
         {false, "OtherMessage" },
     };
     int RowPerPage = ViewBag.RowPerPage;
+    int ConversationType = ViewBag.ConversationType ?? 0;
 }
 
 @if (Data.Count == 0 && Model.PageIndex == 1)
@@ -32,9 +33,9 @@ else
     @for (int i = Data.Count - 1; i >= 0; i--)
     {
         <div class="lh-1 py-3"
-             style="font-size: 12px">@Data[i].GetDateTime()
+             style="font-size: 12px">@Data[i].DateTime
         </div>
-        if (Data[i].MessageType == 1 || Data[i].MessageType == 2)
+        if (Data[i].MessageType == 1)
         {
             <div class="row" style="margin-bottom: 12px;">
                 <div class="col-12">
@@ -48,14 +49,21 @@ else
         }
         else
         {
-
-            <div class="row align-items-center @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "flex-row-reverse" : "")" style="margin-bottom: 12px;">
+            <div class="row align-items-center @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "flex-row-reverse" : "")" 
+                 style="margin-bottom: 12px;"
+                 data-userid = "@Data[i].SenderId">
                 <div style="width: 48px; align-self: end; display: @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "none" : "auto")">
                     <img class="rounded-circle border-bottom border-2"
                             src="@(Data[i].Sender.ProfilePicture)"
-                            style="height: 38px; width: 38px" />
+                            style="height: 38px; width: 38px; object-fit: cover" />
                 </div>
                 <div style="width: 70%;">
+                    @if(ConversationType == 1 && Data[i].SenderId != Guid.Parse(ViewContext.GetClaimValue("UserId")))
+                    {
+                        <div class="w-100 text-start" style="padding-left: 12px">
+                            <span class="text-muted" style="font-size: .75rem; font-weight: 400">@Data[i].Sender.Ten</span>
+                        </div>
+                    }
                     <p class="m-0 @StyleMessage[Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId"))]"
                         style="font-size: 14px;
                                 width: fit-content;

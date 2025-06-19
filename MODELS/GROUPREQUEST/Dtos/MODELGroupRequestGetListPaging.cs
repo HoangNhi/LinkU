@@ -21,7 +21,7 @@ namespace MODELS.GROUPREQUEST.Dtos
         public int MemberCount { get; set; }
 
         #region Hàm hỗ trợ
-        public int? Duration => (int)((DateTime.Now - NgaySua).TotalHours);
+        public int? Duration => (int)((System.DateTime.Now - NgaySua).TotalHours);
         public string DurationText => Duration switch
         {
             >= 24 => $"{Duration / 24} ngày",

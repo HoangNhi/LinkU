@@ -25,16 +25,16 @@
         transition: box-shadow 0.2s ease;
     }
 
-    .btn-Functions:hover,
-    .btn-ProfilePicture:hover {
-        background-color: rgba(0,0,0,0.04);
-    }
+        .btn-Functions:hover,
+        .btn-ProfilePicture:hover {
+            background-color: rgba(0,0,0,0.04);
+        }
 
-    .btn-Functions.active {
-        box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset!important;
-        border-radius: 8px;
-        pointer-events: none;
-    }
+        .btn-Functions.active {
+            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset !important;
+            border-radius: 8px;
+            pointer-events: none;
+        }
 
     /* Track */
     #Functions-container::-webkit-scrollbar-track:hover {
@@ -78,10 +78,10 @@
     }
 
     .btn.btn-light.rounded-circle:hover{
-        background-color: rgba(211, 212, 213, 1)!important 
+        background-color: rgba(211, 212, 213, 1)!important
     }*/
 
-    #Conversation_SearchInput, 
+    #Conversation_SearchInput,
     #frmGroup #SearchInput {
         padding: 4px 12px 4px 2px;
         border: 0;
@@ -91,11 +91,10 @@
         background-color: rgba(0,0,0,0)
     }
 
-    #Conversation_SearchInput:focus-visible {
-        outline: none;
-        box-shadow: none;
-    }
-
+        #Conversation_SearchInput:focus-visible {
+            outline: none;
+            box-shadow: none;
+        }
 </style>
 
 <div class="d-flex"
@@ -114,8 +113,7 @@
                         data-bs-target="#pills-conversation"
                         aria-controls="pills-conversation"
                         aria-selected="true"
-                        onclick="SwitchToTabFunctions('tab-conversation')"
-                        >
+                        onclick="SwitchToTabFunctions('tab-conversation')">
                     <i class="fa-solid fa-comment icon-Functions"
                        style=""></i>
                     <span class="text-Functions">Đoạn chat</span>
@@ -180,7 +178,7 @@
              id="pills-message-waiting"
              role="tabpanel"
              aria-labelledby="tab-message-waiting">
-            Tin nhắn đang chờ<br/>Tính năng đang thực hiện
+            Tin nhắn đang chờ<br />Tính năng đang thực hiện
         </div>
 
         <!-- Contact -->
@@ -192,7 +190,6 @@
         </div>
     </div>
     <!-- ChatInfo - Pills content -->
-
     <!-- Tin nhắn -->
     <div class="tab-content" id="ChatArea">
         <!-- Controller -->
@@ -586,5 +583,92 @@
             }
             $("#pills-group").html(data)
         });
+    }
+</script>
+
+@* 
+    Script xử lý hiển thị thời gian
+    Dùng trong tab Message
+*@
+<script>
+    function parseVietnameseDate(dateStr) {
+        const regex = /(\d{2}):(\d{2}) (\d{2}) tháng (\d{2}), (\d{4})/;
+        const match = dateStr.match(regex);
+        if (!match) return null;
+
+        const [_, hour, minute, day, month, year] = match.map(Number);
+        return new Date(year, month - 1, day, hour, minute);
+    }
+
+    // Hàm hiển thị thời gian tin nhắn
+    // Nếu 2 tin nhắn cách nhau hơn 30 phút sẽ hiển thị thời gian
+    // Thời gian sẽ được so sánh với tin nhắn trước đó
+    function filterTimeDivs() {
+        const container = document.getElementById("ChatContainer");
+        const timeDivs = Array.from(container.querySelectorAll("div.lh-1.py-3"));
+
+        let prevTime = null;
+
+        timeDivs.forEach((div, index) => {
+            const currentTime = parseVietnameseDate(div.textContent.trim());
+
+            if (!currentTime) return;
+
+            if (index === 0) {
+                div.style.display = "block";
+                prevTime = currentTime;
+                return;
+            }
+
+            const diffMinutes = (currentTime - prevTime) / 1000 / 60;
+
+            if (diffMinutes >= 30) {
+                div.style.display = "block";
+                prevTime = currentTime;
+            } else {
+                div.style.display = "none";
+            }
+        });
+    }
+
+    // Hàm hiển thị tên và ảnh đại diện của người nhắn tin
+    function groupUserMessages() {
+        try {
+            const container = document.getElementById("ChatContainer");
+            const messageRows = Array.from(container.querySelectorAll("div.row.align-items-center")).reverse();
+
+            let prevRow = null;
+            let prevTime = null;
+
+            messageRows.forEach(row => {
+                const timeDiv = row.previousElementSibling;
+                if (!timeDiv || !timeDiv.classList.contains("lh-1")) return;
+
+                const currentTime = parseVietnameseDate(timeDiv.textContent.trim());
+                const senderSpan = row.querySelector("span.text-muted");
+                const avatar = row.querySelector("img.rounded-circle");
+
+                const currentSender = row.getAttribute("data-userid");
+                const prevSender = prevRow?.getAttribute("data-userid");
+
+                if (
+                    currentSender !== prevSender ||
+                    (currentTime - prevTime) / 1000 / 60 >= 30
+                ) {
+                    if (avatar) avatar.style.display = "block";
+                    if (senderSpan) senderSpan.style.display = "inline";
+                } else {
+                    if (avatar) avatar.style.display = "none";
+                    if (senderSpan) senderSpan.style.display = "inline";
+                    const prevSenderSpan = prevRow?.querySelector("span.text-muted");
+                    if (prevSenderSpan) prevSenderSpan.style.display = "none";
+                }
+
+                prevRow = row;
+                prevTime = currentTime;
+            });
+        } catch (err) {
+            console.error("Lỗi trong groupUserMessages:", err);
+        }
     }
 </script>

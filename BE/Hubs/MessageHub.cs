@@ -48,6 +48,7 @@ namespace BE.Hubs
             _groupMemberService = groupMemberService;
         }
 
+        #region Gửi tin nhắn
         // Phương thức gửi tin nhắn tới tất cả client
         public async Task SendPrivateMessage(string sender, string receiver, string message)
         {
@@ -71,7 +72,7 @@ namespace BE.Hubs
                 EnsureConversation(senderInfo, receiverInfo, resultMessage.Id, out conversationId);
 
                 // Gửi phẩn hồi đến client
-                await SendSignalRMessage(senderId, receiverId, message, resultMessage.GetDateTime());
+                await SendSignalRMessage(senderId, receiverId, message, resultMessage.DateTime);
             }
             catch (Exception ex)
             {
@@ -98,6 +99,57 @@ namespace BE.Hubs
                 Console.WriteLine($"Thời gian chạy: {stopwatch.ElapsedMilliseconds} ms");
             }
         }
+
+        /// <summary>
+        /// Gửi tin nhắn đến nhóm
+        /// </summary>
+        public async Task<BaseResponse> SendGroupMessage(PostMessageRequest request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Kiểm tra Id người gửi, người nhận và nội dung tin nhắn có hợp lệ không
+                if (request.SenderId == Guid.Empty || request.TargetId == Guid.Empty || string.IsNullOrWhiteSpace(request.Content))
+                {
+                    throw new Exception("Nhóm hoặc nội dung tin nhắn không hợp lệ.");
+                }
+
+                // Tạo tin nhắn
+                var resultMessage = _messageService.Insert(request);
+
+                if (resultMessage.Error)
+                {
+                    throw new Exception(resultMessage.Message);
+                }
+
+                // Lấy thông tin người gửi
+                var sender = _userService.GetById(new GetByIdRequest { Id = request.SenderId });
+                resultMessage.Data.Sender = sender.Data;
+
+                // Gửi tin nhắn đến tất cả thành viên trong nhóm
+                var groupMembers = _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = request.TargetId });
+                if (groupMembers.Error)
+                {
+                    throw new Exception(groupMembers.Message);
+                }
+
+                foreach (var member in groupMembers.Data)
+                {
+                    if (_users.TryGetValue(member.UserId.ToString(), out string connectionId))
+                    {
+                        await Clients.Client(connectionId).SendAsync("ReceiveMessage", new ApiResponse(resultMessage.Data));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = "Lỗi hệ thống: " + ex.Message;
+            }
+            return response;
+        }
+        #endregion
+
 
         // Gửi yêu cầu cập nhật giao diện cho cả người gửi và người nhận
         public async Task UpdateFriendRequest(string RequestId)
@@ -393,22 +445,22 @@ namespace BE.Hubs
             }
         }
 
-        async Task SendSignalRMessage(Guid senderId, Guid receiverId, string message, string Datetime)
+        async Task SendSignalRMessage(Guid senderId, Guid targetId, string message, string Datetime)
         {
-            var response = new MODELPrivateMessageResponse
+            var response = new MODELMessageResponse
             {
                 SenderId = senderId,
-                ReceiverId = receiverId,
+                TargetId = targetId,
                 Message = message,
                 DateTime = Datetime
             };
 
             // Gửi tin nhắn qua SignalR
-            if (_users.TryGetValue(receiverId.ToString(), out string receiverConnectionId))
+            if (_users.TryGetValue(targetId.ToString(), out string receiverConnectionId))
             {
-                await Clients.Client(receiverConnectionId).SendAsync("ReceivePrivateMessage", new ApiResponse(response));
+                await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", new ApiResponse(response));
             }
-            await Clients.Caller.SendAsync("ReceivePrivateMessage", new ApiResponse(response));
+            await Clients.Caller.SendAsync("ReceiveMessage", new ApiResponse(response));
         }
 
         async Task SendSignalRRerenderTab(Guid UserId, string tabname)

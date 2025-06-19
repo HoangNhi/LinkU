@@ -10,6 +10,6 @@
         public bool IsEdit { get; set; } = false;
         public int? Sort { get; set; }
 
-        public string GetDateTime() => $"{NgayTao.ToString("HH")}:{NgayTao.ToString("mm")} {NgayTao.ToString("dd")} tháng {NgayTao.ToString("MM")}, {NgayTao.ToString("yyyy")}";
+        public string DateTime => $"{NgayTao.ToString("HH")}:{NgayTao.ToString("mm")} {NgayTao.ToString("dd")} tháng {NgayTao.ToString("MM")}, {NgayTao.ToString("yyyy")}";
     }
 }

@@ -121,6 +121,7 @@ namespace FE.Controllers
 
                         result.Data = DataResult;
                         ViewBag.RowPerPage = request.RowPerPage;
+                        ViewBag.ConversationType = request.ConversationType;
 
                         // Nếu chưa có tin nhắn thì lấy thông tin của người nhắn tin để hiển thị
                         if (DataResult.Count == 0 && request.ConversationType == 0 && result.PageIndex == 1)

@@ -20,9 +20,8 @@ namespace MODELS.FRIENDREQUEST.Dtos
 
         public MODELUser User { get; set; }
 
-
         #region Hàm hỗ trợ
-        public int? Duration => (int)((DateTime.Now - NgayTao).TotalHours);
+        public int? Duration => (int)((System.DateTime.Now - NgayTao).TotalHours);
         public string DurationText => Duration switch
         {
             >= 24 => $"{Duration / 24} ngày",

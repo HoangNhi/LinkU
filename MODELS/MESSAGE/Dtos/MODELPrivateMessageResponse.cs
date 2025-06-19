@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace MODELS.MESSAGE.Dtos
 {
-    public class MODELPrivateMessageResponse
+    public class MODELMessageResponse
     {
         public Guid SenderId { get; set; }
-        public Guid ReceiverId { get; set; }
+        public Guid TargetId { get; set; }
         public string Message { get; set; }
         public string DateTime { get; set; }
     }

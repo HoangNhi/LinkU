@@ -12,7 +12,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 
-namespace FE.Services
+namespace FE.Services.ConsumeAPI
 {
     public class CONSUMEAPIService : ICONSUMEAPIService
     {
@@ -205,7 +205,7 @@ namespace FE.Services
                             FileDownloadName = downloadFileName,
                         };
                     }
-                    else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    else if (response.StatusCode == HttpStatusCode.Unauthorized)
                     {
                         // Call Refresh Token
                         ApiResponse responseAPI = ExcuteAPIWithoutToken(URL_API.USER_REFRESH_TOKEN, new RefreshTokenRequest { Token = GetToken("RefreshToken") }, HttpAction.Post);
@@ -249,7 +249,7 @@ namespace FE.Services
                 };
             }
         }
-        public async Task<ApiResponse> PostFormDataAPI(string action, System.Net.Http.MultipartFormDataContent content)
+        public async Task<ApiResponse> PostFormDataAPI(string action, MultipartFormDataContent content)
         {
             ApiResponse response = new ApiResponse();
             try

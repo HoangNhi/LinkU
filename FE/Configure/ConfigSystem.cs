@@ -1,4 +1,5 @@
-﻿using FE.Services;
+﻿using FE.Services.ConsumeAPI;
+using FE.Services.ViewRender;
 
 namespace FE.Configure
 {
@@ -35,6 +36,7 @@ namespace FE.Configure
         public static void AddService(WebApplicationBuilder builder)
         {
             builder.Services.AddTransient<ICONSUMEAPIService, CONSUMEAPIService>();
+            builder.Services.AddTransient<IVIEWRENDERService, VIEWRENDERService>();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using FE.Constant;
 using FE.Models;
-using FE.Services;
+using FE.Services.ConsumeAPI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;

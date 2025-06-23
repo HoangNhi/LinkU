@@ -1,4 +1,4 @@
-﻿using FE.Services;
+﻿using FE.Services.ConsumeAPI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

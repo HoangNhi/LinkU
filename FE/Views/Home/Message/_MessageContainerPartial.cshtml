@@ -9,9 +9,10 @@
     };
     int RowPerPage = ViewBag.RowPerPage;
     int ConversationType = ViewBag.ConversationType ?? 0;
+    Guid CurrentUserId = ViewBag.CurrentUserId;
 }
 
-@if (Data.Count == 0 && Model.PageIndex == 1)
+@if (Data.Count == 0 && Model.PageIndex == 1 && ConversationType == 0)
 {
     <div class="profile-card rounded-5 mb-5">
         <div class="p-3 d-flex" style="">
@@ -33,39 +34,45 @@ else
     @for (int i = Data.Count - 1; i >= 0; i--)
     {
         <div class="lh-1 py-3"
-             style="font-size: 12px">@Data[i].DateTime
+             style="font-size: 12px">
+            @Data[i].DateTime
         </div>
-        if (Data[i].MessageType == 1)
+        // Tin nhắn tạo nhóm và thông báo các thay đổi
+        if (Data[i].MessageType == 1 || Data[i].MessageType == 2)
         {
             <div class="row" style="margin-bottom: 12px;">
                 <div class="col-12">
                     <p class="m-0"
-                        style="font-size: 12px;">
+                       style="font-size: 12px;">
                         @Html.Raw(Data[i].Content)
                     </p>
                 </div>
             </div>
-            <div id="welcome-flag" data-call-welcome="1"></div>
+            if (Data[i].MessageType == 1)
+            {
+                <div id="welcome-flag" data-call-welcome="1"></div>
+            }
         }
-        else
+        // Tin nhắn thông thường
+        else if (Data[i].MessageType == 0)
         {
-            <div class="row align-items-center @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "flex-row-reverse" : "")" 
+            <div class="row align-items-center @(Data[i].SenderId == CurrentUserId ? "flex-row-reverse" : "")"
                  style="margin-bottom: 12px;"
-                 data-userid = "@Data[i].SenderId">
-                <div style="width: 48px; align-self: end; display: @(Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId")) ? "none" : "auto")">
+                 data-userid="@Data[i].SenderId">
+                <div style="width: 48px; align-self: end; display: @(Data[i].SenderId == CurrentUserId ? "none" : "auto")">
                     <img class="rounded-circle border-bottom border-2"
-                            src="@(Data[i].Sender.ProfilePicture)"
-                            style="height: 38px; width: 38px; object-fit: cover" />
+                         src="@(Data[i].Sender.ProfilePicture)"
+                         style="height: 38px; width: 38px; object-fit: cover" />
                 </div>
                 <div style="width: 70%;">
-                    @if(ConversationType == 1 && Data[i].SenderId != Guid.Parse(ViewContext.GetClaimValue("UserId")))
+                    @if (ConversationType == 1 && Data[i].SenderId != CurrentUserId)
                     {
                         <div class="w-100 text-start" style="padding-left: 12px">
                             <span class="text-muted" style="font-size: .75rem; font-weight: 400">@Data[i].Sender.Ten</span>
                         </div>
                     }
-                    <p class="m-0 @StyleMessage[Data[i].SenderId == Guid.Parse(ViewContext.GetClaimValue("UserId"))]"
-                        style="font-size: 14px;
+                    <p class="m-0 @StyleMessage[Data[i].SenderId == CurrentUserId]"
+                       style="font-size: 14px;
                                 width: fit-content;
                                 padding: 8px 12px;
                                 border-radius: 18px;
@@ -78,8 +85,109 @@ else
                 <div style="width: calc(30% - 48px)"></div>
             </div>
         }
+        else if (Data[i].MessageType == 3)
+        {
+            <div class="row align-items-center @(Data[i].SenderId == CurrentUserId ? "flex-row-reverse" : "")"
+                 style="margin-bottom: 12px;"
+                 data-userid="@Data[i].SenderId">
+                <div style="width: 48px; align-self: end; display: @(Data[i].SenderId == CurrentUserId ? "none" : "auto")">
+                    <img class="rounded-circle border-bottom border-2"
+                         src="@(Data[i].Sender.ProfilePicture)"
+                         style="height: 38px; width: 38px; object-fit: cover" />
+                </div>
+                <div style="width: 70%;">
+                    @if (ConversationType == 1 && Data[i].SenderId != CurrentUserId)
+                    {
+                        <div class="w-100 text-start" style="padding-left: 12px">
+                            <span class="text-muted" style="font-size: .75rem; font-weight: 400">@Data[i].Sender.Ten</span>
+                        </div>
+                    }
+                    <div class="m-0 rounded-2 @StyleMessage[Data[i].SenderId == CurrentUserId]
+                             @(Data[i].SenderId == CurrentUserId ? "BorderLeft" : "BorderRight")"
+                         style="width: fit-content; overflow: hidden; background-color: unset; line-height: 1">
+                        @switch (Data[i].MediaFile.FileType)
+                        {
+                            case (int)MODELS.COMMON.MediaFileType.ChatImage:
+                            {
+                                // Hình vuông
+                                if (Data[i].MediaFile.Shape == (int)MODELS.COMMON.ShapeType.Square)
+                                {
+                                    <img class="FilePreview"
+                                         width="2000" height="2000"
+                                         src="@Data[i].MediaFile.Url"
+                                         onclick="ShowLightBox(this.src)"
+                                         style="object-fit: fill; max-width: 200px; max-height: 200px" />
+                                }
+                                // Hình chữ nhật ngang
+                                else if (Data[i].MediaFile.Shape == (int)MODELS.COMMON.ShapeType.Landscape)
+                                {
+                                    <img class="FilePreview"
+                                         height="414" width="736" 
+                                         src="@Data[i].MediaFile.Url"
+                                         onclick="ShowLightBox(this.src)"
+                                         style="object-fit: fill; max-height: 200px; max-width: calc(200px * 16 / 9)" />
+                                }
+                                // Hình chữ nhật dọc
+                                else if (Data[i].MediaFile.Shape == (int)MODELS.COMMON.ShapeType.Portrait)
+                                {
+                                    <img class="FilePreview"
+                                         height="800" width="566"
+                                         src="@Data[i].MediaFile.Url"
+                                         onclick="ShowLightBox(this.src)"
+                                         style="object-fit: fill; max-height: 200px; max-width: calc(200px * 9 / 16)" />
+                                }
+                                // Invalid: Hiển thị tệp
+                                else
+                                {
+
+                                }
+                                break;
+                            }
+                            // Hiển thị video
+                            case (int)MODELS.COMMON.MediaFileType.ChatVideo:
+                            {
+                                <video class="FilePreview"
+                                       preload="metadata" controls
+                                       style="max-height: 200px; max-width: calc(200px * 16 / 9); line-height: 1" >
+                                    <source src="@Data[i].MediaFile.Url">
+                                </video>
+                                break;
+                            }
+                            // Hiển thị các tệp khác
+                            default:
+                            { 
+                                <a href="@($"/Home/DownloadFile?fileName={System.IO.Path.GetFileName(Data[i].MediaFile.Url)}")" download style="text-decoration: none;">
+                                    <div class="d-flex align-items-center"
+                                         style="background-color: rgb(225.6, 233.7, 247.05); cursor: pointer">
+                                        <div style="padding-left: 12px">
+                                            <div class="bg-white rounded-circle"
+                                                 style="padding: 0 10px">
+                                                <i class="fa-solid fa-file-lines text-black" style="line-height: 32px; font-size: 16px"></i>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column" style="margin: 12px 16px 12px 12px; text-align: justify;">
+                                            <span class="text-black" 
+                                                  style="line-height: 20px; font-size: 14px; 
+                                                         font-weight: 600; margin: 5px 0;
+                                                         display: -webkit-box; -webkit-box-orient: vertical;
+                                                         -webkit-line-clamp: 3;
+                                                         overflow: hidden
+                                                        ">
+                                                @Data[i].MediaFile.FileName
+                                            </span>
+                                            <span style="font-weight: 400; font-size: 12px; color: rgba(0,0,0,.55); margin: 5px 0">
+                                                @Data[i].MediaFile.FileLengthText
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                                break;
+                            }                        
+                        }
+                    </div>
+                </div>
+                <div style="width: calc(30% - 48px)"></div>
+            </div>
+        }
     }
 }
-
-
-

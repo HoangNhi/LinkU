@@ -1,13 +1,12 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Http;
 using MODELS.BASE;
 using System.ComponentModel.DataAnnotations;
 
 namespace MODELS.MESSAGE.Requests
 {
-    public class PostMessageRequest : BaseRequest
+    public class POSTSendMessageWithFileRequest : BaseRequest
     {
-        public Guid Id { get; set; }
-
         [Required(AllowEmptyStrings = false, ErrorMessage = "Người gửi không được để trống")]
         public Guid SenderId { get; set; }
 
@@ -19,22 +18,21 @@ namespace MODELS.MESSAGE.Requests
         /// </summary>
         public Guid? RefId { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Nội dung không được để trống")]
         public string? Content { get; set; }
 
-        /// <summary>
-        /// 0 - tin nhắn thông thường, 1 - Tin nhắn chào mừng( sử dụng khi tạo group), 2 - Tin nhắn thông báo các thay đổi của nhóm(đổi tên nhóm, thêm thành viên, chuyển nhóm trưởng), 3 - Tin nhắn là File, 4 - Tin nhắn vừa text và file, 5 - Tin nhắn là 1 cuộc gọi điện
-        /// </summary>
-        public int MessageType { get; set; } = 0;
+        public List<IFormFile> Files { get; set; } = new List<IFormFile>();
+
+        public int ConversationType { get; set; } = 0;
     }
 
-    public class PostMessageRequestValidator : AbstractValidator<PostMessageRequest>
+    public class POSTSendMessageWithFileRequestValidator : AbstractValidator<POSTSendMessageWithFileRequest>
     {
-        public PostMessageRequestValidator()
+        public POSTSendMessageWithFileRequestValidator()
         {
             RuleFor(x => x.SenderId).NotEmpty().WithMessage("Người gửi không được để trống");
             RuleFor(x => x.TargetId).NotEmpty().WithMessage("Người nhận không được để trống");
             RuleFor(x => x.Content).NotEmpty().WithMessage("Nội dung không được để trống");
+            RuleFor(x => x.Files).NotEmpty().WithMessage("Vui lòng đính kèm ít nhất một tệp tin");
         }
     }
 }

@@ -7,6 +7,7 @@ using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
+using System.Drawing;
 
 namespace BE.Services.MediaFile
 {
@@ -28,6 +29,25 @@ namespace BE.Services.MediaFile
             _contextAccessor = contextAccessor;
         }
 
+        public BaseResponse<MODELMediaFile> GetById(GetByIdRequest request)
+        {
+            var response = new BaseResponse<MODELMediaFile>();
+            try
+            {
+                var data = _context.MediaFiles.FirstOrDefault(x => x.Id == request.Id && !x.IsDeleted);
+                if (data == null)
+                {
+                    throw new Exception("Không tìm thấy dữ liệu");
+                }
+                response.Data = _mapper.Map<MODELMediaFile>(data);
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
 
         public BaseResponse<POSTMediaFileRequest> GetByPost(GetByIdRequest request)
         {
@@ -70,7 +90,12 @@ namespace BE.Services.MediaFile
 
                 // Thêm vào bảng MediaFiles
                 _context.MediaFiles.Add(add);
-                _context.SaveChanges();
+
+                if (request.IsSaveChange)
+                {
+                    _context.SaveChanges();
+                }
+
                 response.Data = _mapper.Map<MODELMediaFile>(add);
             }
             catch (Exception ex)
@@ -258,12 +283,14 @@ namespace BE.Services.MediaFile
                     var downloadInfo = await blobClient.DownloadAsync();
                     var contentType = downloadInfo.Value.ContentType;
                     var fileStream = downloadInfo.Value.Content;
+                    //var OriginalFileName = downloadInfo.Value.Details.Metadata["OriginalFileName"];
+                    var OriginalFileName = _context.MediaFiles
+                        .FirstOrDefault(x => x.Url == blobClient.Uri.ToString() && !x.IsDeleted)?.FileName ?? fileName;
 
                     response.Data = new FileStreamResult(fileStream, contentType)
                     {
-                        FileDownloadName = fileName
+                        FileDownloadName = OriginalFileName
                     };
-
                 }
                 else
                 {
@@ -291,11 +318,30 @@ namespace BE.Services.MediaFile
 
                     var metadata = new Dictionary<string, string>
                     {
-                        {"OriginalFileName", file.FileName }
+                        {"OriginalFileName", SanitizeToAscii(file.FileName) }
                     };
 
                     using (var stream = file.OpenReadStream())
                     {
+                        int width = 0, height = 0;
+                        if (file.ContentType.StartsWith("image/"))
+                        {
+                            try
+                            {
+                                using (var image = Image.FromStream(stream))
+                                {
+                                    width = image.Width;
+                                    height = image.Height;
+                                    stream.Position = 0; // Reset để upload lại
+                                }
+                            }
+                            catch
+                            {
+                                // Không đọc được ảnh, không cần throw, tiếp tục upload bình thường
+                                stream.Position = 0;
+                            }
+                        }
+
                         await blobClient.UploadAsync(stream, new BlobUploadOptions
                         {
                             HttpHeaders = new BlobHttpHeaders
@@ -305,13 +351,16 @@ namespace BE.Services.MediaFile
                             },
                             Metadata = metadata
                         });
-                    }
 
-                    result.Add(new MODELMediaFile
-                    {
-                        FileName = file.FileName,
-                        Url = blobClient.Uri.ToString(),
-                    });
+                        result.Add(new MODELMediaFile
+                        {
+                            FileName = file.FileName,
+                            Url = blobClient.Uri.ToString(),
+                            FileType = file.ContentType.StartsWith("image/") ? (int)MediaFileType.ChatImage : (file.ContentType.StartsWith("video/") ? (int)MediaFileType.ChatVideo : (int)MediaFileType.ChatFile),
+                            Shape = file.ContentType.StartsWith("image/") ? (int)GetImageShapeCategory(width, height) : null,
+                            FileLength = (int)file.Length,
+                        });
+                    }
                 }
 
                 response.Data = result;
@@ -358,6 +407,31 @@ namespace BE.Services.MediaFile
                 picture.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
                 _context.MediaFiles.Update(picture);
             }
+        }
+
+        // Helper method to determine image shape category
+        ShapeType GetImageShapeCategory(int width, int height)
+        {
+            if (width <= 0 || height <= 0)
+                return ShapeType.Invalid;
+
+            double ratio = (double)width / height;
+
+            // Gần vuông (tỷ lệ ~ 1:1)
+            if (ratio >= 0.9 && ratio <= 1.1)
+                return ShapeType.Square;
+
+            // Nằm ngang (rộng hơn nhiều so với cao)
+            if (ratio > 1.1)
+                return ShapeType.Landscape;
+
+            // Dọc (cao hơn nhiều so với rộng)
+            return ShapeType.Portrait;
+        }
+
+        string SanitizeToAscii(string input)
+        {
+            return string.Concat(input.Where(c => c <= 127));
         }
     }
 }

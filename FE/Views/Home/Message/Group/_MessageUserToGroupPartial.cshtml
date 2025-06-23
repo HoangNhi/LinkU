@@ -2,7 +2,7 @@
 @{
     // Avartar
     Dictionary<int, List<(int, int)>> positions = new Dictionary<int, List<(int, int)>>
-    {
+{
         { 2, [(-12, 0), (12, 0)] },
         { 3, [(0, -12), (-12, 12), (12, 12)] },
         { 4, [(-12, -12), (-12, 12), (12, 12), (12, -12)] }
@@ -10,7 +10,7 @@
 
     // Wellcome
     Dictionary<int, List<(int, int)>> pos = new Dictionary<int, List<(int, int)>>
-    {
+{
         { 2, [(-16, 0), (16, 0)] },
         { 3, [(0, -16), (-16, 16), (16, 16)] },
         { 4, [(-16, -16), (-16, 16), (16, 16), (16, -16)] }
@@ -75,6 +75,63 @@
         .FirstMessageSuggestion {
             display: none
         }
+    }
+</style>
+
+@* Preview File *@
+<style>
+    .PreviewFileContent {
+        position: relative;
+    }
+
+    .PreviewFileContent_BtnRemove {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: white
+    }
+
+        .PreviewFileContent_BtnRemove:hover {
+            background-color: var(--mdb-gray-200) !important
+        }
+
+    #btnUploadFile {
+        transition: all 0.3s ease-in-out;
+        transform-origin: center;
+    }
+
+        #btnUploadFile.hide {
+            opacity: 0;
+            transform: scale(0);
+            width: 0 !important;
+            margin: 6px 0 !important;
+        }
+
+    /* Animation cho Message Container */
+    #Message_Container {
+        transition: width 0.3s ease-in-out;
+        width: 100%;
+    }
+
+        /* Thêm class này để mở rộng message container */
+        #Message_Container.expanded {
+            width: calc(100% - 48px);
+        }
+
+
+    .FilePreview {
+        outline: 5px solid black;
+        cursor: pointer
+    }
+
+    .BorderLeft {
+        border-bottom-left-radius: 18px !important;
+        border-top-left-radius: 18px !important
+    }
+
+    .BorderRight {
+        border-bottom-right-radius: 18px !important;
+        border-top-right-radius: 18px !important;
     }
 </style>
 
@@ -197,39 +254,58 @@
     @* Nhập tin nhắn *@
     <div class="card-footer d-flex border-0"
          style="padding: 10px 8px">
-        <button type="button"
-                class="btn btn-link rounded-circle position-relative align-self-end"
-                style="margin: 6px; height: 36px; width: 36px; padding: 0"
-                data-mdb-ripple-init
-                data-mdb-ripple-color="dark">
+        <label for="PreviewUploadFileContainer_Input"
+               id="btnUploadFile"
+               class="btn btn-link rounded-circle position-relative align-self-end"
+               style="margin: 6px; height: 36px; width: 36px; padding: 0"
+               data-mdb-ripple-init
+               data-mdb-ripple-color="dark"
+               data-mdb-popover-init
+               data-mdb-content="@($"<div class='text-black px-2 py-1 Popover-blur'>Đính kèm file có kích thức tối đa là 20MB</div>")"
+               data-mdb-trigger="hover"
+               data-mdb-html="true"
+               data-mdb-placement="top">
             <i class="fa-solid fa-image position-absolute"
                style="color: #473c38;
-              font-size: 18px;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);"></i>
-        </button>
+           font-size: 18px;
+           top: 50%;
+           left: 50%;
+           transform: translate(-50%, -50%);"></i>
+            @* Input *@
+            <input type="file"
+                   id="PreviewUploadFileContainer_Input"
+                   class="d-none"
+                   multiple
+                   data-max-file-size="20MB"
+                   data-max-files="10">
+        </label>
         <div id="Message_Container"
-             style="padding: 12px;
-                    background-color: rgba(134, 142, 153, 0.1);
-                    border-radius: 20px;
-                    width: calc(100% - 96px);
-                    align-content: center;
-                    transition: box-shadow 0.2s ease">
+             style="padding: 0 12px 12px;
+                 background-color: rgba(134, 142, 153, 0.1);
+                 border-radius: 20px;
+                 align-content: center;
+                 transition: box-shadow 0.2s ease">
+            @* Preview *@
+            <div id="PreviewUploadFileContainer" class="w-100"
+                 style="display: none; padding-top:12px; overflow-y: auto">
+
+            </div>
+
             <div id="Message_Content"
                  contenteditable="true"
                  data-placeholder="Aa"
                  style="color: rgb(5,5,5);
-                        font-size: .9375rem;
-                        line-height: 1.34;
-                        text-align: left;
-                        font-weight: 400;
-                        border: 0;
-                        outline: 0;
-                        max-height: 140px;
-                        align-content: center;
-                        overflow-y: auto;
-                        overflow-x: hidden"></div>
+                     font-size: .9375rem;
+                     line-height: 1.34;
+                     text-align: left;
+                     font-weight: 400;
+                     border: 0;
+                     outline: 0;
+                     max-height: 140px;
+                     align-content: center;
+                     overflow-y: auto;
+                     overflow-x: hidden;
+                     margin-top: 12px"></div>
         </div>
         <button id="btnSendMessage"
                 type="button"
@@ -237,15 +313,20 @@
                 class="btn btn-link rounded-circle position-relative align-self-end"
                 style="margin: 6px; height: 36px; width: 36px; padding: 0;"
                 data-mdb-ripple-init
-                data-mdb-ripple-color="dark">
+                data-mdb-ripple-color="dark"
+                data-mdb-popover-init
+                data-mdb-content="@($"<div class='text-black px-2 py-1 Popover-blur'>Nhấn ENTER để gửi</div>")"
+                data-mdb-trigger="hover"
+                data-mdb-html="true"
+                data-mdb-placement="top">
             <i class="fa-solid fa-paper-plane position-absolute"
                style="color: #473c38;
-                      font-size: 18px;
-                      top: 50%;
-                      left: 50%;
-                      transform: translate(-50%, -50%);"></i>
+                   font-size: 18px;
+                   top: 50%;
+                   left: 50%;
+                   transform: translate(-50%, -50%);"></i>
         </button>
-        
+
         <!-- Thông báo tin nhắn mới -->
         <div class="new-message-indicator d-none" id="newMessageIndicator" onclick="scrollToBottom()">
             <div class="new-msg-btn">
@@ -260,12 +341,18 @@
 <script>
     var currentPage = 1;
     var isLoading = false;
-    let newMessageCount = 0;
+    var newMessageCount = 0;
     // Biến kiểm tra đã lấy hết dữ liệu trong db hay chưa
     var isDone = false;
+    var MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+    var hasLargeFile = false;
+    var ArrayFile = []
 
-    const newMessageIndicator = document.getElementById('newMessageIndicator');
-    const messageCountBadge = document.getElementById('messageCount');
+    var newMessageIndicator = document.getElementById('newMessageIndicator');
+    var messageCountBadge = document.getElementById('messageCount');
+    var FileInput = document.getElementById('PreviewUploadFileContainer_Input')
+    var PreviewUploadFileContainer = document.getElementById("PreviewUploadFileContainer");
+    var btnUploadFile = document.getElementById("btnUploadFile");
 
     $(document).ready(function () {
         GetMessage()
@@ -315,6 +402,49 @@
                     sendGroupMessage('@Model.Id');
                 }
             }
+        });
+        // Popover
+        var optionPopover = {
+            delay: { "show": 500, "hide": 100 }
+        }
+        new mdb.Popover(document.getElementById("btnUploadFile"), optionPopover);
+        new mdb.Popover(document.getElementById("btnSendMessage"), optionPopover);
+
+        // Xử lý upload File
+        FileInput.addEventListener('change', function (event) {
+            const files = Array.from(event.target.files);
+
+            // Nếu trong file Upload có 1 file lớn hơn 20MB thì dừng lại quá trình upload
+            if (files.some(item => item.size > MAX_FILE_SIZE_BYTES)) {
+                ShowThongBaoThatBai("File bạn chọn quá lớn. Kích thước tối đa là 20MB.")
+                // Thực hiện xong thì xóa hết file
+                FileInput.value = ''
+                return;
+            } else if (files.length + ArrayFile.length > 10) {
+                ShowThongBaoThatBai("Tối đa 1 lần tải lên là 10 tệp")
+                // Thực hiện xong thì xóa hết file
+                FileInput.value = ''
+                return;
+            }
+
+            if (ArrayFile.length === 0) {
+                files.forEach(item => ArrayFile.push({ id: crypto.randomUUID(), data: item }))
+                // Render File Preview
+                RenderPreviewFileUpload()
+            } else {
+                files.forEach(item => {
+                    var newItem = {
+                        id: crypto.randomUUID(),
+                        data: item
+                    }
+
+                    ArrayFile.push(newItem)
+                    AddItemPreview(newItem)
+                })
+            }
+
+            // Thực hiện xong thì xóa hết file
+            FileInput.value = ''
         });
     });
 
@@ -446,7 +576,7 @@
     function scrollToBottom() {
         const chatBox = document.getElementById("MessageWrapper");
         chatBox.scrollTo({
-            top: chatBox.scrollHeight,
+            top: chatBox.scrollHeight + 1000,
             behavior: 'smooth'
         });
 
@@ -600,5 +730,168 @@
                 showLoading(false)
             }
         })
+    }
+</script>
+
+@* Xử lý Upload file *@
+<script>
+    var btnAddFile = `<label for="PreviewUploadFileContainer_Input"
+                               class="btn btn-secondary"
+                               style="padding: 12px; margin: 2px 12px 0 0; height: 48px"
+                               data-mdb-ripple-init>
+                            <i class="fa-solid fa-file-circle-plus text-black" style="font-size: 24px"></i>
+                        </label>`
+    // Render Preview FileUpload
+    function RenderPreviewFileUpload() {
+        if (ArrayFile.length == 0) {
+            PreviewUploadFileContainer.style.display = "none"
+            PreviewUploadFileContainer.innerHTML = ''
+
+            showUploadButton()
+        } else {
+            PreviewUploadFileContainer.innerHTML = btnAddFile
+
+            // Tạo các Preview
+            ArrayFile.forEach(item => AddItemPreview(item))
+
+            // Hiển thị Preview và ẩn đi
+            PreviewUploadFileContainer.style.display = "flex"
+            hideUploadButton();
+        }
+    }
+
+    // Add Item
+    function AddItemPreview(item) {
+        const file = item.data
+
+        // Tạo URL tạm
+        const url = URL.createObjectURL(file);
+
+        // Tạo div chứa content và btnRemove
+        const div = document.createElement('div');
+        div.className = 'PreviewFileContent'
+        div.style.margin = "2px 12px 6px 0"
+        div.setAttribute('data-id', item.id);
+
+        // Xử lý từng trường hợp
+        // Hình ảnh
+        if (file.type.startsWith('image/')) {
+            var content = document.createElement('img')
+
+            // Xử lý dữ liệu
+            content.className = 'rounded-2'
+            content.src = url;
+            content.style.height = "48px";
+            content.style.width = "48px";
+            content.style.objectFit = "cover"
+
+            // Gán vào div
+            div.appendChild(content)
+        }
+        // Video
+        else if (file.type.startsWith('video/')) {
+            // Content
+            var content = document.createElement('video')
+            content.className = 'rounded-2'
+            content.src = url;
+            content.style.height = "48px";
+            content.style.width = "48px";
+            content.style.objectFit = "cover"
+
+            // Icon Play
+            var icon = document.createElement('div')
+            icon.className = "rounded-circle position-absolute d-flex align-items-center justify-content-center"
+            icon.style.padding = "0 6px"
+            icon.style.backgroundColor = "rgba(0,0,0, 0.3)"
+            icon.style.top = "12px"
+            icon.style.right = "12px"
+            icon.style.width = "24px"
+            icon.innerHTML = '<i class="fa-solid fa-play text-white" style="line-height: 24px; font-size: 12px"></i>'
+
+            // Gán vào div
+            div.appendChild(content)
+            div.appendChild(icon)
+        }
+        // File khác
+        else {
+            div.classList.add("rounded-2")
+            div.style.display = "flex"
+            div.style.alignItems = "center"
+            div.style.backgroundColor = "rgb(225.6, 233.7, 247.05)"
+            div.style.minWidth = "128px"
+            div.style.maxWidth = "128px"
+            div.style.height = "48px";
+            div.style.padding = "0 8px"
+
+            // Content
+            var content = document.createElement('span')
+            content.className = 'text-black text-start'
+            content.style.webkitBoxOrient = "vertical"
+            content.style.webkitLineClamp = 2;
+            content.style.display = "-webkit-box"
+            content.style.overflow = "hidden"
+            content.style.lineHeight = "20px"
+            content.style.fontSize = "14px"
+            content.innerText = file.name;
+
+            // Icon doc
+            var icon = document.createElement('div')
+            icon.className = 'bg-white rounded-circle'
+            icon.style.padding = '0 10px'
+            icon.style.marginRight = "10px"
+            icon.style.height = '32px'
+            icon.innerHTML = '<i class="fa-solid fa-file-lines text-black" style="line-height: 32px; font-size: 16px"></i>'
+
+            // Gán vào div
+            div.appendChild(icon)
+            div.appendChild(content)
+        }
+
+        // Tạo Btn remove
+        var btnRemove = document.createElement('button')
+        btnRemove.className = 'btn btn-floating PreviewFileContent_BtnRemove text-black'
+        btnRemove.style.width = 0;
+        btnRemove.style.height = 0;
+        btnRemove.style.padding = '12px'
+        btnRemove.innerHTML = '<i class="fa-solid fa-xmark"></i>'
+        btnRemove.onclick = function () {
+            RemoveItemPreview(item.id)
+        };
+
+        // Gán vào div
+        div.appendChild(btnRemove)
+
+        // Gán div vào Container
+        PreviewUploadFileContainer.appendChild(div)
+    }
+
+    // Remove Item
+    function RemoveItemPreview(idToRemove) {
+        ArrayFile = ArrayFile.filter(item => item.id !== idToRemove);
+
+        const fileDiv = PreviewUploadFileContainer.querySelector(`.PreviewFileContent[data-id="${idToRemove}"]`);
+
+        // Nếu tồn tại thì xóa khỏi DOM
+        if (fileDiv) {
+            PreviewUploadFileContainer.removeChild(fileDiv);
+
+            // Ẩn đi container
+            if (ArrayFile.length === 0) {
+                PreviewUploadFileContainer.style.display = "none"
+                PreviewUploadFileContainer.innerHTML = ''
+
+                showUploadButton();
+            }
+        }
+    }
+
+    // Helper
+    function hideUploadButton() {
+        document.getElementById('btnUploadFile').classList.add('hide');
+        document.getElementById('Message_Container').classList.add('expanded');
+    }
+    function showUploadButton() {
+        document.getElementById('btnUploadFile').classList.remove('hide');
+        document.getElementById('Message_Container').classList.remove('expanded');
     }
 </script>

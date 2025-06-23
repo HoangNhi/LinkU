@@ -1,12 +1,17 @@
 ﻿using AutoMapper;
 using BE.Helpers;
+using BE.Services.MediaFile;
 using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
+using MODELS.COMMON;
+using MODELS.MEDIAFILE.Dtos;
+using MODELS.MEDIAFILE.Requests;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
 using Newtonsoft.Json;
+using System.Net.WebSockets;
 
 namespace BE.Services.Message
 {
@@ -16,13 +21,15 @@ namespace BE.Services.Message
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IUSERService _userService;
+        private readonly IMEDIAFILEService _mediaFileService;
 
-        public MESSAGEService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IUSERService userService)
+        public MESSAGEService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IUSERService userService, IMEDIAFILEService mediaFileService)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
             _userService = userService;
+            _mediaFileService = mediaFileService;
         }
 
         public BaseResponse<GetListPagingResponse> GetListPaging(PostMessageGetListPagingRequest request)
@@ -49,105 +56,145 @@ namespace BE.Services.Message
                 };
 
                 var result = _context.ExcuteStoredProcedure<MODELMessage>("sp_MESSAGE_GetListPaging", parameters).ToList();
+                // Xử lý dữ liệu
+                //if (request.ConversationType == 0)
+                //{
+                //    var CurrentUser = _userService.GetById(new GetByIdRequest() { Id = request.UserId }).Data;
+                //    var TargetId = _userService.GetById(new GetByIdRequest() { Id = request.TargetId }).Data;
 
-                if(request.ConversationType == 0)
-                {
-                    var CurrentUser = _userService.GetById(new GetByIdRequest() { Id = request.UserId }).Data;
-                    var TargetId = _userService.GetById(new GetByIdRequest() { Id = request.TargetId }).Data;
+                //    foreach (var item in result)
+                //    {
+                //        item.Sender = item.SenderId == request.UserId ? CurrentUser : TargetId;
 
-                    foreach (var item in result)
-                    {
-                        item.Sender = item.SenderId == request.UserId ? CurrentUser : TargetId;
-                    }
-                }
-                else
-                {
-                    // Lấy ra người dùng hiện tại từ HttpContext
-                    var currentUserId = _contextAccessor.GetClaim("name");
-                    var currentUser = _context.Users.Find(Guid.Parse(currentUserId));
+                //        // Tin nhắn là File
+                //        if (item.MessageType == 3)
+                //        {
+                //            var data = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.Id);
+                //            if (data != null)
+                //            {
+                //                item.MediaFile = _mapper.Map<MODELMediaFile>(data);
+                //            }
+                //            else
+                //            {
+                //                item.MediaFile = new MODELMediaFile
+                //                {
+                //                    Id = Guid.Empty,
+                //                    FileName = "File không tồn tại",
+                //                    FileType = (int)MediaFileType.ChatFile,
+                //                    Url = string.Empty,
+                //                };
+                //            }
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //    // Lấy ra người dùng hiện tại từ HttpContext
+                //    var currentUserId = _contextAccessor.GetClaim("name");
+                //    var currentUser = _context.Users.Find(Guid.Parse(currentUserId));
 
-                    // Duyệt qua từng tin nhắn
-                    foreach (var item in result)
-                    {
-                        item.Sender = _userService.GetById(new GetByIdRequest() { Id = item.SenderId }).Data;
+                //    // Duyệt qua từng tin nhắn
+                //    foreach (var item in result)
+                //    {
+                //        item.Sender = _userService.GetById(new GetByIdRequest() { Id = item.SenderId }).Data;
 
-                        // Tin nhắn là Welcome hoặc Notification
-                        if (item.MessageType == 1 || item.MessageType == 2)
-                        {
-                            MODELMessageContent content = JsonConvert.DeserializeObject<MODELMessageContent>(item.Content);
+                //        // Tin nhắn là Welcome hoặc Notification
+                //        if (item.MessageType == 1 || item.MessageType == 2)
+                //        {
+                //            MODELMessageContent content = JsonConvert.DeserializeObject<MODELMessageContent>(item.Content);
 
-                            // Thay đổi nội dung của tin nhắn theo người dùng hiện tại
-                            // Case 1: User hiện tại là người tạo ra message này
-                            if(currentUser.Id == content.UserId)
-                            {
-                                // Nếu ta thêm ai đó vào nhóm
-                                if (content.TargetId.Count > 0)
-                                {
-                                    List<string> usernames = new List<string>();
-                                    foreach (var userid in content.TargetId)
-                                    {
-                                        var user = _context.Users.Find(userid);
-                                        if (user != null)
-                                        {
-                                            usernames.Add(string.Concat(user.HoLot, " ", user.Ten));
-                                        }
-                                    }
+                //            // Thay đổi nội dung của tin nhắn theo người dùng hiện tại
+                //            // Case 1: User hiện tại là người tạo ra message này
+                //            if (currentUser.Id == content.UserId)
+                //            {
+                //                // Nếu ta thêm ai đó vào nhóm
+                //                if (content.TargetId.Count > 0)
+                //                {
+                //                    List<string> usernames = new List<string>();
+                //                    foreach (var userid in content.TargetId)
+                //                    {
+                //                        var user = _context.Users.Find(userid);
+                //                        if (user != null)
+                //                        {
+                //                            usernames.Add(string.Concat(user.HoLot, " ", user.Ten));
+                //                        }
+                //                    }
 
-                                    // Cập nhật nội dung tin nhắn
-                                    item.Content = $"Bạn đã thêm {string.Join(", ", usernames)} vào nhóm";
-                                }
-                                // Nếu ta tham gia bằng Lời mời (GroupRequest)
-                                else
-                                {
-                                    // Cập nhật nội dung tin nhắn
-                                    item.Content = $"Bạn đã tham gia nhóm";
-                                }
-                            }
-                            // Case 2: Bạn là 1 trong những người nhận tin nhắn
-                            else if (content.TargetId.Contains(currentUser.Id))
-                            {
-                                var user = _context.Users.Find(content.UserId);
-                                if(user != null)
-                                {
-                                    // Cập nhật nội dung tin nhắn
-                                    item.Content = $"{string.Concat(user.HoLot," ", user.Ten)} đã thêm bạn vào nhóm";
-                                }
-                            }
-                            // Case 3: Bạn không phải là người tạo và cũng không phải là người nhận tin nhắn
-                            else
-                            {
-                                if (content.TargetId.Count > 0)
-                                {
-                                    var user = _context.Users.Find(content.UserId);
-                                    var usernames = new List<string>();
-                                    foreach (var userid in content.TargetId)
-                                    {
-                                        var targetUser = _context.Users.Find(userid);
-                                        if (targetUser != null)
-                                        {
-                                            usernames.Add(string.Concat(targetUser.HoLot, " ", targetUser.Ten));
-                                        }
-                                    }
+                //                    // Cập nhật nội dung tin nhắn
+                //                    item.Content = $"Bạn đã thêm {string.Join(", ", usernames)} vào nhóm";
+                //                }
+                //                // Nếu ta tham gia bằng Lời mời (GroupRequest)
+                //                else
+                //                {
+                //                    // Cập nhật nội dung tin nhắn
+                //                    item.Content = $"Bạn đã tham gia nhóm";
+                //                }
+                //            }
+                //            // Case 2: Bạn là 1 trong những người nhận tin nhắn
+                //            else if (content.TargetId.Contains(currentUser.Id))
+                //            {
+                //                var user = _context.Users.Find(content.UserId);
+                //                if (user != null)
+                //                {
+                //                    // Cập nhật nội dung tin nhắn
+                //                    item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm bạn vào nhóm";
+                //                }
+                //            }
+                //            // Case 3: Bạn không phải là người tạo và cũng không phải là người nhận tin nhắn
+                //            else
+                //            {
+                //                if (content.TargetId.Count > 0)
+                //                {
+                //                    var user = _context.Users.Find(content.UserId);
+                //                    var usernames = new List<string>();
+                //                    foreach (var userid in content.TargetId)
+                //                    {
+                //                        var targetUser = _context.Users.Find(userid);
+                //                        if (targetUser != null)
+                //                        {
+                //                            usernames.Add(string.Concat(targetUser.HoLot, " ", targetUser.Ten));
+                //                        }
+                //                    }
 
-                                    if (user != null)
-                                    {
-                                        // Cập nhật nội dung tin nhắn
-                                        item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm {string.Join(", ", usernames)} vào nhóm";
-                                    }
-                                }
-                                else
-                                {
-                                    var user = _context.Users.Find(content.UserId);
-                                    if (user != null)
-                                    {
-                                        // Cập nhật nội dung tin nhắn
-                                        item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã tham gia nhóm";
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                //                    if (user != null)
+                //                    {
+                //                        // Cập nhật nội dung tin nhắn
+                //                        item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm {string.Join(", ", usernames)} vào nhóm";
+                //                    }
+                //                }
+                //                else
+                //                {
+                //                    var user = _context.Users.Find(content.UserId);
+                //                    if (user != null)
+                //                    {
+                //                        // Cập nhật nội dung tin nhắn
+                //                        item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã tham gia nhóm";
+                //                    }
+                //                }
+                //            }
+                //        }
+                //        else if (item.MessageType == 3) // Tin nhắn là File
+                //        {
+                //            var data = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.Id);
+                //            if (data != null)
+                //            {
+                //                item.MediaFile = _mapper.Map<MODELMediaFile>(data);
+                //            }
+                //            else
+                //            {
+                //                item.MediaFile = new MODELMediaFile
+                //                {
+                //                    Id = Guid.Empty,
+                //                    FileName = "File không tồn tại",
+                //                    FileType = (int)MediaFileType.ChatFile,
+                //                    Url = string.Empty,
+                //                };
+                //            }
+                //        }
+                //    }
+                //}
+
+                result = HanleDataGetListPaging(result, request.ConversationType, request.UserId, request.TargetId);
 
                 GetListPagingResponse resposeData = new GetListPagingResponse();
                 resposeData.PageIndex = request.PageIndex;
@@ -335,6 +382,281 @@ namespace BE.Services.Message
                 response.Message = ex.Message;
             }
             return response;
+        }
+
+        public async Task<BaseResponse<List<MODELSendMessageWithFileResponse>>> SendMessageWithFile(POSTSendMessageWithFileRequest request)
+        {
+            var response = new BaseResponse<List<MODELSendMessageWithFileResponse>>();
+            try
+            {
+                var ListMessage = new List<MODELMessage>();
+
+                // Gửi tin nhắn thông thường (nếu có)
+                if (!string.IsNullOrEmpty(request.Content) && !string.IsNullOrWhiteSpace(request.Content))
+                {
+                    var message = new PostMessageRequest
+                    {
+                        Id = Guid.NewGuid(),
+                        SenderId = request.SenderId,
+                        TargetId = request.TargetId,
+                        Content = request.Content,
+                        MessageType = (int)MODELS.COMMON.MessageType.Text, // Tin nhắn bình thường
+                        RefId = request.RefId,
+                        IsSaveChange = false
+                    };
+
+                    var insertResponse = Insert(message);
+
+                    if (insertResponse.Error)
+                    {
+                        throw new Exception(insertResponse.Message);
+                    }
+
+                    ListMessage.Add(insertResponse.Data);
+                }
+
+                // Xử lý Upload File
+                var uploadFileResult = await _mediaFileService.UploadFileAsync(request.Files);
+                if (uploadFileResult.Error)
+                {
+                    throw new Exception(uploadFileResult.Message);
+                }
+                else
+                {
+                    foreach (var file in uploadFileResult.Data)
+                    {
+                        // Tạo Message
+                        var message = Insert(new PostMessageRequest
+                        {
+                            Id = Guid.NewGuid(),
+                            SenderId = request.SenderId,
+                            TargetId = request.TargetId,
+                            Content = null, // Lưu tên file vào nội dung tin nhắn
+                            MessageType = (int)MODELS.COMMON.MessageType.File, // Tin nhắn là File
+                            RefId = request.RefId,
+                            IsSaveChange = false
+                        });
+
+                        if (message.Error)
+                        {
+                            throw new Exception(message.Message);
+                        }
+
+                        // Tạo File
+                        var mediafile = _mediaFileService.Insert(new POSTMediaFileRequest
+                        {
+                            FileName = file.FileName,
+                            FileType = file.FileType,
+                            Url = file.Url,
+                            MessageId = message.Data.Id,
+                            IsSaveChange = false,
+                            Shape = file.Shape,
+                            FileLength = file.FileLength
+                        });
+
+                        if (mediafile.Error)
+                        {
+                            throw new Exception(mediafile.Message);
+                        }
+
+                        ListMessage.Add(message.Data);
+                    }
+                }
+
+                // Cập nhật Conversation với tin nhắn mới nhất cho người gửi
+                var conversation = _context.Conversations.FirstOrDefault(x => x.UserId == request.SenderId 
+                                                                        && x.TargetId == request.TargetId 
+                                                                        && !x.IsDeleted);
+
+                if (conversation != null)
+                {
+                    conversation.LastReadMessageId = ListMessage.LastOrDefault()?.Id ?? Guid.Empty;
+                    conversation.NgaySua = DateTime.Now;
+                    conversation.NguoiSua = _contextAccessor.HttpContext.User.Identity.Name;
+
+                    _context.Conversations.Update(conversation);
+                }
+
+                // Lưu tất cả các thay đổi trong context
+                _context.SaveChanges();
+
+                // Reverse Message
+                ListMessage.Reverse();
+                // Xử lý dữ liệu để trả về
+                var MyResponse = HanleDataGetListPaging(ListMessage, request.ConversationType, request.SenderId, request.TargetId);
+                var TargetResponse = HanleDataGetListPaging(ListMessage, request.ConversationType, request.TargetId, request.SenderId);
+
+                response.Data = new List<MODELSendMessageWithFileResponse> {
+                    new MODELSendMessageWithFileResponse
+                    {
+                        Messages = new GetListPagingResponse
+                        {
+                            PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
+                            Data = MyResponse,
+                            TotalRow = MyResponse.Count
+                        },
+                        IsMyResponse = true
+                    },
+                    new MODELSendMessageWithFileResponse
+                    {
+                        Messages = new GetListPagingResponse
+                        {
+                            PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
+                            Data = TargetResponse,
+                            TotalRow = TargetResponse.Count
+                        },
+                        IsMyResponse = false
+                    },
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        List<MODELMessage> HanleDataGetListPaging(List<MODELMessage> result, int conversationType, Guid UserId, Guid TargetId)
+        {
+            if (conversationType == 0)
+            {
+                var CurrentUser = _userService.GetById(new GetByIdRequest() { Id = UserId }).Data;
+                var Target = _userService.GetById(new GetByIdRequest() { Id = TargetId }).Data;
+
+                foreach (var item in result)
+                {
+                    item.Sender = item.SenderId == UserId ? CurrentUser : Target;
+
+                    // Tin nhắn là File
+                    if (item.MessageType == 3)
+                    {
+                        var data = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.Id);
+                        if (data != null)
+                        {
+                            item.MediaFile = _mapper.Map<MODELMediaFile>(data);
+                        }
+                        else
+                        {
+                            item.MediaFile = new MODELMediaFile
+                            {
+                                Id = Guid.Empty,
+                                FileName = "File không tồn tại",
+                                FileType = (int)MediaFileType.ChatFile,
+                                Url = string.Empty,
+                            };
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Lấy ra người dùng hiện tại từ HttpContext
+                var currentUserId = _contextAccessor.GetClaim("name");
+                var currentUser = _context.Users.Find(Guid.Parse(currentUserId));
+
+                // Duyệt qua từng tin nhắn
+                foreach (var item in result)
+                {
+                    item.Sender = _userService.GetById(new GetByIdRequest() { Id = item.SenderId }).Data;
+
+                    // Tin nhắn là Welcome hoặc Notification
+                    if (item.MessageType == 1 || item.MessageType == 2)
+                    {
+                        MODELMessageContent content = JsonConvert.DeserializeObject<MODELMessageContent>(item.Content);
+
+                        // Thay đổi nội dung của tin nhắn theo người dùng hiện tại
+                        // Case 1: User hiện tại là người tạo ra message này
+                        if (currentUser.Id == content.UserId)
+                        {
+                            // Nếu ta thêm ai đó vào nhóm
+                            if (content.TargetId.Count > 0)
+                            {
+                                List<string> usernames = new List<string>();
+                                foreach (var userid in content.TargetId)
+                                {
+                                    var user = _context.Users.Find(userid);
+                                    if (user != null)
+                                    {
+                                        usernames.Add(string.Concat(user.HoLot, " ", user.Ten));
+                                    }
+                                }
+
+                                // Cập nhật nội dung tin nhắn
+                                item.Content = $"Bạn đã thêm {string.Join(", ", usernames)} vào nhóm";
+                            }
+                            // Nếu ta tham gia bằng Lời mời (GroupRequest)
+                            else
+                            {
+                                // Cập nhật nội dung tin nhắn
+                                item.Content = $"Bạn đã tham gia nhóm";
+                            }
+                        }
+                        // Case 2: Bạn là 1 trong những người nhận tin nhắn
+                        else if (content.TargetId.Contains(currentUser.Id))
+                        {
+                            var user = _context.Users.Find(content.UserId);
+                            if (user != null)
+                            {
+                                // Cập nhật nội dung tin nhắn
+                                item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm bạn vào nhóm";
+                            }
+                        }
+                        // Case 3: Bạn không phải là người tạo và cũng không phải là người nhận tin nhắn
+                        else
+                        {
+                            if (content.TargetId.Count > 0)
+                            {
+                                var user = _context.Users.Find(content.UserId);
+                                var usernames = new List<string>();
+                                foreach (var userid in content.TargetId)
+                                {
+                                    var targetUser = _context.Users.Find(userid);
+                                    if (targetUser != null)
+                                    {
+                                        usernames.Add(string.Concat(targetUser.HoLot, " ", targetUser.Ten));
+                                    }
+                                }
+
+                                if (user != null)
+                                {
+                                    // Cập nhật nội dung tin nhắn
+                                    item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm {string.Join(", ", usernames)} vào nhóm";
+                                }
+                            }
+                            else
+                            {
+                                var user = _context.Users.Find(content.UserId);
+                                if (user != null)
+                                {
+                                    // Cập nhật nội dung tin nhắn
+                                    item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã tham gia nhóm";
+                                }
+                            }
+                        }
+                    }
+                    else if (item.MessageType == 3) // Tin nhắn là File
+                    {
+                        var data = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.Id);
+                        if (data != null)
+                        {
+                            item.MediaFile = _mapper.Map<MODELMediaFile>(data);
+                        }
+                        else
+                        {
+                            item.MediaFile = new MODELMediaFile
+                            {
+                                Id = Guid.Empty,
+                                FileName = "File không tồn tại",
+                                FileType = (int)MediaFileType.ChatFile,
+                                Url = string.Empty,
+                            };
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

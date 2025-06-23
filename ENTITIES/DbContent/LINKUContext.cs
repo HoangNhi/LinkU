@@ -330,6 +330,7 @@ public partial class LINKUContext : DbContext
             entity.Property(e => e.NguoiXoa)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+            entity.Property(e => e.Shape).HasComment("0 - Invalid, 1 - Hình vuông, 2 - Hình chữ nhật ngang, 3 - Hình chữ nhật dọc");
             entity.Property(e => e.Url)
                 .HasMaxLength(255)
                 .IsUnicode(false);

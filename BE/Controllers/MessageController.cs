@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
+using MODELS.MEDIAFILE.Requests;
 using MODELS.MESSAGE.Requests;
 
 namespace BE.Controllers
@@ -164,6 +165,65 @@ namespace BE.Controllers
             catch (Exception ex)
             {
                 return Ok(new ApiResponse(false, 500, ex.Message));
+            }
+        }
+        
+        [HttpPost]        
+        public async Task<ActionResult<ApiResponse>> SendMessageWithFile(IFormCollection form)
+        {
+            try
+            {
+                var files = form.Files.ToList();
+                // 1. Kiểm tra null
+                if (files == null || files.Count == 0)
+                    throw new Exception("Không có file được gửi lên");
+
+
+                foreach (var file in files)
+                {
+                    // 2. Giới hạn kích thước (ví dụ: 20MB)
+                    const long maxFileSize = 20 * 1024 * 1024; // 20MB
+                    if (file.Length > maxFileSize)
+                        throw new Exception("File vượt quá dung lượng cho phép (20MB).");
+                }
+
+                // 3. Kiểm tra SenderId, TargetId, RefId, Content
+                var senderId = form["SenderId"];
+                if (string.IsNullOrEmpty(senderId))
+                    throw new Exception("SenderId không được để trống.");
+
+                var targetId = form["TargetId"];
+                if (string.IsNullOrEmpty(targetId))
+                    throw new Exception("TargetId không được để trống.");
+
+                var conversationType = form["ConversationType"];
+                if (string.IsNullOrEmpty(conversationType))
+                    throw new Exception("ConversationType không được để trống.");
+
+                var refId = form["RefId"];
+                var content = form["Content"];
+
+                // 4. Upload nếu hợp lệ
+                var response = await _service.SendMessageWithFile(new POSTSendMessageWithFileRequest
+                {
+                    Files = files,
+                    SenderId = Guid.Parse(senderId),
+                    TargetId = Guid.Parse(targetId),
+                    RefId = string.IsNullOrEmpty(refId) ? null : Guid.Parse(refId),
+                    Content = content,
+                    ConversationType = string.IsNullOrEmpty(conversationType) ? 0 : int.Parse(conversationType)
+                });
+
+                if (response.Error)
+                {
+                    throw new Exception(response.Message);
+                }
+                return Ok(new ApiResponse(response.Data));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse(false, 500, ex.Message));
+
             }
         }
     }

@@ -27,6 +27,11 @@ namespace MODELS.MEDIAFILE.Requests
         public Guid? OwnerId { get; set; }
 
         public Guid? MessageId { get; set; }
+        /// <summary>
+        /// 0 - Invalid, 1 - Hình vuông, 2 - Hình chữ nhật ngang, 3 - Hình chữ nhật dọc
+        /// </summary>
+        public int? Shape { get; set; }
+        public int? FileLength { get; set; }
     }
 
     public class POSTUserPictureRequestValidator : AbstractValidator<POSTMediaFileRequest>

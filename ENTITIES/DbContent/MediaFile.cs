@@ -16,11 +16,18 @@ public partial class MediaFile
     /// </summary>
     public int FileType { get; set; }
 
+    public int? FileLength { get; set; }
+
     public Guid? OwnerId { get; set; }
 
     public Guid? MessageId { get; set; }
 
     public Guid? GroupId { get; set; }
+
+    /// <summary>
+    /// 0 - Invalid, 1 - Hình vuông, 2 - Hình chữ nhật ngang, 3 - Hình chữ nhật dọc
+    /// </summary>
+    public int? Shape { get; set; }
 
     public DateTime NgayTao { get; set; }
 

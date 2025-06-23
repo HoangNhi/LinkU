@@ -1,4 +1,5 @@
-﻿using BE.Services.Conversation;
+﻿using AutoMapper.Execution;
+using BE.Services.Conversation;
 using BE.Services.FriendRequest;
 using BE.Services.GroupMember;
 using BE.Services.Message;
@@ -263,6 +264,60 @@ namespace BE.Hubs
                     }
                 }
 
+            }
+            catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = "Lỗi hệ thống: " + ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse> RequestAppendMessage(WSRequestAppendMessage request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Validate request
+                if (request.SenderId == Guid.Empty || request.TargetId == Guid.Empty)
+                {
+                    throw new Exception("Dữ liệu không được để trống");
+                }
+
+                // Tin nhắn thông thường
+                if (request.ConversationType == 0)
+                {
+                    if (_users.TryGetValue(request.TargetId.ToString(), out string receiverConnectionId))
+                    {
+                        // Gửi yêu cầu cập nhật đến người nhận
+                        await Clients.Client(receiverConnectionId).SendAsync("ReceiveRequestAppendMessage",
+                            new ApiResponse(new { Html = request.HtmlMessage, SenderId = request.SenderId, TargetId = request.TargetId })
+                        );
+                    }
+                }
+                // Tin nhắn nhóm
+                else if(request.ConversationType == 1)
+                {
+                    var groupMember = _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = request.TargetId });
+                    if (groupMember.Error)
+                    {
+                        throw new Exception(groupMember.Message);
+                    }
+
+
+                    List<MODELGroupMember> membersWithoutCurrentUser = groupMember.Data.Where(m => m.UserId != request.SenderId).ToList();
+
+                    foreach (var member in membersWithoutCurrentUser)
+                    {
+                        if (_users.TryGetValue(member.UserId.ToString(), out string receiverConnectionId))
+                        {
+                            // Gửi yêu cầu cập nhật đến người nhận
+                            await Clients.Client(receiverConnectionId).SendAsync("ReceiveRequestAppendMessage", 
+                                new ApiResponse(new { Html = request.HtmlMessage, SenderId = request.SenderId, TargetId = request.TargetId })
+                            );
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {

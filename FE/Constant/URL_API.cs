@@ -28,6 +28,7 @@
         public const string MESSAGE_INSERT = "/Message/Insert";
         public const string MESSAGE_UPDATE = "/Message/Update";
         public const string MESSAGE_DELETE_LIST = "/Message/DeleteList";
+        public const string MESSAGE_SEND_MESSAGE_WITH_FILE = "/Message/SendMessageWithFile";
 
         // MessageList
         //public const string MESSAGELIST_SEARCH = "/MessageList/Search";

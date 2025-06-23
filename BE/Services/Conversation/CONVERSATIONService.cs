@@ -67,13 +67,13 @@ namespace BE.Services.Conversation
                         item.Avartar = avatar.Data;
                     }
 
+                    // Lấy ra người dùng hiện tại từ HttpContext
+                    var currentUserId = _contextAccessor.GetClaim("name");
+                    var currentUser = _context.Users.Find(Guid.Parse(currentUserId));
+
                     // Xử lý nội dung tin nhắn nếu tin nhắn là Welcome hoặc Notification
                     if (item.LatestMessageType == 1 || item.LatestMessageType == 2)
                     {
-                        // Lấy ra người dùng hiện tại từ HttpContext
-                        var currentUserId = _contextAccessor.GetClaim("name");
-                        var currentUser = _context.Users.Find(Guid.Parse(currentUserId));
-
                         MODELMessageContent content = JsonConvert.DeserializeObject<MODELMessageContent>(item.LatestMessage);
 
                         // Thay đổi nội dung của tin nhắn theo người dùng hiện tại
@@ -144,6 +144,23 @@ namespace BE.Services.Conversation
                                     item.LatestMessage = $"{string.Concat(user.HoLot, " ", user.Ten)} đã tham gia nhóm";
                                 }
                             }
+                        }
+                    }else if(item.LatestMessageType == 3)
+                    {
+                        var mediaFile = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.LatestMessageId);
+                        if(mediaFile != null)
+                        {
+                            item.LatestMessage = $"{item.UserSendLastestMessage} đã gửi một {mediaFile.FileType switch
+                            {
+                                2 => "hình ảnh",
+                                3 => "tệp tin",
+                                5 => "video",
+                                _ => "tệp tin"
+                            }}";
+                        }
+                        else
+                        {
+                            item.LatestMessage = $"{item.UserSendLastestMessage} đã gửi một tệp tin";
                         }
                     }
                 }

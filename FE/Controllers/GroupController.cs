@@ -1,5 +1,5 @@
 ﻿using FE.Constant;
-using FE.Services;
+using FE.Services.ConsumeAPI;
 using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;

@@ -369,3 +369,28 @@ input[type="search"]::-webkit-search-cancel-button {
     font-weight: 500;
     backdrop-filter: blur(2px);
 }
+
+.MyMessage.IsScrollTo,
+.OtherMessage.IsScrollTo {
+    animation: highlight 2s ease-out;
+}
+
+@keyframes highlight {
+    0% {
+        border: 4px solid transparent;
+        box-shadow: none;
+        transform: scale(1);
+    }
+
+    50% {
+        border: 4px solid white;
+        box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px, rgb(51, 51, 51) 0px 0px 0px 3px;
+        transform: scale(1.15);
+    }
+
+    100% {
+        border: 4px solid transparent;
+        box-shadow: none;
+        transform: scale(1);
+    }
+}

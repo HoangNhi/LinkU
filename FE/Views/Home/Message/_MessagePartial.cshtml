@@ -1,5 +1,6 @@
 ﻿@model MODELS.USER.Dtos.MODELUser
 @* Style _MessagePartial.cshtml *@
+
 <style>
     #Message_Content:empty::before {
         content: attr(data-placeholder);
@@ -33,12 +34,14 @@
     .MyMessage {
         background-color: #543310;
         color: white;
-        place-self: flex-end
+        place-self: flex-end;
+        transition: border 0.3s ease;
     }
 
     .OtherMessage {
-        background-color: rgba(134, 142, 153, 0.3);
+        background-color: var(--mdb-gray-200);
         color: black;
+        transition: border 0.3s ease;
     }
 
     /* Container Query */
@@ -119,7 +122,55 @@
     }
 </style>
 
+@* Tương tác với tin nhắn *@
+<style>
+    .Message_Interaction {
+        position: absolute;
+        top: 0;
+        width: fit-content;
+        left: 5px;
+        display: none;
+        align-self: anchor-center;
+    }
+
+    div.flex-row-reverse > div > .Message_Interaction {
+        left: -52px;
+        flex-direction: row-reverse;
+    }
+
+    .Message_Content:hover .Message_Interaction {
+        display: inline-flex
+    }
+
+    .Message_Interaction > button::before {
+        content: attr(data-content);
+        position: absolute;
+        top: -32px; /* hoặc chỉnh lại tùy vị trí bạn muốn */
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 4px;
+        white-space: nowrap;
+        font-size: 12px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 100;
+    }
+
+    .Message_Interaction > button:hover::before{
+        opacity: 1
+    }
+
+    .RefMessage{
+        cursor: pointer
+    }
+</style>
+
 @Html.Hidden("TargetId", Model.Id)
+@Html.Hidden("ConversationType", 0)
 
 <div class="card text-center flex-grow-1 h-100"
      style="box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;">
@@ -132,7 +183,7 @@
                  src='@(Model.ProfilePicture)' />
             <div class="d-flex align-items-center text-black lh-1"
                  style="padding: 6px 6px 6px 2px; font-weight: 500;">
-                <span class="fs-6" style="text-align: start">@Model.HoVaTen</span>
+                <span id="Message_Title" class="fs-6" style="text-align: start">@Model.HoVaTen</span>
             </div>
         </div>
         <div class="d-flex">
@@ -176,7 +227,7 @@
     </div>
 
     <div id="MessageWrapper" class="card-body p-0" style="height: calc(100% - 136px); overflow: auto">
-        <div id="FriendStatus" class="position-absolute position-absolute w-100"></div>
+        <div id="FriendStatus" class="position-absolute position-absolute w-100" style="z-index: 10"></div>
         <div id="MessageContainer">
             <div class="Mwrapper">
                 <div id="ChatContainer" class="container"></div>
@@ -184,83 +235,106 @@
         </div>
     </div>
 
-    <div class="card-footer d-flex border-0"
-         style="padding: 10px 8px">
-        <label for="PreviewUploadFileContainer_Input"
-               id="btnUploadFile"
-               class="btn btn-link rounded-circle position-relative align-self-end"
-               style="margin: 6px; height: 36px; width: 36px; padding: 0"
-               data-mdb-ripple-init
-               data-mdb-ripple-color="dark"
-               data-mdb-popover-init
-               data-mdb-content="@($"<div class='text-black px-2 py-1 Popover-blur'>Đính kèm file có kích thức tối đa là 20MB</div>")"
-               data-mdb-trigger="hover"
-               data-mdb-html="true"
-               data-mdb-placement="top">
-            <i class="fa-solid fa-image position-absolute"
-               style="color: #473c38;
-              font-size: 18px;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);"></i>
-            @* Input *@
-            <input type="file"
-                   id="PreviewUploadFileContainer_Input"
-                   class="d-none"
-                   multiple
-                   data-max-file-size="20MB"
-                   data-max-files="10">
-        </label>
-        <div id="Message_Container"
-             style="padding: 0 12px 12px;
-                    background-color: rgba(134, 142, 153, 0.1);
-                    border-radius: 20px;
-                    align-content: center;
-                    transition: box-shadow 0.2s ease">
-            @* Preview *@
-            <div id="PreviewUploadFileContainer" class="w-100"
-                 style="display: none; padding-top:12px; overflow-y: auto">
-                
-            </div>
-
-            <div id="Message_Content"
-                 contenteditable="true"
-                 data-placeholder="Aa"
-                 style="color: rgb(5,5,5);
-                        font-size: .9375rem;
-                        line-height: 1.34;
-                        text-align: left;
-                        font-weight: 400;
-                        border: 0;
-                        outline: 0;
-                        max-height: 140px;
-                        align-content: center;
-                        overflow-y: auto;
-                        overflow-x: hidden;
-                        margin-top: 12px"></div>
-        </div>
-        <button id="btnSendMessage"
-                type="button"
-                onclick="sendMessage('@Model.Id')"
-                class="btn btn-link rounded-circle position-relative align-self-end"
-                style="margin: 6px; height: 36px; width: 36px; padding: 0;"
-                data-mdb-ripple-init
-                data-mdb-ripple-color="dark"
-
-                data-mdb-popover-init
-                data-mdb-content="@($"<div class='text-black px-2 py-1 Popover-blur'>Nhấn ENTER để gửi</div>")"
-                data-mdb-trigger="hover"
-                data-mdb-html="true"
-                data-mdb-placement="top"
+    <div class="card-footer border-0 p-0">
+        @* Trả lời tin nhắn *@
+        <div id="ResponseMessageContainer" class="w-100 border-top justify-content-between align-items-center"
+            style="padding: 10px 15px 0px; margin-bottom: -4px; display: none"     
         >
-            <i class="fa-solid fa-paper-plane position-absolute"
-               style="color: #473c38;
+            <div class="d-flex flex-column text-start">
+                <span style="font-size: 14px; 
+                            font-weight: 600; 
+                            margin: 5px 0;
+                            line-height: 20px"
+                >
+                    Đang trả lời Hoàng
+                </span>
+                <span style="font-size: 12px; font-weight: 400; margin: 5px 0; line-height: 16px">
+                    helllo
+                </span>
+            </div>
+            <button type="button" 
+                    class="btn btn-floating"
+                    style="--mdb-btn-hover-bg: hsl(0, 0%, 90%); --mdb-btn-color: black; --mdb-btn-hover-color: black; box-shadow: unset; width: 28px; height: 28px; "
+                    data-mdb-ripple-init>
+                <i class="fa-solid fa-xmark fs-6"></i>
+            </button>
+        </div>
+
+        @* Nhắn tin *@
+        <div class="d-flex w-100" style="padding: 10px 8px">
+            <label for="PreviewUploadFileContainer_Input"
+                   id="btnUploadFile"
+                   class="btn btn-link rounded-circle position-relative align-self-end"
+                   style="margin: 6px; height: 36px; width: 36px; padding: 0"
+                   data-mdb-ripple-init
+                   data-mdb-ripple-color="dark"
+                   data-mdb-popover-init
+                   data-mdb-content="@($"<div class='text-black px-2 py-1 Popover-blur'>Đính kèm file có kích thức tối đa là 20MB</div>")"
+                   data-mdb-trigger="hover"
+                   data-mdb-html="true"
+                   data-mdb-placement="top">
+                <i class="fa-solid fa-image position-absolute"
+                   style="color: #473c38;
                       font-size: 18px;
                       top: 50%;
                       left: 50%;
                       transform: translate(-50%, -50%);"></i>
-        </button>
+                @* Input *@
+                <input type="file"
+                       id="PreviewUploadFileContainer_Input"
+                       class="d-none"
+                       multiple
+                       data-max-file-size="20MB"
+                       data-max-files="10">
+            </label>
+            <div id="Message_Container"
+                 style="padding: 0 12px 12px;
+            background-color: rgba(134, 142, 153, 0.1);
+            border-radius: 20px;
+            align-content: center;
+            transition: box-shadow 0.2s ease">
+                @* Preview *@
+                <div id="PreviewUploadFileContainer" class="w-100"
+                     style="display: none; padding-top:12px; overflow-y: auto">
 
+                </div>
+
+                <div id="Message_Content"
+                     contenteditable="true"
+                     data-placeholder="Aa"
+                     style="color: rgb(5,5,5);
+                font-size: .9375rem;
+                line-height: 1.34;
+                text-align: left;
+                font-weight: 400;
+                border: 0;
+                outline: 0;
+                max-height: 140px;
+                align-content: center;
+                overflow-y: auto;
+                overflow-x: hidden;
+                margin-top: 12px"></div>
+            </div>
+            <button id="btnSendMessage"
+                    type="button"
+                    onclick="sendMessage('@Model.Id')"
+                    class="btn btn-link rounded-circle position-relative align-self-end"
+                    style="margin: 6px; height: 36px; width: 36px; padding: 0;"
+                    data-mdb-ripple-init
+                    data-mdb-ripple-color="dark"
+                    data-mdb-popover-init
+                    data-mdb-content="@($"<div class='text-black px-2 py-1 Popover-blur'>Nhấn ENTER để gửi</div>")"
+                    data-mdb-trigger="hover"
+                    data-mdb-html="true"
+                    data-mdb-placement="top">
+                <i class="fa-solid fa-paper-plane position-absolute"
+                   style="color: #473c38;
+              font-size: 18px;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);"></i>
+            </button>
+        </div>
         <!-- Thông báo tin nhắn mới -->
         <div class="new-message-indicator d-none" id="newMessageIndicator" onclick="scrollToBottom()">
             <div class="new-msg-btn">
@@ -288,6 +362,8 @@
     var FileInput = document.getElementById('PreviewUploadFileContainer_Input')
     var PreviewUploadFileContainer = document.getElementById("PreviewUploadFileContainer");
     var btnUploadFile = document.getElementById("btnUploadFile");
+    var ResponseMessageContainer = document.getElementById("ResponseMessageContainer")
+    var ChatContainer = document.getElementById("ChatContainer")
 
     $(document).ready(function () {
         GetFriendRequestStatus();
@@ -470,62 +546,6 @@
             newMessageIndicator.classList.remove('hiding');
             newMessageCount = 0;
         }, 300);
-    }
-</script>
-
-@* Script _MessageContainerPartial *@
-<script>
-    function scrollToBottom() {
-        const chatBox = document.getElementById("MessageWrapper");
-        chatBox.scrollTo({
-            top: chatBox.scrollHeight + 1000,
-            behavior: 'smooth'
-        });
-
-        if (newMessageCount > 0) {
-            setTimeout(() => {
-                hideNewMessageIndicator();
-            }, 500);
-        }
-    }
-
-    // Append tin nhắn
-    function appendMessage(data) {
-        // Ẩn profile card
-        const profileCard = document.querySelector('.profile-card');
-        if (profileCard) {
-            profileCard.style.display = 'none';
-        }
-
-        // Tạo tin nhắn
-        const div = document.createElement("div");
-        div.innerHTML = `
-                        <div class="lh-1 py-3"
-                            style="font-size: 12px">${data.dateTime}</div>
-                        <div class="row align-items-center ${data.senderId === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? "flex-row-reverse" : ""}"
-                             style="margin-bottom: 12px;"
-                             data-userid = "${data.senderId}">
-                            <div style="width: 48px; align-self: end; display: ${data.senderId === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? "none" : "auto"}">
-                                <img class="rounded-circle border-bottom border-2"
-                                     src="@Model.ProfilePicture"
-                                     style="height: 38px; width: 38px; object-fit: cover" />
-
-                            </div>
-                            <div style="width: 70%;">
-                                <p class="m-0 ${data.senderId === '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value' ? 'MyMessage' : 'OtherMessage'}"
-                                   style="font-size: 14px;
-                                          width: fit-content;
-                                          padding: 8px 12px;
-                                          border-radius: 18px;
-                                          text-align: justify;
-                                          font-weight: 400;
-                                          box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
-                                      ${data.message}
-                                </p>
-                            </div>
-                            <div style="width: calc(30% - 48px)"></div>
-                        </div>`;
-        document.getElementById("ChatContainer").appendChild(div);
     }
 </script>
 

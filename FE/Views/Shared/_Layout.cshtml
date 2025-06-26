@@ -41,6 +41,11 @@
 
         @Html.Partial("~/Views/Shared/Modal/_ModalPartial.cshtml")
 
+        <!-- Audio Notification -->
+        <audio id="notificationSound"
+               src="~/audio/notification.mp3"
+               preload="auto">
+        </audio>
         <!-- Popover -->
         <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
         <!-- Bootstrap -->
@@ -75,7 +80,7 @@
             <partial name="_ValidationScriptsPartial" />
         }
 
-    <script>
+        <script>
         // Kết nối tới Hub SignalR từ API
         const connection = new signalR.HubConnectionBuilder()
                                     .withUrl('https://localhost:7181/messageHub?userid=@(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value)') // URL API SignalR hub
@@ -104,9 +109,19 @@
             // Send message
         function sendMessage(receiverId) {
             if ($('#Message_Content').text() !== '' && ArrayFile.length == 0) {
+                var refid = ResponseMessageContainer.querySelector(`div[data-message-id]`)
+
+                var data = {
+                    SenderId: '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value',
+                    TargetId: receiverId,
+                    Content: document.getElementById('Message_Content').innerHTML.trim(),
+                    RefId: refid === null ? null : refid.getAttribute("data-message-id")
+                }
+
                 // Gửi tin nhắn bình thường (Chỉ có text)
-                connection.invoke("SendPrivateMessage", '@User.Claims.FirstOrDefault(c => c.Type == "UserId").Value', receiverId, document.getElementById('Message_Content').innerHTML.trim());
+                connection.invoke("SendPrivateMessage", data);
                 $('#Message_Content').html('')
+                HideResponseMessageContainer()
             } else {
                 if (ArrayFile.length > 0) {
                     sendMessageWithFile(receiverId, 0);
@@ -117,11 +132,13 @@
         // Send Message In Group
         function sendGroupMessage(groupId) {
             if ($('#Message_Content').text() !== '' && ArrayFile.length == 0) {
+                var refid = ResponseMessageContainer.querySelector(`div[data-message-id]`)
                 // Chuẩn bị data
                 var data = {
                     SenderId: '@ViewContext.GetClaimValue("UserId")',
                     TargetId: groupId,
-                    Content: document.getElementById('Message_Content').innerHTML.trim()
+                    Content: document.getElementById('Message_Content').innerHTML.trim(),
+                    RefId: refid === null ? null : refid.getAttribute("data-message-id")
                 }
 
                 connection.invoke("SendGroupMessage", data)
@@ -135,6 +152,7 @@
                     });
 
                 $('#Message_Content').html('')
+                HideResponseMessageContainer()
             } else {
                 if (ArrayFile.length > 0) {
                     sendMessageWithFile(groupId, 1);
@@ -178,13 +196,14 @@
         }
 
         function sendMessageWithFile(receiverId, conversationType) {
+            var refid = ResponseMessageContainer.querySelector(`div[data-message-id]`)
             var formData = new FormData();
             ArrayFile.forEach(item => {
                 formData.append("files", item.data);
             })
             formData.append("Content", $('#Message_Content').text());
             formData.append("TargetId", receiverId)
-            formData.append("RefId", "")
+            formData.append("RefId", refid === null ? null : refid.getAttribute("data-message-id"))
             formData.append("ConversationType", conversationType)
 
             $.ajax({
@@ -214,6 +233,8 @@
 
                                 // Cuộn đến Bottom
                                 scrollToBottom();
+
+                                HideResponseMessageContainer()
                             } else {
                                 var data = {
                                     SenderId: '@ViewContext.GetClaimValue("UserId")',
@@ -241,6 +262,41 @@
                     ShowThongBaoThatBai(error)
                 }
             })
+        }
+
+        // Append tin nhắn
+        function appendMessage(data, conversationtype = 0, callback) {
+            // Ẩn profile card
+            const profileCard = document.querySelector('.profile-card');
+            if (profileCard) {
+                profileCard.style.display = 'none';
+            }
+
+            // Call Ajax để lấy HTML
+             $.ajax({
+                 url: "@Url.Action("GetMessageHtml", "Message")",
+                 type: "POST",
+                 data: {
+                     request: JSON.stringify(data),
+                     ConversationType: conversationtype
+                 },
+                 success: function (response) {
+                     showLoading(false)
+                     if (response.isSuccess === undefined) {
+                         document.getElementById("ChatContainer").insertAdjacentHTML("beforeend", response);
+
+                         if (typeof callback === 'function') {
+                             callback()
+                         }
+                     } else {
+                         ShowThongBaoThatBai(response.message)
+                     }
+                 },
+                 error: function (xhr, error) {
+                     showLoading(false)
+                     ShowThongBaoThatBai(error)
+                 }
+             })
         }
 
         // Hàm nhận yêu cầu kết bạn từ server
@@ -273,35 +329,41 @@
                 ShowThongBaoThatBai(response.message)
             } else {
                 var TargetId = $("#TargetId").val()
+                var ConversationType = $("#ConversationType").val()
 
                 // Rerender Conversation
                 GetListPagingConversation(PageIndexConversation, RowPerPageConversation, () => { setActiveButton(TargetId) })
 
+                if ('@ViewContext.GetClaimValue("UserId")' !== response.data.data[0].senderId) {
+                    playNotification();
+                }
+
                 // Xử lý khi Tab Message đã được tải
-                if (TargetId === response.data.senderId || TargetId === response.data.targetId) {
+                if (TargetId === response.data.data[0].senderId || TargetId === response.data.data[0].targetId) {
                     // Update lastread message cho người nhận
                     // Vì người gửi đã được cập nhật latest mesage lúc gửi tin nhắn
                     updateConversationLatestMessage(TargetId)
 
                     // Thêm 1 tin nhắn
-                    appendMessage(response.data);
+                    appendMessage(response.data, ConversationType, () => {
+                        // Gọi lại hàm xử lý display thời gian tạo, tên và ảnh đại diện của người tạo tin nhắn
+                        filterTimeDivs();
+                        groupUserMessages();
 
-                    // Gọi lại hàm xử lý display thời gian tạo, tên và ảnh đại diện của người tạo tin nhắn
-                    filterTimeDivs();
-                    groupUserMessages();
+                        // Scroll Message tới cuối cùng
+                        var scrollTop = document.getElementById('MessageWrapper').scrollTop;
+                        var scrollHeight = document.getElementById('MessageWrapper').scrollHeight;
+                        var clientHeight = document.getElementById('MessageWrapper').clientHeight;
 
-                    // Scroll Message tới cuối cùng
-                    var scrollTop = document.getElementById('MessageWrapper').scrollTop;
-                    var scrollHeight = document.getElementById('MessageWrapper').scrollHeight;
-                    var clientHeight = document.getElementById('MessageWrapper').clientHeight;
+                        // Nếu scroll hiện tại không quá 10 tin nhắn hoặc tôi là người gửi tin nhắn
+                        // thì sẽ hiển 1 biểu tượng có tin nhắn mới
+                        if (scrollHeight - scrollTop - clientHeight <= 275 || '@ViewContext.GetClaimValue("UserId")' === response.data.data[0].senderId) {
+                            scrollToBottom()
+                        } else {
+                            showNewMessageIndicator();
+                        }
+                    });
 
-                    // Nếu scroll hiện tại không quá 10 tin nhắn hoặc tôi là người gửi tin nhắn
-                    // thì sẽ hiển 1 biểu tượng có tin nhắn mới
-                    if (scrollHeight - scrollTop - clientHeight <= 275 || '@ViewContext.GetClaimValue("UserId")' === response.data.senderId) {
-                        scrollToBottom()
-                    } else {
-                        showNewMessageIndicator();
-                    }
                 }
             }
         });
@@ -368,6 +430,10 @@
                 // Rerender Conversation
                 GetListPagingConversation(PageIndexConversation, RowPerPageConversation, () => { setActiveButton(TargetId) })
 
+                if ('@ViewContext.GetClaimValue("UserId")' !== response.data.senderId) {
+                    playNotification();
+                }
+
                 // Xử lý khi Tab Message đã được tải
                 if (TargetId === response.data.senderId || TargetId === response.data.targetId) {
                     // Update lastread message cho người nhận
@@ -388,7 +454,6 @@
 
                     // Nếu scroll hiện tại không quá 10 tin nhắn hoặc tôi là người gửi tin nhắn
                     // thì sẽ hiển 1 biểu tượng có tin nhắn mới
-                    console.log(scrollHeight - scrollTop - clientHeight)
                     if (scrollHeight - scrollTop - clientHeight <= 2000 || '@ViewContext.GetClaimValue("UserId")' === response.data.senderId) {
                         scrollToBottom()
                     } else {
@@ -398,7 +463,7 @@
             }
         });
 
-    </script>
+        </script>
 
         <script>
             // Chuyển giao diện nhắn tin với User hoặc nhóm
@@ -420,6 +485,11 @@
                         success: function (response) {
                             showLoading(false)
                             if (response.isSuccess === undefined) {
+                                var $html = $("<div>").html(response)
+                                if ($html.find("span#Message_Title")) {
+                                    document.title = `${$html.find("span#Message_Title").text()} | LinkU`;
+                                }
+
                                 CloseModal()
                                 $("#pills-chat-message").html(response)
                                 SwitchToTabChatArea('tab-chat-message')
@@ -464,6 +534,90 @@
                         ShowThongBaoThatBai(error)
                     }
                 });
+            }
+        </script>
+
+        <script>
+            function scrollToBottom() {
+                const chatBox = document.getElementById("MessageWrapper");
+                chatBox.scrollTo({
+                    top: chatBox.scrollHeight + 1000,
+                    behavior: 'smooth'
+                });
+
+                if (newMessageCount > 0) {
+                    setTimeout(() => {
+                        hideNewMessageIndicator();
+                    }, 500);
+                }
+            }
+
+            function scrollToMessageById(messageId) {
+                const RETRY_DELAY = 500; // ms
+                const targetElement = document.querySelector(`div[data-messageid="${messageId}"]`);
+
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Thêm class highlight
+                    const message = targetElement.querySelector('div.MyMessage, div.OtherMessage, p.MyMessage, p.OtherMessage');
+                    console.log(message)
+                    if (message !== null) {
+                        message.classList.add('IsScrollTo');
+
+                        // Xóa class sau 2.5 giây để hiệu ứng reset
+                        setTimeout(() => {
+                            message.classList.remove('IsScrollTo');
+                        }, 2500);
+                    }
+                } else {
+                    const chatBox = document.getElementById("MessageWrapper");
+                    chatBox.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+
+                    setTimeout(() => {
+                        scrollToMessageById(messageId);
+                    }, RETRY_DELAY);
+                }
+            }
+
+
+            function ShowResponseMessageContainer(id) {
+                var message = ChatContainer.querySelector(`div.Message_Content[data-messageid="${id}"]`)
+                if (message === null) return;
+                var html = `
+                        <div class="d-flex flex-column text-start" data-message-id="${id}" style="max-width: 40%">
+                            <span style="font-size: 14px;
+                                        font-weight: 600;
+                                        margin: 5px 0;
+                                        line-height: 20px"
+                            >
+                                Đang trả lời ${message.getAttribute("data-name")}
+                            </span>
+                            <span class="text-truncate" style="font-size: 12px; font-weight: 400; margin: 5px 0; line-height: 16px">
+                                ${message.querySelectorAll("p").length === 0 ? (message.querySelector("video.FilePreview") === null ? (message.querySelector("img.FilePreview") === null ? "Tệp tin" : "Hình ảnh") : "Video") : message.querySelectorAll("p")[message.querySelectorAll("p").length - 1].innerText}
+                            </span>
+                        </div>
+                        <button type="button" onclick="HideResponseMessageContainer()"
+                                class="btn btn-floating"
+                                style="--mdb-btn-hover-bg: hsl(0, 0%, 90%); --mdb-btn-color: black; --mdb-btn-hover-color: black; box-shadow: unset; width: 28px; height: 28px; "
+                                data-mdb-ripple-init>
+                            <i class="fa-solid fa-xmark fs-6"></i>
+                        </button>
+                    `
+                // Gán html
+                ResponseMessageContainer.innerHTML = html
+
+                // Hiển thị container
+                ResponseMessageContainer.style.display = "flex"
+            }
+
+            function HideResponseMessageContainer() {
+                // Hiển thị container
+                ResponseMessageContainer.style.display = "none"
+                ResponseMessageContainer.innerHTML = ''
             }
         </script>
 

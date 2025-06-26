@@ -248,3 +248,8 @@ var noGroup = `
         </p>
     </div>
 `
+function playNotification() {
+    const sound = document.getElementById("notificationSound");
+    sound.currentTime = 0; // Reset về đầu
+    sound.play();
+}

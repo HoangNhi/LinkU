@@ -13,7 +13,7 @@ namespace BE.Services.Message
         BaseResponse<MODELMessage> Update(PostMessageRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
         Task<BaseResponse<List<MODELSendMessageWithFileResponse>>> SendMessageWithFile(POSTSendMessageWithFileRequest request);
-
+        BaseResponse<List<MODELMessage>> HanleDataGetListPaging(List<MODELMessage> result, int conversationType, Guid UserId, Guid TargetId);
         #region Xử lý request từ Websocket
         BaseResponse<bool> RoolbackDelete(GetByIdRequest request);
         #endregion

@@ -26,5 +26,6 @@ namespace MODELS.MESSAGE.Dtos
 
         public MODELUser Sender { get; set; } = null!;
         public MODELMediaFile? MediaFile { get; set; } = null!;
+        public MODELMessage? RefMessage { get; set; }
     }
 }

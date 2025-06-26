@@ -227,6 +227,7 @@ namespace FE.Controllers
                 multiForm.Add(new StringContent(_consumeAPI.GetUserId()), "SenderId");
                 multiForm.Add(new StringContent(data["Content"]), "Content");
                 multiForm.Add(new StringContent(data["RefId"]), "RefId");
+                var test = data["RefId"];
 
                 if (string.IsNullOrEmpty(data["TargetId"]))
                 {
@@ -285,5 +286,33 @@ namespace FE.Controllers
                 return Json(new { IsSuccess = false, Message = message, Data = "" });
             }
         }
+
+        [HttpPost]
+        public ActionResult GetMessageHtml(string request, int ConversationType = 0)
+        {
+            try 
+            {
+                if (string.IsNullOrEmpty(request))
+                {
+                    throw new Exception("Lỗi hệ thống");
+                }
+
+                var response = JsonConvert.DeserializeObject<GetListPagingResponse>(request);
+                response.Data = JsonConvert.DeserializeObject<List<MODELMessage>>(response.Data.ToString());
+
+                var DataResult = response.Data as List<MODELMessage>;
+                ViewBag.RowPerPage = DataResult.Count();
+                ViewBag.ConversationType = ConversationType;
+                ViewBag.CurrentUserId = Guid.Parse(_consumeAPI.GetUserId());
+
+                return PartialView("~/Views/Home/Message/_MessageContainerPartial.cshtml", response);
+            }
+            catch (Exception ex)
+            {
+                string message = "Lỗi hệ thống: " + ex.Message;
+                return Json(new { IsSuccess = false, Message = message, Data = "" });
+            }
+        }
+        
     }
 }

@@ -1,9 +1,11 @@
 ﻿using AutoMapper.Execution;
+using Azure;
 using BE.Services.Conversation;
 using BE.Services.FriendRequest;
 using BE.Services.GroupMember;
 using BE.Services.Message;
 using BE.Services.User;
+using ENTITIES.DbContent;
 using Microsoft.AspNetCore.SignalR;
 using MODELS.BASE;
 using MODELS.CONVERSATION.Requests;
@@ -16,6 +18,7 @@ using MODELS.USER.Dtos;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.WebSockets;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BE.Hubs
 {
@@ -51,7 +54,7 @@ namespace BE.Hubs
 
         #region Gửi tin nhắn
         // Phương thức gửi tin nhắn tới tất cả client
-        public async Task SendPrivateMessage(string sender, string receiver, string message)
+        public async Task SendPrivateMessage(PostMessageRequest request)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -61,19 +64,23 @@ namespace BE.Hubs
             try
             {
                 // Kiểm tra Id người gửi, người nhận và nội dung tin nhắn có hợp lệ không
-                var (senderId, receiverId) = ValidateMessage(sender, receiver, message);
+                // Kiểm tra tin nhắn
+                if (string.IsNullOrWhiteSpace(request.Content) || string.IsNullOrEmpty(request.Content))
+                {
+                    throw new Exception("Tin nhắn không được để trống");
+                }
 
                 // Tạo tin nhắn
-                var resultMessage = CreateMessage(senderId, receiverId, message, out messageId);
+                var resultMessage = CreateMessage(request, out messageId);
 
                 // Lấy thông tin người dùng
-                var (senderInfo, receiverInfo) = GetUserInfos(senderId, receiverId);
+                var (senderInfo, receiverInfo) = GetUserInfos(request.SenderId, request.TargetId);
 
                 // Kiểm tra cuộc trò chuyện
                 EnsureConversation(senderInfo, receiverInfo, resultMessage.Id, out conversationId);
 
-                // Gửi phẩn hồi đến client
-                await SendSignalRMessage(senderId, receiverId, message, resultMessage.DateTime);
+                // Gửi phản hồi đến client
+                await SendSignalRMessage(resultMessage);
             }
             catch (Exception ex)
             {
@@ -134,11 +141,24 @@ namespace BE.Hubs
                     throw new Exception(groupMembers.Message);
                 }
 
+                // Xử lý dữ liệu
+                
+
+                // Gửi tin nhắn đến tất cả thành viên trong nhóm
                 foreach (var member in groupMembers.Data)
                 {
+                    var Data = _messageService.HanleDataGetListPaging(new List<MODELMessage> { resultMessage.Data }, 1, member.UserId, member.GroupId).Data;
+
+                    var Response = new GetListPagingResponse
+                    {
+                        PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
+                        Data = Data,
+                        TotalRow = Data.Count
+                    };
+
                     if (_users.TryGetValue(member.UserId.ToString(), out string connectionId))
                     {
-                        await Clients.Client(connectionId).SendAsync("ReceiveMessage", new ApiResponse(resultMessage.Data));
+                        await Clients.Client(connectionId).SendAsync("ReceiveMessage", new ApiResponse(Response));
                     }
                 }
             }
@@ -364,19 +384,21 @@ namespace BE.Hubs
             return (senderId, receiverId);
         }
 
-        MODELMessage CreateMessage(Guid senderId, Guid receiverId, string message, out Guid? messageId)
+        MODELMessage CreateMessage(PostMessageRequest request, out Guid? messageId)
         {
-            var result = _messageService.Insert(new PostMessageRequest
-            {
-                SenderId = senderId,
-                TargetId = receiverId,
-                Content = message,
-            });
+            var result = _messageService.Insert(request);
 
             if (result.Error)
             {
                 throw new Exception(result.Message);
             }
+
+            //if(!(request.RefId == null || request.RefId == Guid.Empty))
+            //{
+            //    var refMessage = _messageService.GetById(new GetByIdRequest { Id = request.RefId });
+            //    if(refMessage)
+            //}
+
             messageId = result.Data.Id; // Lưu ID tin nhắn
 
             return result.Data;
@@ -500,22 +522,33 @@ namespace BE.Hubs
             }
         }
 
-        async Task SendSignalRMessage(Guid senderId, Guid targetId, string message, string Datetime)
+        async Task SendSignalRMessage(MODELMessage response)
         {
-            var response = new MODELMessageResponse
+            // Xử lý dữ liệu
+            var myData = _messageService.HanleDataGetListPaging(new List<MODELMessage> { response }, 0, response.SenderId, response.TargetId).Data;
+            var otherData = _messageService.HanleDataGetListPaging(new List<MODELMessage> { response }, 0, response.TargetId, response.SenderId).Data;
+
+            var myResponse = new GetListPagingResponse
             {
-                SenderId = senderId,
-                TargetId = targetId,
-                Message = message,
-                DateTime = Datetime
+                PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
+                Data = myData,
+                TotalRow = myData.Count
             };
 
-            // Gửi tin nhắn qua SignalR
-            if (_users.TryGetValue(targetId.ToString(), out string receiverConnectionId))
+            var otherResponse = new GetListPagingResponse
             {
-                await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", new ApiResponse(response));
+                PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
+                Data = otherData,
+                TotalRow = otherData.Count
+            };
+
+
+            // Gửi tin nhắn qua SignalR
+            if (_users.TryGetValue(response.TargetId.ToString(), out string receiverConnectionId))
+            {
+                await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", new ApiResponse(otherResponse));
             }
-            await Clients.Caller.SendAsync("ReceiveMessage", new ApiResponse(response));
+            await Clients.Caller.SendAsync("ReceiveMessage", new ApiResponse(myResponse));
         }
 
         async Task SendSignalRRerenderTab(Guid UserId, string tabname)

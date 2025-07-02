@@ -5,6 +5,7 @@ using BE.Services.ReactionType;
 using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MEDIAFILE.Dtos;
@@ -15,6 +16,8 @@ using MODELS.MESSAGEREACTION.Dtos;
 using MODELS.USER.Dtos;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.X509;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.WebSockets;
 
 namespace BE.Services.Message
@@ -63,6 +66,7 @@ namespace BE.Services.Message
                 };
 
                 var result = _context.ExcuteStoredProcedure<MODELMessage>("sp_MESSAGE_GetListPaging", parameters).ToList();
+
                 result = HanleDataGetListPaging(result, request.ConversationType, request.UserId, request.TargetId).Data;
 
                 GetListPagingResponse resposeData = new GetListPagingResponse();
@@ -83,17 +87,11 @@ namespace BE.Services.Message
             var response = new BaseResponse<MODELMessage>();
             try
             {
-                var result = new MODELMessage();
                 var data = _context.Messages.FirstOrDefault(x => x.Id == request.Id && !x.IsDeleted);
                 if (data == null)
-                {
                     throw new Exception("Không tìm thấy dữ liệu");
-                }
-                else
-                {
-                    result = _mapper.Map<MODELMessage>(data);
-                }
-                response.Data = result;
+
+                response.Data = _mapper.Map<MODELMessage>(data);
             }
             catch (Exception ex)
             {
@@ -397,290 +395,282 @@ namespace BE.Services.Message
                     var CurrentUser = _userService.GetById(new GetByIdRequest() { Id = UserId }).Data;
                     var Target = _userService.GetById(new GetByIdRequest() { Id = TargetId }).Data;
 
+                    // Tập hợp các ID cần preload
+                    var messageIds = result.Select(x => x.Id).ToList();
+                    var refIds = result.Where(x => x.RefId.HasValue && x.RefId != Guid.Empty)
+                                       .Select(x => x.RefId.Value)
+                                       .Distinct()
+                                       .ToList();
+
+                    // Preload MediaFiles cho MessageId và RefId
+                    var mediaFiles = _context.MediaFiles
+                        .Where(x => (messageIds.Contains(x.MessageId.Value) || refIds.Contains(x.MessageId.Value)) && !x.IsDeleted)
+                        .AsNoTracking()
+                        .ToList()
+                        .ToLookup(x => x.MessageId);
+
+                    // Preload RefMessages
+                    var refMessages = GetByIds(refIds) // bạn cần viết GetByIds để trả về Dictionary<Guid, MODELMessage>
+                                        .ToDictionary(x => x.Id, x => x);
+
+                    // Preload Reactions
+                    var allReactions = _context.MessageReactions
+                        .Where(x => messageIds.Contains(x.MessageId) && !x.IsDeleted)
+                        .AsNoTracking()
+                        .ToList()
+                        .GroupBy(x => x.MessageId)
+                        .ToDictionary(g => g.Key, g => g.ToList());
+
+                    // Lấy tất cả ReactionTypeId & UserId duy nhất để preload batch
+                    var allReactionTypeIds = allReactions.SelectMany(x => x.Value.Select(r => r.ReactionTypeId)).Distinct().ToList();
+                    var allUserIds = allReactions.SelectMany(x => x.Value.Select(r => r.UserId)).Distinct()
+                                      .Concat(refMessages.Values.Select(x => x.SenderId))
+                                      .Distinct()
+                                      .ToList();
+
+                    // Preload ReactionTypes và Users
+                    var reactionTypesDict = _reactionTypeService.GetByIds(allReactionTypeIds).ToDictionary(x => x.Id);
+                    var usersDict = _userService.GetByIds(allUserIds).ToDictionary(x => x.Id);
+
+                    // Lặp và gán dữ liệu đã preload
                     foreach (var item in result)
                     {
                         item.Sender = item.SenderId == UserId ? CurrentUser : Target;
 
-                        // Tin nhắn là File
-                        if (item.MessageType == 3)
-                        {
-                            var data = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.Id);
-                            if (data != null)
+                        // MediaFile cho item
+                        var file = mediaFiles[item.Id].FirstOrDefault();
+                        item.MediaFile = file != null
+                            ? _mapper.Map<MODELMediaFile>(file)
+                            : new MODELMediaFile
                             {
-                                item.MediaFile = _mapper.Map<MODELMediaFile>(data);
-                            }
-                            else
-                            {
-                                item.MediaFile = new MODELMediaFile
-                                {
-                                    Id = Guid.Empty,
-                                    FileName = "File không tồn tại",
-                                    FileType = (int)MediaFileType.ChatFile,
-                                    Url = string.Empty,
-                                };
-                            }
-                        }
-
-                        // Xử lý RefMessage
-                        if (item.RefId != null && item.RefId != Guid.Empty)
-                        {
-                            var refMessage = GetById(new GetByIdRequest { Id = item.RefId.Value });
-                            if (refMessage.Error)
-                            {
-                                item.RefMessage = new MODELMessage
-                                {
-                                    Id = Guid.Empty,
-                                    Content = "Đã gỡ tin nhắn",
-                                };
-                            }
-                            else
-                            {
-                                item.RefMessage = refMessage.Data;
-                                item.RefMessage.Sender = item.RefMessage.SenderId == UserId ? CurrentUser : Target;
-
-                                if (item.RefMessage.MessageType == 3)
-                                {
-                                    var data = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.RefMessage.Id);
-                                    if (data != null)
-                                    {
-                                        item.RefMessage.MediaFile = _mapper.Map<MODELMediaFile>(data);
-                                    }
-                                    else
-                                    {
-                                        item.RefMessage.MediaFile = new MODELMediaFile
-                                        {
-                                            Id = Guid.Empty,
-                                            FileName = "File không tồn tại",
-                                            FileType = (int)MediaFileType.ChatFile,
-                                            Url = string.Empty,
-                                        };
-                                    }
-                                }
-                            }
-                        }
-
-                        // Xử lý MessageReaction
-                        var messageReaction = _context.MessageReactions.Where(x => x.MessageId == item.Id && !x.IsDeleted);
-                        if (messageReaction.Count() > 0)
-                        {
-                            // Khởi tạo MessageReaction với ReactionCount
-                            item.MessageReaction = new MODELMessageReaction
-                            {
-                                ReactionCount = messageReaction.Count(),
+                                Id = Guid.Empty,
+                                FileName = "File không tồn tại",
+                                FileType = (int)MediaFileType.ChatFile,
+                                Url = string.Empty
                             };
 
-                            // Lấy danh sách các ReactionType
-                            var reactionType = messageReaction.Select(x => x.ReactionTypeId).Distinct().ToList();
-                            foreach (var reactionId in reactionType)
-                            {
-                                var reaction = _reactionTypeService.GetById(new GetByIdRequest { Id = reactionId });
-                                if (!reaction.Error)
-                                {
-                                    item.MessageReaction.ReactionTypes.Add(reaction.Data);
-                                }
-                            }
+                        // RefMessage
+                        if (item.RefId.HasValue && refMessages.TryGetValue(item.RefId.Value, out var refMsg))
+                        {
+                            item.RefMessage = refMsg;
+                            item.RefMessage.Sender = usersDict.TryGetValue(refMsg.SenderId, out var sender) ? sender : null;
 
-                            // Lấy danh sách người đã phản ứng với tin nhắn
-                            var userReaction = messageReaction.Select(x => x.UserId).Take(3).ToList();
-                            foreach (var userId in userReaction)
+                            if (refMsg.MessageType == 3)
                             {
-                                var user = _userService.GetById(new GetByIdRequest { Id = userId });
-                                if (!user.Error)
-                                {
-                                    item.MessageReaction.ReactedUsers.Add(user.Data);
-                                }
+                                var refFile = mediaFiles[refMsg.Id].FirstOrDefault();
+                                item.RefMessage.MediaFile = refFile != null
+                                    ? _mapper.Map<MODELMediaFile>(refFile)
+                                    : new MODELMediaFile
+                                    {
+                                        Id = Guid.Empty,
+                                        FileName = "File không tồn tại",
+                                        FileType = (int)MediaFileType.ChatFile,
+                                        Url = string.Empty
+                                    };
                             }
+                        }
+                        else
+                        {
+                            item.RefMessage = new MODELMessage
+                            {
+                                Id = Guid.Empty,
+                                Content = "Đã gỡ tin nhắn"
+                            };
+                        }
 
-                            // Lấy ra Reaction của người dùng hiện tại (nếu có)
-                            var exitstMyReaction = messageReaction.FirstOrDefault(x => x.UserId == UserId);
-                            if(exitstMyReaction != null)
+                        // MessageReactions
+                        if (allReactions.TryGetValue(item.Id, out var reactions) && reactions.Any())
+                        {
+                            var reactionTypeIds = reactions.Select(r => r.ReactionTypeId).Distinct().ToList();
+                            var userIds = reactions.Select(r => r.UserId).Distinct().Take(3).ToList();
+
+                            item.MessageReaction = new MODELMessageReaction
                             {
-                                item.MessageReaction.MyReactionTypeId = exitstMyReaction.ReactionTypeId;
-                            }
+                                ReactionCount = reactions.Count,
+                                ReactionTypes = reactionTypeIds
+                                    .Where(reactionTypesDict.ContainsKey)
+                                    .Select(id => reactionTypesDict[id])
+                                    .ToList(),
+                                ReactedUsers = userIds
+                                    .Where(usersDict.ContainsKey)
+                                    .Select(id => usersDict[id])
+                                    .ToList(),
+                                MyReactionTypeId = reactions.FirstOrDefault(r => r.UserId == UserId)?.ReactionTypeId
+                            };
                         }
                     }
                 }
-                else
+                else if(conversationType == 1)
                 {
+                    var stopwatch = Stopwatch.StartNew();
+
                     var currentUser = _context.Users.Find(UserId);
 
-                    // Duyệt qua từng tin nhắn
+                    // Tập hợp các ID cần preload
+                    var senderIds = result.Select(x => x.SenderId).Distinct().ToList();
+                    var refIds = result.Where(x => x.RefId.HasValue && x.RefId != Guid.Empty)
+                                       .Select(x => x.RefId.Value)
+                                       .Distinct()
+                                       .ToList();
+                    var messageIds = result.Select(x => x.Id).ToList();
+
+                    // Preload tất cả người dùng liên quan
+                    var allTargetUserIds = result
+                        .Where(x => x.MessageType == 1 || x.MessageType == 2)
+                        .SelectMany(x => JsonConvert.DeserializeObject<MODELMessageContent>(x.Content).TargetId)
+                        .Distinct()
+                        .ToList();
+
+                    var userIdsToPreload = senderIds
+                        .Concat(allTargetUserIds)
+                        .Concat(refIds.Select(id => GetById(new GetByIdRequest { Id = id }).Data?.SenderId ?? Guid.Empty))
+                        .Distinct()
+                        .Where(id => id != Guid.Empty)
+                        .ToList();
+
+                    var usersDict = userIdsToPreload.Select(x => _userService.GetById(new GetByIdRequest { Id = x}).Data).ToDictionary(x => x.Id);
+
+                    // Preload MediaFiles
+                    var mediaFiles = _context.MediaFiles
+                        .Where(x => messageIds.Contains(x.MessageId.Value) || refIds.Contains(x.MessageId.Value))
+                        .AsNoTracking()
+                        .ToList()
+                        .ToLookup(x => x.MessageId);
+
+                    // Preload RefMessages
+                    var refMessages = GetByIds(refIds).ToDictionary(x => x.Id, x => x);
+
+                    // Preload Reactions
+                    var allReactions = _context.MessageReactions
+                        .Where(x => messageIds.Contains(x.MessageId) && !x.IsDeleted)
+                        .AsNoTracking()
+                        .ToList()
+                        .GroupBy(x => x.MessageId)
+                        .ToDictionary(g => g.Key, g => g.ToList());
+
+                    var allReactionTypeIds = allReactions.SelectMany(x => x.Value.Select(r => r.ReactionTypeId)).Distinct().ToList();
+                    var reactionTypesDict = _reactionTypeService.GetByIds(allReactionTypeIds).ToDictionary(x => x.Id);
+
+                    // Xử lý từng item
                     foreach (var item in result)
                     {
-                        item.Sender = _userService.GetById(new GetByIdRequest() { Id = item.SenderId }).Data;
+                        // Gán Sender
+                        usersDict.TryGetValue(item.SenderId, out var sender);
+                        item.Sender = sender;
 
-                        // Tin nhắn là Welcome hoặc Notification
                         if (item.MessageType == 1 || item.MessageType == 2)
                         {
-                            MODELMessageContent content = JsonConvert.DeserializeObject<MODELMessageContent>(item.Content);
+                            var content = JsonConvert.DeserializeObject<MODELMessageContent>(item.Content);
 
-                            // Thay đổi nội dung của tin nhắn theo người dùng hiện tại
-                            // Case 1: User hiện tại là người tạo ra message này
+                            // Case 1: User hiện tại là người tạo message
                             if (currentUser.Id == content.UserId)
                             {
-                                // Nếu ta thêm ai đó vào nhóm
                                 if (content.TargetId.Count > 0)
                                 {
-                                    List<string> usernames = new List<string>();
-                                    foreach (var userid in content.TargetId)
-                                    {
-                                        var user = _context.Users.Find(userid);
-                                        if (user != null)
-                                        {
-                                            usernames.Add(string.Concat(user.HoLot, " ", user.Ten));
-                                        }
-                                    }
-
-                                    // Cập nhật nội dung tin nhắn
+                                    var usernames = content.TargetId
+                                        .Where(usersDict.ContainsKey)
+                                        .Select(id => usersDict[id])
+                                        .Select(u => $"{u.HoLot} {u.Ten}")
+                                        .ToList();
                                     item.Content = $"Bạn đã thêm {string.Join(", ", usernames)} vào nhóm";
                                 }
-                                // Nếu ta tham gia bằng Lời mời (GroupRequest)
                                 else
                                 {
-                                    // Cập nhật nội dung tin nhắn
-                                    item.Content = $"Bạn đã tham gia nhóm";
+                                    item.Content = "Bạn đã tham gia nhóm";
                                 }
                             }
-                            // Case 2: Bạn là 1 trong những người nhận tin nhắn
                             else if (content.TargetId.Contains(currentUser.Id))
                             {
-                                var user = _context.Users.Find(content.UserId);
-                                if (user != null)
+                                if (usersDict.TryGetValue(content.UserId, out var user))
                                 {
-                                    // Cập nhật nội dung tin nhắn
-                                    item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm bạn vào nhóm";
+                                    item.Content = $"{user.HoLot} {user.Ten} đã thêm bạn vào nhóm";
                                 }
                             }
-                            // Case 3: Bạn không phải là người tạo và cũng không phải là người nhận tin nhắn
                             else
                             {
-                                if (content.TargetId.Count > 0)
+                                if (usersDict.TryGetValue(content.UserId, out var user))
                                 {
-                                    var user = _context.Users.Find(content.UserId);
-                                    var usernames = new List<string>();
-                                    foreach (var userid in content.TargetId)
-                                    {
-                                        var targetUser = _context.Users.Find(userid);
-                                        if (targetUser != null)
-                                        {
-                                            usernames.Add(string.Concat(targetUser.HoLot, " ", targetUser.Ten));
-                                        }
-                                    }
-
-                                    if (user != null)
-                                    {
-                                        // Cập nhật nội dung tin nhắn
-                                        item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm {string.Join(", ", usernames)} vào nhóm";
-                                    }
-                                }
-                                else
-                                {
-                                    var user = _context.Users.Find(content.UserId);
-                                    if (user != null)
-                                    {
-                                        // Cập nhật nội dung tin nhắn
-                                        item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã tham gia nhóm";
-                                    }
+                                    var usernames = content.TargetId
+                                        .Where(usersDict.ContainsKey)
+                                        .Select(id => usersDict[id])
+                                        .Select(u => $"{u.HoLot} {u.Ten}")
+                                        .ToList();
+                                    item.Content = usernames.Count > 0
+                                        ? $"{user.HoLot} {user.Ten} đã thêm {string.Join(", ", usernames)} vào nhóm"
+                                        : $"{user.HoLot} {user.Ten} đã tham gia nhóm";
                                 }
                             }
                         }
-                        else if (item.MessageType == 3) // Tin nhắn là File
+
+                        // Gán MediaFile nếu là file
+                        if (item.MessageType == 3)
                         {
-                            var data = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.Id);
-                            if (data != null)
-                            {
-                                item.MediaFile = _mapper.Map<MODELMediaFile>(data);
-                            }
-                            else
-                            {
-                                item.MediaFile = new MODELMediaFile
+                            var file = mediaFiles[item.Id].FirstOrDefault();
+                            item.MediaFile = file != null
+                                ? _mapper.Map<MODELMediaFile>(file)
+                                : new MODELMediaFile
                                 {
                                     Id = Guid.Empty,
                                     FileName = "File không tồn tại",
                                     FileType = (int)MediaFileType.ChatFile,
-                                    Url = string.Empty,
+                                    Url = string.Empty
                                 };
-                            }
                         }
 
-                        // Xử lý RefMessage
-                        if (item.RefId != null && item.RefId != Guid.Empty)
+                        // RefMessage
+                        if (item.RefId.HasValue && refMessages.TryGetValue(item.RefId.Value, out var refMsg))
                         {
-                            var refMessage = GetById(new GetByIdRequest { Id = item.RefId.Value });
-                            if (refMessage.Error)
-                            {
-                                item.RefMessage = new MODELMessage
-                                {
-                                    Id = Guid.Empty,
-                                    Content = "Đã gỡ tin nhắn",
-                                };
-                            }
-                            else
-                            {
-                                item.RefMessage = refMessage.Data;
-                                item.RefMessage.Sender = _userService.GetById(new GetByIdRequest() { Id = item.RefMessage.SenderId }).Data; ;
+                            item.RefMessage = refMsg;
+                            usersDict.TryGetValue(refMsg.SenderId, out var refSender);
+                            item.RefMessage.Sender = refSender;
 
-                                if (item.RefMessage.MessageType == 3)
-                                {
-                                    var data = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.RefMessage.Id);
-                                    if (data != null)
+                            if (refMsg.MessageType == 3)
+                            {
+                                var refFile = mediaFiles[refMsg.Id].FirstOrDefault();
+                                item.RefMessage.MediaFile = refFile != null
+                                    ? _mapper.Map<MODELMediaFile>(refFile)
+                                    : new MODELMediaFile
                                     {
-                                        item.RefMessage.MediaFile = _mapper.Map<MODELMediaFile>(data);
-                                    }
-                                    else
-                                    {
-                                        item.RefMessage.MediaFile = new MODELMediaFile
-                                        {
-                                            Id = Guid.Empty,
-                                            FileName = "File không tồn tại",
-                                            FileType = (int)MediaFileType.ChatFile,
-                                            Url = string.Empty,
-                                        };
-                                    }
-                                }
+                                        Id = Guid.Empty,
+                                        FileName = "File không tồn tại",
+                                        FileType = (int)MediaFileType.ChatFile,
+                                        Url = string.Empty
+                                    };
                             }
                         }
-                        
-                        // Xử lý MessageReaction
-                        var messageReaction = _context.MessageReactions.Where(x => x.MessageId == item.Id && !x.IsDeleted);
-                        if(messageReaction.Count() > 0)
+                        else if (item.RefId != null)
                         {
-                            // Khởi tạo MessageReaction với ReactionCount
+                            item.RefMessage = new MODELMessage
+                            {
+                                Id = Guid.Empty,
+                                Content = "Đã gỡ tin nhắn"
+                            };
+                        }
+
+                        // MessageReaction
+                        if (allReactions.TryGetValue(item.Id, out var reactions) && reactions.Any())
+                        {
+                            var reactionTypeIds = reactions.Select(r => r.ReactionTypeId).Distinct();
+                            var userIds = reactions.Select(r => r.UserId).Distinct().Take(3);
+
                             item.MessageReaction = new MODELMessageReaction
                             {
-                                ReactionCount = messageReaction.Count(),
+                                ReactionCount = reactions.Count,
+                                ReactionTypes = reactionTypeIds
+                                    .Where(reactionTypesDict.ContainsKey)
+                                    .Select(id => reactionTypesDict[id])
+                                    .ToList(),
+                                ReactedUsers = userIds
+                                    .Where(usersDict.ContainsKey)
+                                    .Select(id => usersDict[id])
+                                    .ToList(),
+                                MyReactionTypeId = reactions.FirstOrDefault(r => r.UserId == UserId)?.ReactionTypeId
                             };
-
-                            // Lấy danh sách các ReactionType
-                            var reactionType = messageReaction.Select(x => x.ReactionTypeId).Distinct().ToList();
-                            foreach (var reactionId in reactionType)
-                            {
-                                var reaction = _reactionTypeService.GetById(new GetByIdRequest { Id = reactionId });
-                                if (!reaction.Error)
-                                {
-                                    item.MessageReaction.ReactionTypes.Add(reaction.Data);
-                                }
-                            }
-
-                            // Lấy danh sách người đã phản ứng với tin nhắn
-                            var userReaction = messageReaction.Select(x => x.UserId).Take(3).ToList();
-                            foreach (var userId in userReaction)
-                            {
-                                var user = _userService.GetById(new GetByIdRequest { Id = userId });
-                                if (!user.Error)
-                                {
-                                    item.MessageReaction.ReactedUsers.Add(user.Data);
-                                }
-                            }
-
-                            // Lấy ra Reaction của người dùng hiện tại (nếu có)
-                            var exitstMyReaction = messageReaction.FirstOrDefault(x => x.UserId == UserId);
-                            if (exitstMyReaction != null)
-                            {
-                                item.MessageReaction.MyReactionTypeId = exitstMyReaction.ReactionTypeId;
-                            }
                         }
                     }
+
+                    stopwatch.Stop();
+                    Console.WriteLine($"Thời gian thực hiện: {stopwatch.ElapsedMilliseconds} ms");
                 }
                 
                 response.Data = _mapper.Map<List<MODELMessage>>(result);
@@ -691,6 +681,21 @@ namespace BE.Services.Message
                 response.Message = ex.Message;
             }
             return response;
+        }
+
+        List<MODELMessage> GetByIds(List<Guid> ids)
+        {
+            if (ids == null || !ids.Any())
+                return new List<MODELMessage>();
+
+            var messages = _context.Messages
+                .AsNoTracking()
+                .Where(x => ids.Contains(x.Id) && !x.IsDeleted)
+                .ToList();
+
+            var result = _mapper.Map<List<MODELMessage>>(messages);
+
+            return result;
         }
     }
 }

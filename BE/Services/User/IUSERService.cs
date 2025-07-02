@@ -33,6 +33,7 @@ namespace BE.Services.User
         /// <returns></returns>
         BaseResponse<MODELMediaFile> UpdatePicture(POSTMediaFileRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
+        List<MODELUser> GetByIds(List<Guid> ids);
 
         // Login by UserName and Password
         BaseResponse<MODELUser> Login(LoginRequest request, string ipAddress);

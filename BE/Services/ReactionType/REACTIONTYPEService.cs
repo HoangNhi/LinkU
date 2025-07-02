@@ -4,11 +4,13 @@ using BE.Services.MediaFile;
 using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using MODELS.BASE;
 using MODELS.CONVERSATION.Dtos;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.REACTIONTYPE.Dtos;
 using Newtonsoft.Json;
+using System.Linq;
 
 namespace BE.Services.ReactionType
 {
@@ -70,29 +72,72 @@ namespace BE.Services.ReactionType
         public BaseResponse<ModelReactionType> GetById(GetByIdRequest request)
         {
             var response = new BaseResponse<ModelReactionType>();
+
             try
             {
-                var reactionType = _context.ReactionTypes.FirstOrDefault(x => x.Id == request.Id && !x.IsDeleted);
+                var reactionType = _context.ReactionTypes
+                    .AsNoTracking()
+                    .FirstOrDefault(x => x.Id == request.Id && !x.IsDeleted);
+
                 if (reactionType == null)
                 {
-                    throw new Exception("Dữ liệu không tồn tại");
+                    response.Error = true;
+                    response.Message = "Dữ liệu không tồn tại";
+                    return response;
                 }
 
-                var modelReactionType = _mapper.Map<ModelReactionType>(reactionType);
-                var mediaFile = _context.MediaFiles.FirstOrDefault(x => x.ReactionTypeId == modelReactionType.Id && !x.IsDeleted);
-                if (mediaFile != null)
+                var model = _mapper.Map<ModelReactionType>(reactionType);
+
+                // Chỉ cần map MediaFile nếu chưa có navigation
+                if (model.MediaFile == null)
                 {
-                    modelReactionType.MediaFile = _mapper.Map<MODELMediaFile>(mediaFile);
+                    var media = _context.MediaFiles
+                        .AsNoTracking()
+                        .FirstOrDefault(x => x.ReactionTypeId == model.Id && !x.IsDeleted);
+
+                    if (media != null)
+                    {
+                        model.MediaFile = _mapper.Map<MODELMediaFile>(media);
+                    }
                 }
 
-                response.Data = modelReactionType;
+                response.Data = model;
             }
             catch (Exception ex)
             {
                 response.Error = true;
                 response.Message = ex.Message;
             }
+
             return response;
+        }
+
+        public List<ModelReactionType> GetByIds(List<Guid> ids)
+        {
+            // Bước 1: Load MediaFiles liên quan theo ReactionTypeId
+            var mediaFiles = _context.MediaFiles
+                .AsNoTracking()
+                .Where(mf => !mf.IsDeleted && (mf.ReactionTypeId.HasValue && ids.Contains(mf.ReactionTypeId.Value)))
+                .ToList()
+                .ToDictionary(mf => mf.ReactionTypeId, mf => mf); // ánh xạ nhanh theo ReactionTypeId
+
+            // Bước 2: Truy vấn ReactionTypes và ánh xạ
+            var reactionTypes = _context.ReactionTypes
+                .AsNoTracking()
+                .Where(x => ids.Contains(x.Id))
+                .Select(x => new ModelReactionType
+                {
+                    Id = x.Id,
+                    TenGoi = x.TenGoi,
+                    SapXep = x.SapXep,
+                    // gán media nếu tồn tại
+                    MediaFile = mediaFiles.ContainsKey(x.Id)
+                        ? _mapper.Map<MODELMediaFile>(mediaFiles[x.Id])
+                        : null
+                })
+                .ToList();
+
+            return reactionTypes;
         }
     }
 }

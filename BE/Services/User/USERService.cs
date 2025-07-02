@@ -111,32 +111,29 @@ namespace BE.Services.User
             var response = new BaseResponse<MODELUser>();
             try
             {
-                var result = new MODELUser();
-                var data = _context.Users.Find(request.Id);
-                if (data == null)
-                {
+                var user = _context.Users.Find(request.Id);
+                if (user == null)
                     throw new Exception("Không tìm thấy dữ liệu");
-                }
-                else
-                {
-                    result = _mapper.Map<MODELUser>(data);
 
-                    var ProfilePicture = _context.MediaFiles
-                                                 .FirstOrDefault(m => m.OwnerId == result.Id
-                                                                && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture
-                                                                && !m.IsDeleted && m.IsActived);
-                    
-                    result.ProfilePicture = ProfilePicture == null ? CommonConst.DefaultUrlNoPicture : ProfilePicture.Url;
+                var result = _mapper.Map<MODELUser>(user);
 
-                    var CoverPicture = _context.MediaFiles
-                                                 .FirstOrDefault(m => m.OwnerId == result.Id
-                                                                && m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture
-                                                               && !m.IsDeleted && m.IsActived);
-                    result.CoverPicture = CoverPicture == null ? CommonConst.DefaultUrlNoCoverPicture : CoverPicture.Url;
+                // Lấy cả hai loại hình ảnh cùng lúc
+                var mediaFiles = _context.MediaFiles
+                    .Where(m => m.OwnerId == result.Id && !m.IsDeleted && m.IsActived)
+                    .ToList();
 
-                    result.Password = "";
-                    result.PasswordSalt = "";
-                }
+                result.ProfilePicture = mediaFiles
+                    .FirstOrDefault(m => m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture)?.Url
+                    ?? CommonConst.DefaultUrlNoPicture;
+
+                result.CoverPicture = mediaFiles
+                    .FirstOrDefault(m => m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture)?.Url
+                    ?? CommonConst.DefaultUrlNoCoverPicture;
+
+                // Xóa thông tin nhạy cảm
+                result.Password = string.Empty;
+                result.PasswordSalt = string.Empty;
+
                 response.Data = result;
             }
             catch (Exception ex)
@@ -455,6 +452,14 @@ namespace BE.Services.User
                 response.Message = ex.Message;
             }
             return response;
+        }
+
+        public List<MODELUser> GetByIds(List<Guid> ids)
+        {
+            return _context.Users
+                .Where(x => ids.Contains(x.Id))
+                .Select(x => _mapper.Map<MODELUser>(x))
+                .ToList();
         }
         #endregion
 

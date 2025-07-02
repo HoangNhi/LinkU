@@ -37,7 +37,8 @@ namespace BE.Configure
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("LinkU"))
                 // Hiển thị log SQL
-                       .EnableSensitiveDataLogging();
+                //.EnableSensitiveDataLogging();
+                .LogTo(_ => { });
             }, ServiceLifetime.Scoped);
 
             // Cấu hình Azure Blob Storage

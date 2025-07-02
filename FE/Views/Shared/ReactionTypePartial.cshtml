@@ -1,0 +1,17 @@
+﻿@model MODELS.BASE.GetListPagingResponse
+@{ 
+    var Data = Model.Data as List<MODELS.REACTIONTYPE.Dtos.ModelReactionType>;
+}
+
+<div class="bg-white rounded-pill" style="padding: 8px 12px; box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;">
+    @foreach(var item in Data)
+    {
+        <button type="button"
+                class="btnReactionType"
+                data-reactiontypeId="@item.Id">
+            <img src="@item.MediaFile.Url"
+                 height="32" width="32"
+                 style="object-fit:fill"/>
+        </button>
+    }
+</div>

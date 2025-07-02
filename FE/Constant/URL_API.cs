@@ -91,5 +91,16 @@
         // GROUPREQUEST
         public const string GROUPREQUEST_GET_LIST_PAGING = "/GroupRequest/GetListPaging";
         public const string GROUPREQUEST_UPDATE = "/GroupRequest/Update";
+
+        // REACTIONTYPE
+        public const string REACTIONTYPE_GET_LIST_PAGING = "/ReactionType/GetListPaging";
+
+        // MESSAGEREACTION
+        public const string MESSAGEREACTION_INSERT = "/MessageReaction/Insert";
+        public const string MESSAGEREACTION_UPDATE = "/MessageReaction/Update";
+        public const string MESSAGEREACTION_DELETE = "/MessageReaction/Delete";
+        public const string MESSAGEREACTION_HANDLE_REQUEST = "/MessageReaction/HandleRequest";
+        public const string MESSAGEREACTION_GET_LIST_PAGING = "/MessageReaction/GetListPaging";
+
     }
 }

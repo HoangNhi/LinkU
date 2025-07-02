@@ -24,6 +24,8 @@ public partial class MediaFile
 
     public Guid? GroupId { get; set; }
 
+    public Guid? ReactionTypeId { get; set; }
+
     /// <summary>
     /// 0 - Invalid, 1 - Hình vuông, 2 - Hình chữ nhật ngang, 3 - Hình chữ nhật dọc
     /// </summary>
@@ -50,4 +52,6 @@ public partial class MediaFile
     public virtual Message? Message { get; set; }
 
     public virtual User? Owner { get; set; }
+
+    public virtual ReactionType? ReactionType { get; set; }
 }

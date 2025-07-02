@@ -10,7 +10,9 @@ using BE.Services.GroupRequest;
 using BE.Services.Mail;
 using BE.Services.MediaFile;
 using BE.Services.Message;
+using BE.Services.MessageReaction;
 using BE.Services.OTP;
+using BE.Services.ReactionType;
 using BE.Services.SMS;
 using BE.Services.User;
 using ENTITIES.DbContent;
@@ -133,6 +135,8 @@ namespace BE.Configure
             builder.Services.AddTransient<IGROUPService, GROUPService>();
             builder.Services.AddTransient<IGROUPMEMBERService, GROUPMEMBERService>();
             builder.Services.AddTransient<IGROUPREQUESTService, GROUPREQUESTService>();
+            builder.Services.AddTransient<IREACTIONTYPEService, REACTIONTYPEService>();
+            builder.Services.AddTransient<IMESSAGEREACTIONService, MESSAGEREACTIONService>();
         }
     }
 }

@@ -13,9 +13,12 @@ using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
+using MODELS.MESSAGEREACTION.Dtos;
+using MODELS.MESSAGEREACTION.Requests;
 using MODELS.MESSAGESTATUS.Dtos;
 using MODELS.MESSAGESTATUS.Requests;
 using MODELS.OTP.Dtos;
+using MODELS.REACTIONTYPE.Dtos;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.USER.Dtos;
 using MODELS.USER.Requests;
@@ -49,6 +52,7 @@ namespace BE.AutoMapper
             // Message
             CreateMap<Message, MODELMessage>().ReverseMap();
             CreateMap<Message, PostMessageRequest>().ReverseMap();
+            CreateMap<MODELMessage, MODELMessage>();
 
             // MediaFile
             CreateMap<MediaFile, MODELMediaFile>().ReverseMap();
@@ -69,6 +73,13 @@ namespace BE.AutoMapper
             // GruopRequest
             CreateMap<GroupRequest, MODELGroupRequest>().ReverseMap();
             CreateMap<GroupRequest, MODELS.GROUPREQUEST.Requests.POSTGroupInvitationRequest>().ReverseMap();
+
+            // ReactionType
+            CreateMap<ReactionType, ModelReactionType>().ReverseMap();
+
+            // MessageReaction
+            CreateMap<MessageReaction, MODELMessageReaction>().ReverseMap();
+            CreateMap<MessageReaction, POSTMessageReactionRequest>().ReverseMap();
         }
     }
 }

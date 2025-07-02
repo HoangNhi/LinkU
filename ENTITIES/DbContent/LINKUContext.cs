@@ -31,9 +31,13 @@ public partial class LINKUContext : DbContext
 
     public virtual DbSet<Message> Messages { get; set; }
 
+    public virtual DbSet<MessageReaction> MessageReactions { get; set; }
+
     public virtual DbSet<OTP> OTPs { get; set; }
 
     public virtual DbSet<Post> Posts { get; set; }
+
+    public virtual DbSet<ReactionType> ReactionTypes { get; set; }
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
@@ -346,6 +350,10 @@ public partial class LINKUContext : DbContext
             entity.HasOne(d => d.Owner).WithMany(p => p.MediaFiles)
                 .HasForeignKey(d => d.OwnerId)
                 .HasConstraintName("FK_MediaFiles_User");
+
+            entity.HasOne(d => d.ReactionType).WithMany(p => p.MediaFiles)
+                .HasForeignKey(d => d.ReactionTypeId)
+                .HasConstraintName("FK_MediaFiles_ReactionType");
         });
 
         modelBuilder.Entity<Message>(entity =>
@@ -378,6 +386,40 @@ public partial class LINKUContext : DbContext
                 .HasForeignKey(d => d.SenderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Message_User");
+        });
+
+        modelBuilder.Entity<MessageReaction>(entity =>
+        {
+            entity.ToTable("MessageReaction");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.NgaySua).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayXoa).HasColumnType("datetime");
+            entity.Property(e => e.NguoiSua)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiTao)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiXoa)
+                .HasMaxLength(256)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Message).WithMany(p => p.MessageReactions)
+                .HasForeignKey(d => d.MessageId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MessageReaction_Message");
+
+            entity.HasOne(d => d.ReactionType).WithMany(p => p.MessageReactions)
+                .HasForeignKey(d => d.ReactionTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MessageReaction_ReactionType");
+
+            entity.HasOne(d => d.User).WithMany(p => p.MessageReactions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MessageReaction_User");
         });
 
         modelBuilder.Entity<OTP>(entity =>
@@ -436,6 +478,26 @@ public partial class LINKUContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.Posts)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_Post_User");
+        });
+
+        modelBuilder.Entity<ReactionType>(entity =>
+        {
+            entity.ToTable("ReactionType");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.NgaySua).HasColumnType("datetime");
+            entity.Property(e => e.NgayTao).HasColumnType("datetime");
+            entity.Property(e => e.NgayXoa).HasColumnType("datetime");
+            entity.Property(e => e.NguoiSua)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiTao)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.NguoiXoa)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.TenGoi).HasMaxLength(255);
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>

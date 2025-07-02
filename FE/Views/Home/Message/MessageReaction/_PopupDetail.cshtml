@@ -1,0 +1,177 @@
+﻿@model MODELS.MESSAGEREACTION.Requests.GETMessageReactionShowPopupRequest
+
+<style>
+    .PopupReactionType{
+        padding: 0!important;
+        margin: 0!important;
+        width: 100%;
+        height: 36px;
+        background-color: unset!important;
+    }
+
+    .PopupReactionType:hover, 
+    .PopupMessageReaction .ReactionUser:hover {
+        background-color: var(--mdb-gray-200)!important;
+    }
+
+    .PopupReactionType:active {
+        background-color: var(--mdb-gray-400)!important;
+    }
+
+    .PopupReactionType.active {
+        background-color: var(--mdb-gray-300)!important;
+    }
+
+</style>
+
+<div class="modal-content PopupMessageReaction">
+    @Html.HiddenFor(x => x.MessageId)
+    <div class="modal-header">
+        <h1 class="modal-title fs-5"
+            id="staticBackdropLabel"
+            style="color: rgb(5,5,5); line-height: 1">
+            Cảm xúc về tin nhắn
+        </h1>
+        <button type="button"
+                class="btn-close btn-link rounded-circle"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                data-mdb-ripple-init
+                data-mdb-ripple-color="dark">
+        </button>
+    </div>
+
+    <div class="modal-body" style="padding: 8px 16px; ">
+        <div class="container">
+            <ul class="nav nav-pills mb-3 row rounded-pill border" role="tablist">
+                <li class="nav-item col p-0" role="presentation">
+                    <button class="nav-link active PopupReactionType rounded-pill"
+                            style="font-size: 14px; color: black; font-weight: 600"
+                            id="tab-messagereaction-all"
+                            type="button" role="tab" onclick="SwitchToTabPopupMessageReaction(this.id)"
+                            data-bs-target="#pills-messagereaction-all"
+                            aria-controls="pills-messagereaction-all"
+                            aria-selected="true"
+                    >
+                        <span style="line-height: 20px">Tất cả</span>
+                        <span id="PopupMessageReaction_AllCount" style="line-height: 20px"></span>
+                    </button>
+                </li>
+
+                @foreach (var item in Model.ReactionTypes)
+                {
+                    <li class="nav-item col p-0" role="presentation">
+                        <button class="nav-link rounded-pill PopupReactionType"
+                                id="tab-messagereaction-@(item.Id)"
+                                type="button" role="tab" onclick="SwitchToTabPopupMessageReaction(this.id)"
+                                data-bs-target="#pills-messagereaction-@(item.Id)"
+                                aria-controls="pills-messagereaction-@(item.Id)"
+                                aria-selected="false"
+                        >
+                            <img src="@item.Url"
+                                 height="20" width="20"
+                                 style="object-fit: fill"/>
+                        </button>
+                    </li>
+                }
+            </ul>
+        </div>
+        
+
+        <div class="tab-content" >
+            <div class="tab-pane fade show active"
+                 id="pills-messagereaction-all"
+                 role="tabpanel"
+                 aria-labelledby="tab-messagereaction-all"
+                 data-isLoading="false"
+                 data-isDone="false"
+                 data-currentPage="1"
+                 style="min-height: 200px; max-height: 500px; overflow-y: auto">
+            </div>
+
+            @foreach (var item in Model.ReactionTypes)
+            {
+                <div class="tab-pane fade"
+                     id="pills-messagereaction-@(item.Id)"
+                     role="tabpanel"
+                     aria-labelledby="tab-messagereaction-@(item.Id)"
+                     data-isLoading="false"
+                     data-isDone="false"
+                     data-currentPage="1"
+                     data-reactiontypeid="@(item.Id)"
+                     style="min-height: 200px; max-height: 500px; overflow-y: auto ">
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    var elements = {
+        pillsMessagereactionAll: document.getElementById("pills-messagereaction-all"),
+        @foreach (var item in Model.ReactionTypes)
+        {
+            <text>pillsMessagereaction@(item.Id.ToString().Replace("-", "")): document.getElementById("pills-messagereaction-@(item.Id)"),</text>
+        }
+    }
+
+    $(document).ready(function () {
+        GetListPagingMessageReaction(null, 1, 15)
+        @foreach (var item in Model.ReactionTypes)
+        {
+            <text>GetListPagingMessageReaction('@item.Id', 1, 15);</text>
+        }
+
+        Object.values(elements).forEach(item => {
+            item.addEventListener("scroll", () => {
+                const scrollTop = item.scrollTop;
+                const windowHeight = item.scrollHeight;
+                const docHeight = item.clientHeight;
+
+                if (scrollTop + docHeight + 1 >= windowHeight) {
+                    const reactionTypeId = item.getAttribute("data-reactiontypeid")
+                    const currentPage = item.getAttribute("data-currentPage")
+
+                    GetListPagingMessageReaction(reactionTypeId, Number(currentPage) + 1, 15);
+                }
+            })
+        })
+    });
+
+    function GetListPagingMessageReaction(ReactionId, pageindex, rowperpage) {
+        var elementContainer = elements[ReactionId === null ? "pillsMessagereactionAll" : `pillsMessagereaction${ReactionId.replaceAll('-', '')}`]
+
+        if (elementContainer.getAttribute("data-isDone") === 'true') return;
+        if (elementContainer.getAttribute("data-isLoading") === "true") return;
+        elementContainer.setAttribute("data-isLoading", "true")
+
+        $.ajax({
+            url: '@Url.Action("GetListPaging", "MessageReaction")',
+            type: 'POST',
+            data: {
+                MessageId: $("#MessageId").val(),
+                ReactionTypeId: ReactionId,
+                PageIndex: pageindex,
+                RowPerPage: rowperpage
+            },
+            success: function (data) {
+                if(data.isSuccess !== undefined && !data.isSuccess){
+                    ShowThongBaoThatBai(data.message)
+                }else{
+                    if (data.trim() !== '') {
+                        elementContainer.insertAdjacentHTML('beforeend', data);
+                        elementContainer.setAttribute("data-currentPage", pageindex);
+                        elementContainer.setAttribute("data-isLoading", "false");
+                    } else {
+                        elementContainer.setAttribute("data-isDone", "true");
+                    }
+                }
+            }
+        });
+    }
+
+    function SwitchToTabPopupMessageReaction(id) {
+        let tab = new bootstrap.Tab(document.getElementById(id));
+        tab.show();
+    }
+</script>

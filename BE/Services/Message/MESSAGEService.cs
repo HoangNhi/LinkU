@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BE.Helpers;
 using BE.Services.MediaFile;
+using BE.Services.ReactionType;
 using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
@@ -10,6 +11,7 @@ using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
+using MODELS.MESSAGEREACTION.Dtos;
 using MODELS.USER.Dtos;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.X509;
@@ -24,14 +26,17 @@ namespace BE.Services.Message
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IUSERService _userService;
         private readonly IMEDIAFILEService _mediaFileService;
+        private readonly IREACTIONTYPEService _reactionTypeService;
 
-        public MESSAGEService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IUSERService userService, IMEDIAFILEService mediaFileService)
+
+        public MESSAGEService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IUSERService userService, IMEDIAFILEService mediaFileService, IREACTIONTYPEService reactionTypeService)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
             _userService = userService;
             _mediaFileService = mediaFileService;
+            _reactionTypeService = reactionTypeService;
         }
 
         public BaseResponse<GetListPagingResponse> GetListPaging(PostMessageGetListPagingRequest request)
@@ -58,144 +63,6 @@ namespace BE.Services.Message
                 };
 
                 var result = _context.ExcuteStoredProcedure<MODELMessage>("sp_MESSAGE_GetListPaging", parameters).ToList();
-                // Xử lý dữ liệu
-                //if (request.ConversationType == 0)
-                //{
-                //    var CurrentUser = _userService.GetById(new GetByIdRequest() { Id = request.UserId }).Data;
-                //    var TargetId = _userService.GetById(new GetByIdRequest() { Id = request.TargetId }).Data;
-
-                //    foreach (var item in result)
-                //    {
-                //        item.Sender = item.SenderId == request.UserId ? CurrentUser : TargetId;
-
-                //        // Tin nhắn là File
-                //        if (item.MessageType == 3)
-                //        {
-                //            var data = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.Id);
-                //            if (data != null)
-                //            {
-                //                item.MediaFile = _mapper.Map<MODELMediaFile>(data);
-                //            }
-                //            else
-                //            {
-                //                item.MediaFile = new MODELMediaFile
-                //                {
-                //                    Id = Guid.Empty,
-                //                    FileName = "File không tồn tại",
-                //                    FileType = (int)MediaFileType.ChatFile,
-                //                    Url = string.Empty,
-                //                };
-                //            }
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    // Lấy ra người dùng hiện tại từ HttpContext
-                //    var currentUserId = _contextAccessor.GetClaim("name");
-                //    var currentUser = _context.Users.Find(Guid.Parse(currentUserId));
-
-                //    // Duyệt qua từng tin nhắn
-                //    foreach (var item in result)
-                //    {
-                //        item.Sender = _userService.GetById(new GetByIdRequest() { Id = item.SenderId }).Data;
-
-                //        // Tin nhắn là Welcome hoặc Notification
-                //        if (item.MessageType == 1 || item.MessageType == 2)
-                //        {
-                //            MODELMessageContent content = JsonConvert.DeserializeObject<MODELMessageContent>(item.Content);
-
-                //            // Thay đổi nội dung của tin nhắn theo người dùng hiện tại
-                //            // Case 1: User hiện tại là người tạo ra message này
-                //            if (currentUser.Id == content.UserId)
-                //            {
-                //                // Nếu ta thêm ai đó vào nhóm
-                //                if (content.TargetId.Count > 0)
-                //                {
-                //                    List<string> usernames = new List<string>();
-                //                    foreach (var userid in content.TargetId)
-                //                    {
-                //                        var user = _context.Users.Find(userid);
-                //                        if (user != null)
-                //                        {
-                //                            usernames.Add(string.Concat(user.HoLot, " ", user.Ten));
-                //                        }
-                //                    }
-
-                //                    // Cập nhật nội dung tin nhắn
-                //                    item.Content = $"Bạn đã thêm {string.Join(", ", usernames)} vào nhóm";
-                //                }
-                //                // Nếu ta tham gia bằng Lời mời (GroupRequest)
-                //                else
-                //                {
-                //                    // Cập nhật nội dung tin nhắn
-                //                    item.Content = $"Bạn đã tham gia nhóm";
-                //                }
-                //            }
-                //            // Case 2: Bạn là 1 trong những người nhận tin nhắn
-                //            else if (content.TargetId.Contains(currentUser.Id))
-                //            {
-                //                var user = _context.Users.Find(content.UserId);
-                //                if (user != null)
-                //                {
-                //                    // Cập nhật nội dung tin nhắn
-                //                    item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm bạn vào nhóm";
-                //                }
-                //            }
-                //            // Case 3: Bạn không phải là người tạo và cũng không phải là người nhận tin nhắn
-                //            else
-                //            {
-                //                if (content.TargetId.Count > 0)
-                //                {
-                //                    var user = _context.Users.Find(content.UserId);
-                //                    var usernames = new List<string>();
-                //                    foreach (var userid in content.TargetId)
-                //                    {
-                //                        var targetUser = _context.Users.Find(userid);
-                //                        if (targetUser != null)
-                //                        {
-                //                            usernames.Add(string.Concat(targetUser.HoLot, " ", targetUser.Ten));
-                //                        }
-                //                    }
-
-                //                    if (user != null)
-                //                    {
-                //                        // Cập nhật nội dung tin nhắn
-                //                        item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã thêm {string.Join(", ", usernames)} vào nhóm";
-                //                    }
-                //                }
-                //                else
-                //                {
-                //                    var user = _context.Users.Find(content.UserId);
-                //                    if (user != null)
-                //                    {
-                //                        // Cập nhật nội dung tin nhắn
-                //                        item.Content = $"{string.Concat(user.HoLot, " ", user.Ten)} đã tham gia nhóm";
-                //                    }
-                //                }
-                //            }
-                //        }
-                //        else if (item.MessageType == 3) // Tin nhắn là File
-                //        {
-                //            var data = _context.MediaFiles.FirstOrDefault(x => x.MessageId == item.Id);
-                //            if (data != null)
-                //            {
-                //                item.MediaFile = _mapper.Map<MODELMediaFile>(data);
-                //            }
-                //            else
-                //            {
-                //                item.MediaFile = new MODELMediaFile
-                //                {
-                //                    Id = Guid.Empty,
-                //                    FileName = "File không tồn tại",
-                //                    FileType = (int)MediaFileType.ChatFile,
-                //                    Url = string.Empty,
-                //                };
-                //            }
-                //        }
-                //    }
-                //}
-
                 result = HanleDataGetListPaging(result, request.ConversationType, request.UserId, request.TargetId).Data;
 
                 GetListPagingResponse resposeData = new GetListPagingResponse();
@@ -591,6 +458,46 @@ namespace BE.Services.Message
                                 }
                             }
                         }
+
+                        // Xử lý MessageReaction
+                        var messageReaction = _context.MessageReactions.Where(x => x.MessageId == item.Id && !x.IsDeleted);
+                        if (messageReaction.Count() > 0)
+                        {
+                            // Khởi tạo MessageReaction với ReactionCount
+                            item.MessageReaction = new MODELMessageReaction
+                            {
+                                ReactionCount = messageReaction.Count(),
+                            };
+
+                            // Lấy danh sách các ReactionType
+                            var reactionType = messageReaction.Select(x => x.ReactionTypeId).Distinct().ToList();
+                            foreach (var reactionId in reactionType)
+                            {
+                                var reaction = _reactionTypeService.GetById(new GetByIdRequest { Id = reactionId });
+                                if (!reaction.Error)
+                                {
+                                    item.MessageReaction.ReactionTypes.Add(reaction.Data);
+                                }
+                            }
+
+                            // Lấy danh sách người đã phản ứng với tin nhắn
+                            var userReaction = messageReaction.Select(x => x.UserId).Take(3).ToList();
+                            foreach (var userId in userReaction)
+                            {
+                                var user = _userService.GetById(new GetByIdRequest { Id = userId });
+                                if (!user.Error)
+                                {
+                                    item.MessageReaction.ReactedUsers.Add(user.Data);
+                                }
+                            }
+
+                            // Lấy ra Reaction của người dùng hiện tại (nếu có)
+                            var exitstMyReaction = messageReaction.FirstOrDefault(x => x.UserId == UserId);
+                            if(exitstMyReaction != null)
+                            {
+                                item.MessageReaction.MyReactionTypeId = exitstMyReaction.ReactionTypeId;
+                            }
+                        }
                     }
                 }
                 else
@@ -733,10 +640,50 @@ namespace BE.Services.Message
                                 }
                             }
                         }
+                        
+                        // Xử lý MessageReaction
+                        var messageReaction = _context.MessageReactions.Where(x => x.MessageId == item.Id && !x.IsDeleted);
+                        if(messageReaction.Count() > 0)
+                        {
+                            // Khởi tạo MessageReaction với ReactionCount
+                            item.MessageReaction = new MODELMessageReaction
+                            {
+                                ReactionCount = messageReaction.Count(),
+                            };
+
+                            // Lấy danh sách các ReactionType
+                            var reactionType = messageReaction.Select(x => x.ReactionTypeId).Distinct().ToList();
+                            foreach (var reactionId in reactionType)
+                            {
+                                var reaction = _reactionTypeService.GetById(new GetByIdRequest { Id = reactionId });
+                                if (!reaction.Error)
+                                {
+                                    item.MessageReaction.ReactionTypes.Add(reaction.Data);
+                                }
+                            }
+
+                            // Lấy danh sách người đã phản ứng với tin nhắn
+                            var userReaction = messageReaction.Select(x => x.UserId).Take(3).ToList();
+                            foreach (var userId in userReaction)
+                            {
+                                var user = _userService.GetById(new GetByIdRequest { Id = userId });
+                                if (!user.Error)
+                                {
+                                    item.MessageReaction.ReactedUsers.Add(user.Data);
+                                }
+                            }
+
+                            // Lấy ra Reaction của người dùng hiện tại (nếu có)
+                            var exitstMyReaction = messageReaction.FirstOrDefault(x => x.UserId == UserId);
+                            if (exitstMyReaction != null)
+                            {
+                                item.MessageReaction.MyReactionTypeId = exitstMyReaction.ReactionTypeId;
+                            }
+                        }
                     }
                 }
                 
-                response.Data = result;
+                response.Data = _mapper.Map<List<MODELMessage>>(result);
             }
             catch (Exception ex)
             {

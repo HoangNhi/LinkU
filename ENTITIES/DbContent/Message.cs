@@ -43,5 +43,7 @@ public partial class Message
 
     public virtual ICollection<MediaFile> MediaFiles { get; set; } = new List<MediaFile>();
 
+    public virtual ICollection<MessageReaction> MessageReactions { get; set; } = new List<MessageReaction>();
+
     public virtual User Sender { get; set; } = null!;
 }

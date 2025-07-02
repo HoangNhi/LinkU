@@ -200,7 +200,11 @@ namespace BE.Controllers
                 if (string.IsNullOrEmpty(conversationType))
                     throw new Exception("ConversationType không được để trống.");
 
-                var refId = form["RefId"];
+                Guid? refId = null;
+                if (Guid.TryParse(form["RefId"], out Guid parsedGuid))
+                {
+                    refId = parsedGuid;
+                }
                 var content = form["Content"];
 
                 // 4. Upload nếu hợp lệ
@@ -209,7 +213,7 @@ namespace BE.Controllers
                     Files = files,
                     SenderId = Guid.Parse(senderId),
                     TargetId = Guid.Parse(targetId),
-                    RefId = string.IsNullOrEmpty(refId) ? null : Guid.Parse(refId),
+                    RefId = refId,
                     Content = content,
                     ConversationType = string.IsNullOrEmpty(conversationType) ? 0 : int.Parse(conversationType)
                 });

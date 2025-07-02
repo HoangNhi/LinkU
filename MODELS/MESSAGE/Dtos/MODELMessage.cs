@@ -1,5 +1,7 @@
 ﻿using MODELS.BASE;
 using MODELS.MEDIAFILE.Dtos;
+using MODELS.MESSAGEREACTION.Dtos;
+using MODELS.REACTIONTYPE.Dtos;
 using MODELS.USER.Dtos;
 
 namespace MODELS.MESSAGE.Dtos
@@ -27,5 +29,7 @@ namespace MODELS.MESSAGE.Dtos
         public MODELUser Sender { get; set; } = null!;
         public MODELMediaFile? MediaFile { get; set; } = null!;
         public MODELMessage? RefMessage { get; set; }
+
+        public MODELMessageReaction? MessageReaction { get; set; }
     }
 }

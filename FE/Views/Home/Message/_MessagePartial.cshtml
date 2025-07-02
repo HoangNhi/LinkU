@@ -138,7 +138,8 @@
         flex-direction: row-reverse;
     }
 
-    .Message_Content:hover .Message_Interaction {
+    .Message_Content:hover .Message_Interaction,
+    .Message_Interaction:has(.btn-ReactionType[aria-describedby]) {
         display: inline-flex
     }
 
@@ -240,24 +241,6 @@
         <div id="ResponseMessageContainer" class="w-100 border-top justify-content-between align-items-center"
             style="padding: 10px 15px 0px; margin-bottom: -4px; display: none"     
         >
-            <div class="d-flex flex-column text-start">
-                <span style="font-size: 14px; 
-                            font-weight: 600; 
-                            margin: 5px 0;
-                            line-height: 20px"
-                >
-                    Đang trả lời Hoàng
-                </span>
-                <span style="font-size: 12px; font-weight: 400; margin: 5px 0; line-height: 16px">
-                    helllo
-                </span>
-            </div>
-            <button type="button" 
-                    class="btn btn-floating"
-                    style="--mdb-btn-hover-bg: hsl(0, 0%, 90%); --mdb-btn-color: black; --mdb-btn-hover-color: black; box-shadow: unset; width: 28px; height: 28px; "
-                    data-mdb-ripple-init>
-                <i class="fa-solid fa-xmark fs-6"></i>
-            </button>
         </div>
 
         @* Nhắn tin *@
@@ -269,7 +252,8 @@
                    data-mdb-ripple-init
                    data-mdb-ripple-color="dark"
                    data-mdb-popover-init
-                   data-mdb-content="@($"<div class='text-black px-2 py-1 Popover-blur'>Đính kèm file có kích thức tối đa là 20MB</div>")"
+                   data-mdb-content="@($"<div class='text-black px-2 py-1 Popover-blur' " +
+                                    $"style='box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px; border-radius: 8px'>Đính kèm file có kích thức tối đa là 20MB</div>")"
                    data-mdb-trigger="hover"
                    data-mdb-html="true"
                    data-mdb-placement="top">
@@ -323,7 +307,8 @@
                     data-mdb-ripple-init
                     data-mdb-ripple-color="dark"
                     data-mdb-popover-init
-                    data-mdb-content="@($"<div class='text-black px-2 py-1 Popover-blur'>Nhấn ENTER để gửi</div>")"
+                    data-mdb-content="@($"<div class='text-black px-2 py-1 Popover-blur'" +
+                                        $"style='box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px; border-radius: 8px'>Nhấn ENTER để gửi</div>")"
                     data-mdb-trigger="hover"
                     data-mdb-html="true"
                     data-mdb-placement="top">
@@ -418,7 +403,8 @@
 
         // Popover
         var optionPopover = {
-            delay: { "show": 500, "hide": 100 }
+            delay: { "show": 500, "hide": 100 },
+            sanitize: false,
         }
         new mdb.Popover(document.getElementById("btnUploadFile"), optionPopover);
         new mdb.Popover(document.getElementById("btnSendMessage"), optionPopover);
@@ -448,9 +434,9 @@
                 files.forEach(item => {
                     var newItem = {
                         id: crypto.randomUUID(),
-                        data: item 
+                        data: item
                     }
-                    
+
                     ArrayFile.push(newItem)
                     AddItemPreview(newItem)
                 })
@@ -521,6 +507,36 @@
                         }
                         currentPage++;
                         isLoading = false;
+
+                        // Xử lý Popover ReactionMessage
+                        var $html = $("<div>").html(data)
+                        var messageReactionDiv = $html.find("div.MessageReaction")
+                        if (messageReactionDiv.length > 0) {
+                            var option = {
+                                trigger: "hover",
+                                sanitize: false,
+                                html: true,
+                                content: "",
+                                placement: "top",
+                                delay: { "show": 200, "hide": 100 },
+                            }
+                            const div = document.createElement("div")
+                            div.style.backgroundColor = "#333"
+                            div.style.color = "#fff"
+                            div.style.boxShadow = "rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px"
+                            div.style.borderRadius = "8px"
+                            div.style.minWidth = "100px"
+                            div.style.maxWidth = "100px"
+                            div.style.padding = "4px 8px"
+                            div.style.fontSize = "12px"
+
+                            messageReactionDiv.each((index, element) => {
+                                var messageReaction = document.getElementById(element.id)
+                                div.innerHTML = element.getAttribute("data-content-popover")
+                                option.content = div.outerHTML
+                                new mdb.Popover(messageReaction, option)
+                            })
+                        }
                     } else {
                         isDone = true;
                     }

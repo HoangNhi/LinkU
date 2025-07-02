@@ -67,6 +67,8 @@ public partial class User
 
     public virtual ICollection<MediaFile> MediaFiles { get; set; } = new List<MediaFile>();
 
+    public virtual ICollection<MessageReaction> MessageReactions { get; set; } = new List<MessageReaction>();
+
     public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 
     public virtual ICollection<OTP> OTPs { get; set; } = new List<OTP>();

@@ -188,9 +188,12 @@
                         // Popover hiển thị tên
                         if ($html.find('img[data-mdb-popover-init]').length > 0) {
                             const popoverTriggerList = $html.find('img[data-mdb-popover-init]')
+                            var option = {
+                                sanitize: false,
+                            }
                             const popoverList = [...popoverTriggerList].map(popoverTriggerEl => {
                                 const element = document.getElementById(popoverTriggerEl.id);
-                                return new mdb.Popover(element)
+                                return new mdb.Popover(element, option)
                             })
                         }
 

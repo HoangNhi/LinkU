@@ -14,7 +14,10 @@ using MODELS.GROUPMEMBER.Dtos;
 using MODELS.GROUPMEMBER.Requests;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
+using MODELS.MESSAGEREACTION.Dtos;
+using MODELS.MESSAGEREACTION.Requests;
 using MODELS.USER.Dtos;
+using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.WebSockets;
@@ -340,6 +343,113 @@ namespace BE.Hubs
                 }
             }
             catch (Exception ex)
+            {
+                response.Error = true;
+                response.Message = "Lỗi hệ thống: " + ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse> UpdateMessageReaction(string request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var requestData = Newtonsoft.Json.JsonConvert.DeserializeObject<WSUpdateMessageReactionRequest>(request);
+
+                if (requestData == null || requestData.SenderId == Guid.Empty || requestData.TargetId == Guid.Empty || requestData.Reaction == null)
+                {
+                    throw new Exception("Dữ liệu không được để trống");
+                }
+
+                // Lấy thông tin tin nhắn
+                var message = _messageService.GetById(new GetByIdRequest { Id = requestData.Reaction.MessageId });
+                if (message.Error)
+                {
+                    throw new Exception(message.Message);
+                }
+
+                // Tin nhắn thông thường
+                if (requestData.ConversationType == 0)
+                {
+                    // Xử lý dữ liệu
+                    List<MODELMessage> myData = _messageService.HanleDataGetListPaging(new List<MODELMessage> { message.Data }, 0, requestData.SenderId, requestData.TargetId).Data;
+                    List<MODELMessage> otherData = _messageService.HanleDataGetListPaging(new List<MODELMessage> { message.Data }, 0, requestData.TargetId, requestData.SenderId).Data;
+
+                    if (_users.TryGetValue(requestData.TargetId.ToString(), out string receiverConnectionId))
+                    {
+                        // Gửi yêu cầu cập nhật đến người nhận
+                        await Clients.Client(receiverConnectionId).SendAsync("ReceiveRequestUpdateMessageReaction",
+                            new ApiResponse(
+                                new
+                                {
+                                    SenderId = requestData.SenderId,
+                                    TargetId = requestData.TargetId,
+                                    Data = new GetListPagingResponse
+                                    {
+                                        PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
+                                        Data = otherData,
+                                        TotalRow = otherData.Count
+                                    }
+                                }
+                            )
+                        );
+                    }
+
+                    await Clients.Caller.SendAsync("ReceiveRequestUpdateMessageReaction",
+                        new ApiResponse(
+                            new
+                            {
+                                SenderId = requestData.SenderId,
+                                TargetId = requestData.TargetId,
+                                Data = new GetListPagingResponse
+                                {
+                                    PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
+                                    Data = myData,
+                                    TotalRow = myData.Count
+                                }
+                            }
+                        )
+                    );
+                }
+                // Tin nhắn nhóm
+                else if (requestData.ConversationType == 1)
+                {
+                    var groupMember = _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = requestData.TargetId });
+                    if (groupMember.Error)
+                    {
+                        throw new Exception(groupMember.Message);
+                    }
+
+                    foreach (var member in groupMember.Data)
+                    {
+                        if (_users.TryGetValue(member.UserId.ToString(), out string receiverConnectionId))
+                        {
+                            // Xử lý dữ liệu
+                            var Data = _messageService.HanleDataGetListPaging(new List<MODELMessage> { message.Data }, 1, member.UserId, member.GroupId).Data;
+
+                            // Gửi yêu cầu cập nhật đến người nhận
+                            await Clients.Client(receiverConnectionId).SendAsync("ReceiveRequestUpdateMessageReaction",
+                                new ApiResponse(
+                                    new
+                                    {
+                                        SenderId = requestData.SenderId,
+                                        TargetId = requestData.TargetId,
+                                        Data = new GetListPagingResponse
+                                        {
+                                            PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
+                                            Data = Data,
+                                            TotalRow = Data.Count
+                                        }
+                                    }
+                                )
+                            );
+                        }
+                    }
+                }
+
+            }
+            catch(Exception ex)
             {
                 response.Error = true;
                 response.Message = "Lỗi hệ thống: " + ex.Message;

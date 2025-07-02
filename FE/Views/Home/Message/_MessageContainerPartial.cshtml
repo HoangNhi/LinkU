@@ -71,7 +71,7 @@ else
                     @* Ref Message *@
                     @if (Data[i].RefId != null && Data[i].RefId != Guid.Empty && Data[i].RefMessage != null)
                     {
-                        <div style="color: var(--mdb-gray-700); margin-bottom: -20px; @(Data[i].SenderId == CurrentUserId ? "place-items: flex-end;" : "place-items: flex-start;")">
+                        <div style="color: var(--mdb-gray-700); margin-bottom: -20px; @(Data[i].SenderId == CurrentUserId ? "justify-items: end; text-align: end;" : "text-align: start")">
                             <p style="font-size: 12px; font-weight: 400; line-height: 15px; @(Data[i].SenderId == CurrentUserId ? "padding: 10px 22px 4px 46px;" : "padding: 10px 46px 4px 0;")margin: -2px">
                                 <i class="fa-solid fa-reply"></i>
                                 @(
@@ -179,7 +179,7 @@ else
                         </div>
                     }
 
-                    <div class="d-flex flex-column" style="z-index: 4">
+                    <div class="d-flex flex-column" style="z-index: 4;">
                         @if (ConversationType == 1 && Data[i].SenderId != CurrentUserId && (Data[i].RefId == null || Data[i].RefId == Guid.Empty))
                         {
                             <div class="w-100 text-start" style="padding-left: 12px">
@@ -188,57 +188,98 @@ else
                         }
                         @* Content *@
                         <div class="d-flex @(Data[i].SenderId == CurrentUserId ? "flex-row-reverse" : "")">
-                            @if (Data[i].MessageType == 0)
-                            {
-                                <p class="m-0 @StyleMessage[Data[i].SenderId == CurrentUserId]"
-                                   style="font-size: 14px;
-                                        width: fit-content;
-                                        padding: 8px 12px;
-                                        border-radius: 18px;
-                                        text-align: justify;
-                                        font-weight: 400;
-                                        box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
-                                    @Html.Raw(Data[i].Content)
-                                </p>
-                            }
-                            else if (Data[i].MessageType == 3)
-                            {
-                                <div class="m-0 rounded-2 @StyleMessage[Data[i].SenderId == CurrentUserId]
+                            <div>
+                                @if (Data[i].MessageType == 0)
+                                {
+                                    <p class="m-0 @StyleMessage[Data[i].SenderId == CurrentUserId]"
+                                       style="font-size: 14px;
+                                            width: fit-content;
+                                            padding: 8px 12px;
+                                            border-radius: 18px;
+                                            text-align: justify;
+                                            font-weight: 400;
+                                            box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; ">
+                                        @Html.Raw(Data[i].Content)
+                                    </p>
+                                }
+                                else if (Data[i].MessageType == 3)
+                                {
+                                    <div class="m-0 rounded-2 @StyleMessage[Data[i].SenderId == CurrentUserId]
                                             @(Data[i].SenderId == CurrentUserId ? "BorderLeft" : "BorderRight")"
-                                     style="width: fit-content; overflow: hidden; background-color: unset; line-height: 1">
-                                    @switch (Data[i].MediaFile.FileType)
-                                    {
-                                        case (int)MODELS.COMMON.MediaFileType.ChatImage:
-                                            {
-                                                // Hình vuông
-                                                if (Data[i].MediaFile.Shape == (int)MODELS.COMMON.ShapeType.Square)
+                                         style="width: fit-content; overflow: hidden; background-color: unset; line-height: 1">
+                                        @switch (Data[i].MediaFile.FileType)
+                                        {
+                                            case (int)MODELS.COMMON.MediaFileType.ChatImage:
                                                 {
-                                                    <img class="FilePreview"
-                                                         width="2000" height="2000"
-                                                         src="@Data[i].MediaFile.Url"
-                                                         onclick="ShowLightBox(this.src)"
-                                                         style="object-fit: fill; max-width: 200px; max-height: 200px" />
+                                                    // Hình vuông
+                                                    if (Data[i].MediaFile.Shape == (int)MODELS.COMMON.ShapeType.Square)
+                                                    {
+                                                        <img class="FilePreview"
+                                                             width="2000" height="2000"
+                                                             src="@Data[i].MediaFile.Url"
+                                                             onclick="ShowLightBox(this.src)"
+                                                             style="object-fit: fill; max-width: 200px; max-height: 200px" />
+                                                    }
+                                                    // Hình chữ nhật ngang
+                                                    else if (Data[i].MediaFile.Shape == (int)MODELS.COMMON.ShapeType.Landscape)
+                                                    {
+                                                        <img class="FilePreview"
+                                                             height="414" width="736"
+                                                             src="@Data[i].MediaFile.Url"
+                                                             onclick="ShowLightBox(this.src)"
+                                                             style="object-fit: fill; max-height: 200px; max-width: calc(200px * 16 / 9)" />
+                                                    }
+                                                    // Hình chữ nhật dọc
+                                                    else if (Data[i].MediaFile.Shape == (int)MODELS.COMMON.ShapeType.Portrait)
+                                                    {
+                                                        <img class="FilePreview"
+                                                             height="800" width="566"
+                                                             src="@Data[i].MediaFile.Url"
+                                                             onclick="ShowLightBox(this.src)"
+                                                             style="object-fit: fill; max-height: 200px; max-width: calc(200px * 9 / 16)" />
+                                                    }
+                                                    // Invalid: Hiển thị tệp
+                                                    else
+                                                    {
+                                                        <a href="@($"/Home/DownloadFile?fileName={System.IO.Path.GetFileName(Data[i].MediaFile.Url)}")" download style="text-decoration: none;">
+                                                            <div class="d-flex align-items-center OtherFile"
+                                                                 style="background-color: rgb(225.6, 233.7, 247.05); cursor: pointer">
+                                                                <div style="padding-left: 12px">
+                                                                    <div class="bg-white rounded-circle"
+                                                                         style="padding: 0 10px">
+                                                                        <i class="fa-solid fa-file-lines text-black" style="line-height: 32px; font-size: 16px"></i>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="d-flex flex-column" style="margin: 12px 16px 12px 12px; text-align: justify;">
+                                                                    <span class="text-black"
+                                                                          style="line-height: 20px; font-size: 14px;
+                                                                                font-weight: 600; margin: 5px 0;
+                                                                                display: -webkit-box; -webkit-box-orient: vertical;
+                                                                                -webkit-line-clamp: 3;
+                                                                                overflow: hidden">
+                                                                        @Data[i].MediaFile.FileName
+                                                                    </span>
+                                                                    <span style="font-weight: 400; font-size: 12px; color: rgba(0,0,0,.55); margin: 5px 0">
+                                                                        @Data[i].MediaFile.FileLengthText
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </a>
+                                                    }
+                                                    break;
                                                 }
-                                                // Hình chữ nhật ngang
-                                                else if (Data[i].MediaFile.Shape == (int)MODELS.COMMON.ShapeType.Landscape)
+                                            // Hiển thị video
+                                            case (int)MODELS.COMMON.MediaFileType.ChatVideo:
                                                 {
-                                                    <img class="FilePreview"
-                                                         height="414" width="736"
-                                                         src="@Data[i].MediaFile.Url"
-                                                         onclick="ShowLightBox(this.src)"
-                                                         style="object-fit: fill; max-height: 200px; max-width: calc(200px * 16 / 9)" />
+                                                    <video class="FilePreview"
+                                                           preload="metadata" controls
+                                                           style="max-height: 200px; max-width: calc(200px * 16 / 9); line-height: 1">
+                                                        <source src="@Data[i].MediaFile.Url">
+                                                    </video>
+                                                    break;
                                                 }
-                                                // Hình chữ nhật dọc
-                                                else if (Data[i].MediaFile.Shape == (int)MODELS.COMMON.ShapeType.Portrait)
-                                                {
-                                                    <img class="FilePreview"
-                                                         height="800" width="566"
-                                                         src="@Data[i].MediaFile.Url"
-                                                         onclick="ShowLightBox(this.src)"
-                                                         style="object-fit: fill; max-height: 200px; max-width: calc(200px * 9 / 16)" />
-                                                }
-                                                // Invalid: Hiển thị tệp
-                                                else
+                                            // Hiển thị các tệp khác
+                                            default:
                                                 {
                                                     <a href="@($"/Home/DownloadFile?fileName={System.IO.Path.GetFileName(Data[i].MediaFile.Url)}")" download style="text-decoration: none;">
                                                         <div class="d-flex align-items-center OtherFile"
@@ -252,10 +293,10 @@ else
                                                             <div class="d-flex flex-column" style="margin: 12px 16px 12px 12px; text-align: justify;">
                                                                 <span class="text-black"
                                                                       style="line-height: 20px; font-size: 14px;
-                                                font-weight: 600; margin: 5px 0;
-                                                display: -webkit-box; -webkit-box-orient: vertical;
-                                                -webkit-line-clamp: 3;
-                                                overflow: hidden">
+                                                                            font-weight: 600; margin: 5px 0;
+                                                                            display: -webkit-box; -webkit-box-orient: vertical;
+                                                                            -webkit-line-clamp: 3;
+                                                                            overflow: hidden">
                                                                     @Data[i].MediaFile.FileName
                                                                 </span>
                                                                 <span style="font-weight: 400; font-size: 12px; color: rgba(0,0,0,.55); margin: 5px 0">
@@ -264,60 +305,52 @@ else
                                                             </div>
                                                         </div>
                                                     </a>
+                                                    break;
                                                 }
-                                                break;
-                                            }
-                                        // Hiển thị video
-                                        case (int)MODELS.COMMON.MediaFileType.ChatVideo:
+                                        }
+                                    </div>
+                                }
+
+                                @* MessageReaction *@
+                                @if (Data[i].MessageReaction != null)
+                                {
+                                    <div id="MessageReaction_@(Data[i].Id)" onclick="ShowPopupMessageReaction(this)"
+                                         class="w-100 MessageReaction position-relative" data-content-popover="@Data[i].MessageReaction.ReactedUsername"
+                                         style="height: 18px; place-items: end; margin-top: -8px; z-index: 1; text-align: end; cursor: pointer">
+                                        <div class="bg-white rounded-pill"
+                                             style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; width: fit-content; padding: 2px; line-height: 16px; display: -webkit-inline-box">
+                                            @foreach (var item in Data[i].MessageReaction.ReactionTypes)
                                             {
-                                                <video class="FilePreview"
-                                                       preload="metadata" controls
-                                                       style="max-height: 200px; max-width: calc(200px * 16 / 9); line-height: 1">
-                                                    <source src="@Data[i].MediaFile.Url">
-                                                </video>
-                                                break;
+                                                <img src="@item.MediaFile.Url"
+                                                     data-reactiontypeid="@item.Id"
+                                                     height="16" width="16"
+                                                     class="ReactionType"
+                                                     style="object-fit: fill; margin: 0 2px" />
                                             }
-                                        // Hiển thị các tệp khác
-                                        default:
+                                            @if (Data[i].MessageReaction.ReactionCount > 1)
                                             {
-                                                <a href="@($"/Home/DownloadFile?fileName={System.IO.Path.GetFileName(Data[i].MediaFile.Url)}")" download style="text-decoration: none;">
-                                                    <div class="d-flex align-items-center OtherFile"
-                                                         style="background-color: rgb(225.6, 233.7, 247.05); cursor: pointer">
-                                                        <div style="padding-left: 12px">
-                                                            <div class="bg-white rounded-circle"
-                                                                 style="padding: 0 10px">
-                                                                <i class="fa-solid fa-file-lines text-black" style="line-height: 32px; font-size: 16px"></i>
-                                                            </div>
-                                                        </div>
-                                                        <div class="d-flex flex-column" style="margin: 12px 16px 12px 12px; text-align: justify;">
-                                                            <span class="text-black"
-                                                                  style="line-height: 20px; font-size: 14px;
-                                                font-weight: 600; margin: 5px 0;
-                                                display: -webkit-box; -webkit-box-orient: vertical;
-                                                -webkit-line-clamp: 3;
-                                                overflow: hidden">
-                                                                @Data[i].MediaFile.FileName
-                                                            </span>
-                                                            <span style="font-weight: 400; font-size: 12px; color: rgba(0,0,0,.55); margin: 5px 0">
-                                                                @Data[i].MediaFile.FileLengthText
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </a>
-                                                break;
+                                                <div style="font-size: 11px; margin: 0 6px 0 4px; display: inline">
+                                                    @Data[i].MessageReaction.ReactionCount
+                                                </div>
                                             }
-                                    }
-                                </div>
-                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            
 
                             <div style="position: relative; width: 10px">
                                 <div class="Message_Interaction">
-                                    <button type="button"
-                                            class="btn btn-floating"
+                                    <button type="button" onclick="toggleBtnReactionType(this)"
+                                            id="btn_ReactionType_@(Data[i].Id)"
+                                            class="btn-ReactionType btn btn-floating"
                                             style="width: 28px; height: 28px; --mdb-btn-hover-bg: hsl(0, 0%, 90%); --mdb-btn-color: var(--mdb-gray-600); --mdb-btn-hover-color: var(--mdb-gray-600); box-shadow: unset"
                                             data-mdb-ripple-init
                                             data-mdb-ripple-color="dark"
-                                            data-content="Bày tỏ cảm xúc">
+                                            data-content="Bày tỏ cảm xúc"
+                                            data-mdb-placement="top"
+                                            data-myreactiontypeid = "@(Data[i].MessageReaction != null && Data[i].MessageReaction.MyReactionTypeId != null ? Data[i].MessageReaction.MyReactionTypeId : "")"
+                                    >
                                         <i class="fa-regular fa-face-smile" style="font-size: 14px"></i>
                                     </button>
                                     <button type="button" onclick="ShowResponseMessageContainer('@Data[i].Id')"

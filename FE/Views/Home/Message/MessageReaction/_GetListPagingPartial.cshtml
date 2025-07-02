@@ -1,0 +1,28 @@
+﻿@model MODELS.BASE.GetListPagingResponse
+@{
+    var Data = Model.Data as List<MODELS.MESSAGEREACTION.Dtos.MODELMessageReaction>;
+}
+
+@if (Data.Count != 0)
+{
+    foreach (var item in Data)
+    {
+        <div class="d-flex justify-content-between align-items-center ReactionUser rounded-2"
+             style="padding: 8px">
+            <div>
+                <img height="40" width="40"
+                     class="rounded-circle"
+                     src="@item.User.ProfilePicture"
+                     style="object-fit: cover; margin-right: 8px" />
+                <span style="font-size: 14px; font-weight: 500; color: black">@item.User.HoVaTen</span>
+            </div>
+
+            <div>
+                <img height="28" width="28"
+                     src="@item.URLReactionType"
+                     style="object-fit: fill" />
+            </div>
+        </div>
+    }
+}
+

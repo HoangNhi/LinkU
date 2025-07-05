@@ -124,7 +124,7 @@ namespace BE.Configure
         public static void RegisterService(WebApplicationBuilder builder)
         {
             builder.Services.AddTransient<IUSERService, USERService>();
-            builder.Services.AddTransient<IMESSAGEService, MESSAGEService>();
+            builder.Services.AddScoped<IMESSAGEService, MESSAGEService>();
             builder.Services.AddTransient<IMAILService, MAILService>();
             builder.Services.AddTransient<ISMSService, SMSService>();
             builder.Services.AddTransient<IOTPService, OTPService>();

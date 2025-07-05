@@ -108,6 +108,7 @@
 
             // Send message
         function sendMessage(receiverId) {
+            startTimer();
             if ($('#Message_Content').text() !== '' && ArrayFile.length == 0) {
                 var refid = ResponseMessageContainer.querySelector(`div[data-message-id]`)
 
@@ -325,6 +326,7 @@
             //      "dateTime": "09:13 15 tháng 05, 2025"
             //    }
             //}
+            stopTimer()
             if (!response.success) {
                 ShowThongBaoThatBai(response.message)
             } else {
@@ -362,6 +364,8 @@
                         } else {
                             showNewMessageIndicator();
                         }
+
+                        stopTimer()
                     });
 
                 }
@@ -865,6 +869,27 @@
                 'video/mp4': 'mp4',
                 'application/pdf': 'pdf',
             };
+        </script>
+
+        <script>
+            let startTime = null;
+            let endTime = null;
+
+            function startTimer() {
+                startTime = performance.now();
+                console.log("⏱️ Bắt đầu đếm thời gian...");
+            }
+
+            function stopTimer() {
+                if (startTime === null) {
+                    console.log("⚠️ Bạn chưa bắt đầu bấm giờ.");
+                    return;
+                }
+                endTime = performance.now();
+                const elapsedTime = endTime - startTime;
+                console.log(`✅ Thời gian đã trôi qua: ${elapsedTime.toFixed(2)} ms`);
+                //startTime = null; // reset lại
+            }
         </script>
     </body>
 </html>

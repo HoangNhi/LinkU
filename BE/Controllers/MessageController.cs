@@ -4,6 +4,7 @@ using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.MESSAGE.Requests;
+using System.Threading.Tasks;
 
 namespace BE.Controllers
 {
@@ -19,13 +20,13 @@ namespace BE.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ApiResponse> GetListPaging(PostMessageGetListPagingRequest request)
+        public async Task<ActionResult<ApiResponse>> GetListPaging(PostMessageGetListPagingRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.GetListPaging(request);
+                    var response = await _service.GetListPaging(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);

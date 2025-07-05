@@ -1,11 +1,8 @@
-﻿using AutoMapper.Execution;
-using Azure;
-using BE.Services.Conversation;
+﻿using BE.Services.Conversation;
 using BE.Services.FriendRequest;
 using BE.Services.GroupMember;
 using BE.Services.Message;
 using BE.Services.User;
-using ENTITIES.DbContent;
 using Microsoft.AspNetCore.SignalR;
 using MODELS.BASE;
 using MODELS.CONVERSATION.Requests;
@@ -14,14 +11,10 @@ using MODELS.GROUPMEMBER.Dtos;
 using MODELS.GROUPMEMBER.Requests;
 using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
-using MODELS.MESSAGEREACTION.Dtos;
 using MODELS.MESSAGEREACTION.Requests;
-using MODELS.USER.Dtos;
-using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.WebSockets;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BE.Hubs
 {
@@ -33,7 +26,6 @@ namespace BE.Hubs
         private readonly IUSERService _userService;
         private readonly IGROUPMEMBERService _groupMemberService;
         private static ConcurrentDictionary<string, string> _users = new();
-        private static Dictionary<Guid, List<Guid>> _conversationUserToUser = new();
 
         public MessageHub(IMESSAGEService messageService, IFRIENDREQUESTService friendRequestService, ICONVERSATIONService conversationService, IUSERService userService, IGROUPMEMBERService groupMemberService)
         {
@@ -41,17 +33,6 @@ namespace BE.Hubs
             _friendRequestService = friendRequestService;
             _conversationService = conversationService;
             _userService = userService;
-
-            var conversationCurrent = conversationService.GetDictionaryConversationUserToUser();
-            if (conversationCurrent.Error)
-            {
-                throw new Exception(conversationCurrent.Message);
-            }
-            else
-            {
-                _conversationUserToUser = conversationCurrent.Data;
-            }
-
             _groupMemberService = groupMemberService;
         }
 
@@ -59,55 +40,25 @@ namespace BE.Hubs
         // Phương thức gửi tin nhắn tới tất cả client
         public async Task SendPrivateMessage(PostMessageRequest request)
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            Guid? messageId = null; // Lưu ID tin nhắn để rollback nếu cần
-            Guid[]? conversationId = null; // Lưu ID conversation để rollback nếu cần
-
             try
             {
-                // Kiểm tra Id người gửi, người nhận và nội dung tin nhắn có hợp lệ không
-                // Kiểm tra tin nhắn
-                if (string.IsNullOrWhiteSpace(request.Content) || string.IsNullOrEmpty(request.Content))
+                var sw = Stopwatch.StartNew();
+                // Create Message
+                var newMessage = _messageService.WSInsertPrivateMessage(request);
+                if (newMessage.Error)
                 {
-                    throw new Exception("Tin nhắn không được để trống");
+                    throw new Exception(newMessage.Message);
                 }
+                
+                sw.Stop();
+                Console.WriteLine($"WSInsertPrivateMessage took {sw.ElapsedMilliseconds} ms");
 
-                // Tạo tin nhắn
-                var resultMessage = CreateMessage(request, out messageId);
-
-                // Lấy thông tin người dùng
-                var (senderInfo, receiverInfo) = GetUserInfos(request.SenderId, request.TargetId);
-
-                // Kiểm tra cuộc trò chuyện
-                EnsureConversation(senderInfo, receiverInfo, resultMessage.Id, out conversationId);
-
-                // Gửi phản hồi đến client
-                await SendSignalRMessage(resultMessage);
+                // SignalR message
+                await SendSignalRMessage(newMessage.Data);
             }
             catch (Exception ex)
             {
-                // Không cần rollback thủ công vì TransactionScope sẽ tự động rollback nếu transaction không được Complete
-                string error = $"Lỗi hệ thống: {ex.Message}";
-                await Clients.Caller.SendAsync("ReceivePrivateMessage", new ApiResponse(false, null, error));
-
-                // (Tùy chọn) Xóa thủ công nếu không dùng TransactionScope
-                if (messageId.HasValue)
-                {
-                    _messageService.RoolbackDelete(new GetByIdRequest { Id = messageId.Value });
-                }
-                if (conversationId.Any())
-                {
-                    foreach (var convId in conversationId)
-                    {
-                        _conversationService.RoolbackDelete(new GetByIdRequest { Id = convId });
-                    }
-                }
-            }
-            finally
-            {
-                stopwatch.Stop();
-                Console.WriteLine($"Thời gian chạy: {stopwatch.ElapsedMilliseconds} ms");
+                await Clients.Caller.SendAsync("ReceivePrivateMessage", new ApiResponse(false, null, $"Lỗi hệ thống: {ex.Message}"));
             }
         }
 
@@ -145,12 +96,12 @@ namespace BE.Hubs
                 }
 
                 // Xử lý dữ liệu
-                
+
 
                 // Gửi tin nhắn đến tất cả thành viên trong nhóm
                 foreach (var member in groupMembers.Data)
                 {
-                    var Data = _messageService.HanleDataGetListPaging(new List<MODELMessage> { resultMessage.Data }, 1, member.UserId, member.GroupId).Data;
+                    var Data = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { resultMessage.Data }, 1, member.UserId, member.GroupId)).Data;
 
                     var Response = new GetListPagingResponse
                     {
@@ -196,7 +147,7 @@ namespace BE.Hubs
                 }
 
                 // Nếu đồng ý lời mới kết bạn thì cập nhập lại tab Friendship
-                if(friendRequestModel.Data.Status == 1)
+                if (friendRequestModel.Data.Status == 1)
                 {
                     // Gửi yêu cầu cập nhật đến người nhận
                     await Clients.Client(receiverConnectionId).SendAsync("UpdateFriendshipTab", new ApiResponse(friendRequestModel.Data));
@@ -234,7 +185,7 @@ namespace BE.Hubs
             var response = new BaseResponse();
             try
             {
-                if(request.UserIds.Count == 0)
+                if (request.UserIds.Count == 0)
                 {
                     throw new Exception("Danh sách UserId không được để trống");
                 }
@@ -319,7 +270,7 @@ namespace BE.Hubs
                     }
                 }
                 // Tin nhắn nhóm
-                else if(request.ConversationType == 1)
+                else if (request.ConversationType == 1)
                 {
                     var groupMember = _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = request.TargetId });
                     if (groupMember.Error)
@@ -335,7 +286,7 @@ namespace BE.Hubs
                         if (_users.TryGetValue(member.UserId.ToString(), out string receiverConnectionId))
                         {
                             // Gửi yêu cầu cập nhật đến người nhận
-                            await Clients.Client(receiverConnectionId).SendAsync("ReceiveRequestAppendMessage", 
+                            await Clients.Client(receiverConnectionId).SendAsync("ReceiveRequestAppendMessage",
                                 new ApiResponse(new { Html = request.HtmlMessage, SenderId = request.SenderId, TargetId = request.TargetId })
                             );
                         }
@@ -373,8 +324,8 @@ namespace BE.Hubs
                 if (requestData.ConversationType == 0)
                 {
                     // Xử lý dữ liệu
-                    List<MODELMessage> myData = _messageService.HanleDataGetListPaging(new List<MODELMessage> { message.Data }, 0, requestData.SenderId, requestData.TargetId).Data;
-                    List<MODELMessage> otherData = _messageService.HanleDataGetListPaging(new List<MODELMessage> { message.Data }, 0, requestData.TargetId, requestData.SenderId).Data;
+                    List<MODELMessage> myData = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { message.Data }, 0, requestData.SenderId, requestData.TargetId)).Data;
+                    List<MODELMessage> otherData = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { message.Data }, 0, requestData.TargetId, requestData.SenderId)).Data;
 
                     if (_users.TryGetValue(requestData.TargetId.ToString(), out string receiverConnectionId))
                     {
@@ -426,7 +377,7 @@ namespace BE.Hubs
                         if (_users.TryGetValue(member.UserId.ToString(), out string receiverConnectionId))
                         {
                             // Xử lý dữ liệu
-                            var Data = _messageService.HanleDataGetListPaging(new List<MODELMessage> { message.Data }, 1, member.UserId, member.GroupId).Data;
+                            var Data = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { message.Data }, 1, member.UserId, member.GroupId)).Data;
 
                             // Gửi yêu cầu cập nhật đến người nhận
                             await Clients.Client(receiverConnectionId).SendAsync("ReceiveRequestUpdateMessageReaction",
@@ -449,7 +400,7 @@ namespace BE.Hubs
                 }
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 response.Error = true;
                 response.Message = "Lỗi hệ thống: " + ex.Message;
@@ -477,188 +428,51 @@ namespace BE.Hubs
         #endregion
 
         #region Private Function 
-        (Guid senderId, Guid receiverId) ValidateMessage(string sender, string receiver, string message)
-        {
-            // Kiểm tra định dạng ID
-            if (!Guid.TryParse(sender, out var senderId) || !Guid.TryParse(receiver, out var receiverId))
-            {
-                throw new Exception("ID người gửi hoặc người nhận không hợp lệ.");
-            }
-
-            // Kiểm tra tin nhắn
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                throw new Exception("Tin nhắn không được để trống.");
-            }
-
-            return (senderId, receiverId);
-        }
-
-        MODELMessage CreateMessage(PostMessageRequest request, out Guid? messageId)
-        {
-            var result = _messageService.Insert(request);
-
-            if (result.Error)
-            {
-                throw new Exception(result.Message);
-            }
-
-            //if(!(request.RefId == null || request.RefId == Guid.Empty))
-            //{
-            //    var refMessage = _messageService.GetById(new GetByIdRequest { Id = request.RefId });
-            //    if(refMessage)
-            //}
-
-            messageId = result.Data.Id; // Lưu ID tin nhắn
-
-            return result.Data;
-        }
-
-        (MODELUser senderInfo, MODELUser receiverInfo) GetUserInfos(Guid senderId, Guid receiverId)
-        {
-            var senderInfo = _userService.GetById(new GetByIdRequest { Id = senderId });
-            var receiverInfo = _userService.GetById(new GetByIdRequest { Id = receiverId });
-            if (senderInfo.Error || receiverInfo.Error)
-            {
-                throw new Exception("Không tìm thấy thông tin người dùng.");
-            }
-
-            return (senderInfo.Data, receiverInfo.Data);
-        }
-
-        void EnsureConversation(MODELUser sender, MODELUser receiver, Guid messageId, out Guid[]? conversationId)
-        {
-            // Khởi tạo mặc định cho conversationId
-            conversationId = null;
-
-            if (_conversationUserToUser.TryGetValue(sender.Id, out List<Guid> existingConversationId))
-            {
-                if (existingConversationId.Contains(receiver.Id))
-                {
-                    // Nếu đã có cuộc trò chuyện, update lastread conversation là mới nhất
-                    var update = _conversationService.UpdateLatestMessage(sender.Id, receiver.Id);
-                    if (update.Error)
-                    {
-                        throw new Exception(update.Message);
-                    }
-                }
-                else
-                {
-                    // Nếu chưa có cuộc trò chuyện, kiểm tra trong DB
-                    var checkConversation = _conversationService.CheckConversationExist(sender.Id, receiver.Id);
-                    if (checkConversation.Error)
-                    {
-                        throw new Exception(checkConversation.Message);
-                    }
-
-                    if (checkConversation.Data)
-                    {
-                        // Đồng bộ với _conversationCurrent
-                        existingConversationId.Add(receiver.Id);
-                        _conversationUserToUser[sender.Id] = existingConversationId;
-
-                        // update lastread conversation là mới nhất
-                        var update = _conversationService.UpdateLatestMessage(sender.Id, receiver.Id);
-                        if (update.Error)
-                        {
-                            throw new Exception(update.Message);
-                        }
-                    }
-                    else
-                    {
-                        // Tạo mới conversation
-                        var conversation = _conversationService.InsertPrivateConversation(new WSPrivateMessageInsertConversation
-                        {
-                            MessageId = messageId,
-                            Sender = sender,
-                            Receiver = receiver,
-                        });
-
-                        if (conversation.Error)
-                        {
-                            throw new Exception(conversation.Message);
-                        }
-
-
-                        existingConversationId.Add(receiver.Id);
-                        _conversationUserToUser[sender.Id] = existingConversationId; // Cập nhật sau khi tạo thành công
-
-                        // Lưu ID conversation
-                        conversationId = conversation.Data;
-                    }
-                }
-            }
-            else
-            {
-                // Kiểm tra trong DB
-                var checkConversation = _conversationService.CheckConversationExist(sender.Id, receiver.Id);
-                if (checkConversation.Error)
-                {
-                    throw new Exception(checkConversation.Message);
-                }
-
-                if (checkConversation.Data)
-                {
-                    // Đồng bộ với _conversationCurrent
-                    _conversationUserToUser.Add(sender.Id, new List<Guid> { receiver.Id });
-
-                    // update lastread conversation là mới nhất
-                    var update = _conversationService.UpdateLatestMessage(sender.Id, receiver.Id);
-                    if (update.Error)
-                    {
-                        throw new Exception(update.Message);
-                    }
-                }
-                else
-                {
-                    // Tạo mới conversation
-                    var conversation = _conversationService.InsertPrivateConversation(new WSPrivateMessageInsertConversation
-                    {
-                        MessageId = messageId,
-                        Sender = sender,
-                        Receiver = receiver,
-                    });
-
-                    if (conversation.Error)
-                    {
-                        throw new Exception(conversation.Message);
-                    }
-
-                    // Cập nhật sau khi tạo thành công
-                    _conversationUserToUser.Add(sender.Id, new List<Guid> { receiver.Id });
-
-                    conversationId = conversation.Data;
-                }
-            }
-        }
-
         async Task SendSignalRMessage(MODELMessage response)
         {
-            // Xử lý dữ liệu
-            var myData = _messageService.HanleDataGetListPaging(new List<MODELMessage> { response }, 0, response.SenderId, response.TargetId).Data;
-            var otherData = _messageService.HanleDataGetListPaging(new List<MODELMessage> { response }, 0, response.TargetId, response.SenderId).Data;
-
-            var myResponse = new GetListPagingResponse
+            // Hàm xử lý tạo response và gửi đi
+            async Task SendToClient(Guid userId, Guid targetId, Func<GetListPagingResponse, Task> sendFunc)
             {
-                PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
-                Data = myData,
-                TotalRow = myData.Count
-            };
+                var handleMessage = await _messageService.HanleDataGetListPagingAsync(
+                    new List<MODELMessage> { response }, 0, userId, targetId);
 
-            var otherResponse = new GetListPagingResponse
-            {
-                PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
-                Data = otherData,
-                TotalRow = otherData.Count
-            };
+                var data = handleMessage.Data;
 
+                var pagingResponse = new GetListPagingResponse
+                {
+                    PageIndex = 1,
+                    Data = data,
+                    TotalRow = data.Count
+                };
 
-            // Gửi tin nhắn qua SignalR
+                await sendFunc.Invoke(pagingResponse);
+            }
+
+            var tasks = new List<Task>();
+
+            // Gửi cho người nhận nếu họ đang online
             if (_users.TryGetValue(response.TargetId.ToString(), out string receiverConnectionId))
             {
-                await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", new ApiResponse(otherResponse));
+                tasks.Add(Task.Run(async () =>
+                {
+                    await SendToClient(response.TargetId, response.SenderId, async (res) =>
+                    {
+                        Clients.Client(receiverConnectionId)
+                            .SendAsync("ReceiveMessage", new ApiResponse(res));
+                    });
+                }));
             }
-            await Clients.Caller.SendAsync("ReceiveMessage", new ApiResponse(myResponse));
+
+            // Gửi cho người gửi (caller)
+            tasks.Add(Task.Run(async () =>
+            {
+                await SendToClient(response.SenderId, response.TargetId, async (res) =>
+                {
+                    Clients.Caller.SendAsync("ReceiveMessage", new ApiResponse(res));
+                });
+            }));
+
+            await Task.WhenAll(tasks);
         }
 
         async Task SendSignalRRerenderTab(Guid UserId, string tabname)

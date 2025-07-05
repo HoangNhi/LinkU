@@ -3,6 +3,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using ENTITIES.DbContent;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MEDIAFILE.Dtos;
@@ -47,6 +48,14 @@ namespace BE.Services.MediaFile
                 response.Message = ex.Message;
             }
             return response;
+        }
+
+        public async Task<List<ENTITIES.DbContent.MediaFile>> GetEntitesByMessageIdAsync(List<Guid> messageIds, List<Guid> refIds)
+        {
+            return await _context.MediaFiles
+                    .Where(x => (messageIds.Contains(x.MessageId.Value) || refIds.Contains(x.MessageId.Value)) && !x.IsDeleted)
+                    .AsNoTracking()
+                    .ToListAsync();
         }
 
         public BaseResponse<POSTMediaFileRequest> GetByPost(GetByIdRequest request)

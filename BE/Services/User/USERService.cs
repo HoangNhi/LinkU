@@ -9,7 +9,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using MODELS.BASE;
 using MODELS.COMMON;
-using MODELS.CONVERSATION.Requests;
 using MODELS.MAIL.Dtos;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
@@ -17,7 +16,6 @@ using MODELS.OTP.Requests;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.USER.Dtos;
 using MODELS.USER.Requests;
-using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 
@@ -461,6 +459,19 @@ namespace BE.Services.User
                 .Select(x => _mapper.Map<MODELUser>(x))
                 .ToList();
         }
+
+        public async Task<List<MODELUser>> GetByIdsAsync(List<Guid> ids)
+        {
+            if (ids == null || !ids.Any())
+                return new List<MODELUser>();
+
+            var users = await _context.Users
+                .Where(x => ids.Contains(x.Id))
+                .ToListAsync();
+
+            return users.Select(x => _mapper.Map<MODELUser>(x)).ToList();
+        }
+
         #endregion
 
         #region Login/Register/Logout

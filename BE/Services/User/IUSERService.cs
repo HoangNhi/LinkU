@@ -1,5 +1,4 @@
 ﻿using MODELS.BASE;
-using MODELS.CONVERSATION.Requests;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.OTP.Requests;
@@ -34,6 +33,7 @@ namespace BE.Services.User
         BaseResponse<MODELMediaFile> UpdatePicture(POSTMediaFileRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
         List<MODELUser> GetByIds(List<Guid> ids);
+        Task<List<MODELUser>> GetByIdsAsync(List<Guid> ids);
 
         // Login by UserName and Password
         BaseResponse<MODELUser> Login(LoginRequest request, string ipAddress);

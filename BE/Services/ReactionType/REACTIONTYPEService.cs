@@ -1,16 +1,12 @@
 ﻿using AutoMapper;
 using BE.Helpers;
-using BE.Services.MediaFile;
-using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using MODELS.BASE;
-using MODELS.CONVERSATION.Dtos;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.REACTIONTYPE.Dtos;
 using Newtonsoft.Json;
-using System.Linq;
 
 namespace BE.Services.ReactionType
 {
@@ -139,5 +135,35 @@ namespace BE.Services.ReactionType
 
             return reactionTypes;
         }
+
+        public async Task<List<ModelReactionType>> GetByIdsAsync(List<Guid> ids)
+        {
+            if (ids == null || !ids.Any())
+                return new List<ModelReactionType>();
+
+            // Bước 1: Load MediaFiles liên quan theo ReactionTypeId
+            var mediaFiles = await _context.MediaFiles
+                .AsNoTracking()
+                .Where(mf => !mf.IsDeleted && mf.ReactionTypeId.HasValue && ids.Contains(mf.ReactionTypeId.Value))
+                .ToDictionaryAsync(mf => mf.ReactionTypeId.Value, mf => mf); // ánh xạ nhanh theo ReactionTypeId
+
+            // Bước 2: Truy vấn ReactionTypes và ánh xạ
+            var reactionTypes = await _context.ReactionTypes
+                .AsNoTracking()
+                .Where(x => ids.Contains(x.Id))
+                .Select(x => new ModelReactionType
+                {
+                    Id = x.Id,
+                    TenGoi = x.TenGoi,
+                    SapXep = x.SapXep,
+                    MediaFile = mediaFiles.ContainsKey(x.Id)
+                        ? _mapper.Map<MODELMediaFile>(mediaFiles[x.Id])
+                        : null
+                })
+                .ToListAsync();
+
+            return reactionTypes;
+        }
+
     }
 }

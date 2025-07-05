@@ -23,6 +23,6 @@ namespace BE.Services.MediaFile
         BaseResponse<MODELMediaFile> Insert(POSTMediaFileRequest request);
         BaseResponse<MODELMediaFile> Update(POSTMediaFileRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
-
+        Task<List<ENTITIES.DbContent.MediaFile>> GetEntitesByMessageIdAsync(List<Guid> messageIds, List<Guid> refIds);
     }
 }

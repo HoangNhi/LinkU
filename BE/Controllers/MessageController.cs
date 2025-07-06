@@ -95,13 +95,13 @@ namespace BE.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ApiResponse> Insert(PostMessageRequest request)
+        public async Task<ActionResult<ApiResponse>> Insert(PostMessageRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.Insert(request);
+                    var response = await _service.Insert(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);

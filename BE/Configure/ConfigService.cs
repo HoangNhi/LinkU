@@ -13,6 +13,7 @@ using BE.Services.Message;
 using BE.Services.MessageReaction;
 using BE.Services.OTP;
 using BE.Services.ReactionType;
+using BE.Services.Redis;
 using BE.Services.SMS;
 using BE.Services.User;
 using ENTITIES.DbContent;
@@ -21,6 +22,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using MODELS.USER.Requests;
+using StackExchange.Redis;
+using System.Net.WebSockets;
 
 namespace BE.Configure
 {
@@ -117,27 +120,49 @@ namespace BE.Configure
                 .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
 
+            // Redis
+            builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                string redisUrl = builder.Configuration["Redis:ConnectionString"];
+                var uri = new Uri(redisUrl);
+                var userInfoParts = uri.UserInfo.Split(':');
+                if (userInfoParts.Length != 2)
+                {
+                    throw new InvalidOperationException("REDIS_URL is not in the expected format ('redis://user:password@host:port')");
+                }
+
+                var configurationOptions = new ConfigurationOptions
+                {
+                    EndPoints = { { uri.Host, uri.Port } },
+                    Password = userInfoParts[1],
+                    Ssl = true,
+                };
+                configurationOptions.CertificateValidation += (sender, cert, chain, errors) => true;
+                return ConnectionMultiplexer.Connect(configurationOptions);
+            });
+
             // Register service
             RegisterService(builder);
         }
 
         public static void RegisterService(WebApplicationBuilder builder)
         {
-            builder.Services.AddTransient<IUSERService, USERService>();
+            builder.Services.AddScoped<IUSERService, USERService>();
             builder.Services.AddScoped<IMESSAGEService, MESSAGEService>();
-            builder.Services.AddTransient<IMAILService, MAILService>();
-            builder.Services.AddTransient<ISMSService, SMSService>();
-            builder.Services.AddTransient<IOTPService, OTPService>();
+            builder.Services.AddScoped<IMAILService, MAILService>();
+            builder.Services.AddScoped<ISMSService, SMSService>();
+            builder.Services.AddScoped<IOTPService, OTPService>();
             //builder.Services.AddTransient<IMESSAGELISTService, MESSAGELISTService>();
-            builder.Services.AddTransient<IFRIENDREQUESTService, FRIENDREQUESTService>();
-            builder.Services.AddTransient<IFRIENDSHIPService, FIRENDSHIPService>();
+            builder.Services.AddScoped<IFRIENDREQUESTService, FRIENDREQUESTService>();
+            builder.Services.AddScoped<IFRIENDSHIPService, FIRENDSHIPService>();
             builder.Services.AddScoped<IMEDIAFILEService, MEDIAFILEService>();
-            builder.Services.AddTransient<ICONVERSATIONService, CONVERSATIONService>();
-            builder.Services.AddTransient<IGROUPService, GROUPService>();
-            builder.Services.AddTransient<IGROUPMEMBERService, GROUPMEMBERService>();
-            builder.Services.AddTransient<IGROUPREQUESTService, GROUPREQUESTService>();
-            builder.Services.AddTransient<IREACTIONTYPEService, REACTIONTYPEService>();
-            builder.Services.AddTransient<IMESSAGEREACTIONService, MESSAGEREACTIONService>();
+            builder.Services.AddScoped<ICONVERSATIONService, CONVERSATIONService>();
+            builder.Services.AddScoped<IGROUPService, GROUPService>();
+            builder.Services.AddScoped<IGROUPMEMBERService, GROUPMEMBERService>();
+            builder.Services.AddScoped<IGROUPREQUESTService, GROUPREQUESTService>();
+            builder.Services.AddScoped<IREACTIONTYPEService, REACTIONTYPEService>();
+            builder.Services.AddScoped<IMESSAGEREACTIONService, MESSAGEREACTIONService>();
+            builder.Services.AddScoped<IREDISService, REDISService>();
         }
     }
 }

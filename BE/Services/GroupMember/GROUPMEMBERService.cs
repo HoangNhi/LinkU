@@ -197,7 +197,7 @@ namespace BE.Services.GroupMember
             return response;
         }
 
-        public BaseResponse<MODELResponseAddMemberToGroup> AddMemberToGroup(POSTAddMemberToGroupRequest request)
+        public async Task<BaseResponse<MODELResponseAddMemberToGroup>> AddMemberToGroup(POSTAddMemberToGroupRequest request)
         {
             var response = new BaseResponse<MODELResponseAddMemberToGroup>();
             try
@@ -207,7 +207,7 @@ namespace BE.Services.GroupMember
                 MODELMessageContent content = new MODELMessageContent();
                 content.UserId = Guid.Parse(UserId);
 
-                var checkGroupExist = _groupService.GetById(new GetByIdRequest { Id = request.GroupId });
+                var checkGroupExist = await _groupService.GetById(new GetByIdRequest { Id = request.GroupId });
                 if (checkGroupExist.Error)
                 {
                     throw new Exception(checkGroupExist.Message);
@@ -258,7 +258,7 @@ namespace BE.Services.GroupMember
                                                                                          && !x.IsDeleted
                                                                                          && x.State == 0);
                             // Case 1: Chưa có lời mời thì sẽ tạo lời mời
-                            if(checkGroupRequest == null)
+                            if (checkGroupRequest == null)
                             {
                                 var invitation = new ENTITIES.DbContent.GroupRequest
                                 {
@@ -328,7 +328,7 @@ namespace BE.Services.GroupMember
                 {
                     string textMessage = JsonConvert.SerializeObject(content);
 
-                    var message = _messageService.Insert(new PostMessageRequest
+                    var message = await _messageService.Insert(new PostMessageRequest
                     {
                         Content = textMessage,
                         SenderId = Guid.Parse(_contextAccessor.GetClaim("name")),

@@ -77,7 +77,7 @@ namespace BE.Hubs
                 }
 
                 // Tạo tin nhắn
-                var resultMessage = _messageService.Insert(request);
+                var resultMessage = await _messageService.Insert(request);
 
                 if (resultMessage.Error)
                 {
@@ -85,7 +85,7 @@ namespace BE.Hubs
                 }
 
                 // Lấy thông tin người gửi
-                var sender = _userService.GetById(new GetByIdRequest { Id = request.SenderId });
+                var sender = await _userService.GetByIdAsync(new GetByIdRequest { Id = request.SenderId });
                 resultMessage.Data.Sender = sender.Data;
 
                 // Gửi tin nhắn đến tất cả thành viên trong nhóm
@@ -163,7 +163,7 @@ namespace BE.Hubs
             var response = new BaseResponse();
             try
             {
-                var update = _conversationService.UpdateLatestMessage(request.UserId, request.TargetId);
+                var update = await _conversationService.UpdateLatestMessage(request.UserId, request.TargetId);
 
                 if (update.Error)
                 {

@@ -24,13 +24,13 @@ namespace BE.Services.User
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        BaseResponse<MODELUser> UpdateInfor(PostUpdateUserInforRequest request);
+        Task<BaseResponse<MODELUser>> UpdateInfor(PostUpdateUserInforRequest request);
         /// <summary>
         /// Cập nhật hình ảnh đại diện và ảnh bìa
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        BaseResponse<MODELMediaFile> UpdatePicture(POSTMediaFileRequest request);
+        Task<BaseResponse<MODELMediaFile>> UpdatePicture(POSTMediaFileRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
         List<MODELUser> GetByIds(List<Guid> ids);
         Task<List<MODELUser>> GetByIdsAsync(List<Guid> ids);

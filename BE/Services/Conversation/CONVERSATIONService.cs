@@ -13,6 +13,7 @@ using MODELS.MESSAGESTATUS.Dtos;
 using MODELS.MESSAGESTATUS.Requests;
 using MODELS.USER.Dtos;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace BE.Services.Conversation
 {
@@ -31,7 +32,7 @@ namespace BE.Services.Conversation
             _userService = userService;
         }
 
-        public BaseResponse<GetListPagingResponse> GetListPaging(POSTConversationGetListPagingRequest request)
+        public async Task<BaseResponse<GetListPagingResponse>> GetListPaging(POSTConversationGetListPagingRequest request)
         {
             var response = new BaseResponse<GetListPagingResponse>();
             try
@@ -68,8 +69,7 @@ namespace BE.Services.Conversation
                     }
 
                     // Lấy ra người dùng hiện tại từ HttpContext
-                    var currentUserId = _contextAccessor.GetClaim("name");
-                    var currentUser = _context.Users.Find(Guid.Parse(currentUserId));
+                    var currentUser = (await _userService.GetByIdAsync(new GetByIdRequest { Id = request.CurrentUserId })).Data;
 
                     // Xử lý nội dung tin nhắn nếu tin nhắn là Welcome hoặc Notification
                     if (item.LatestMessageType == 1 || item.LatestMessageType == 2)
@@ -86,7 +86,8 @@ namespace BE.Services.Conversation
                                 List<string> usernames = new List<string>();
                                 foreach (var userid in content.TargetId)
                                 {
-                                    var user = _context.Users.Find(userid);
+                                    //var user = _context.Users.Find(userid);
+                                    var user = (await _userService.GetByIdAsync(new GetByIdRequest { Id = userid })).Data;
                                     if (user != null)
                                     {
                                         usernames.Add(string.Concat(user.HoLot, " ", user.Ten));
@@ -106,7 +107,8 @@ namespace BE.Services.Conversation
                         // Case 2: Bạn là 1 trong những người nhận tin nhắn
                         else if (content.TargetId.Contains(currentUser.Id))
                         {
-                            var user = _context.Users.Find(content.UserId);
+                            //var user = _context.Users.Find(content.UserId);
+                            var user = (await _userService.GetByIdAsync(new GetByIdRequest { Id = content.UserId })).Data;
                             if (user != null)
                             {
                                 // Cập nhật nội dung tin nhắn
@@ -118,11 +120,13 @@ namespace BE.Services.Conversation
                         {
                             if(content.TargetId.Count > 0)
                             {
-                                var user = _context.Users.Find(content.UserId);
+                                //var user = _context.Users.Find(content.UserId);
+                                var user = (await _userService.GetByIdAsync(new GetByIdRequest { Id = content.UserId })).Data;
                                 var usernames = new List<string>();
                                 foreach (var userid in content.TargetId)
                                 {
-                                    var targetUser = _context.Users.Find(userid);
+                                    //var targetUser = _context.Users.Find(userid);
+                                    var targetUser = (await _userService.GetByIdAsync(new GetByIdRequest { Id = userid })).Data;
                                     if (targetUser != null)
                                     {
                                         usernames.Add(string.Concat(targetUser.HoLot, " ", targetUser.Ten));
@@ -137,7 +141,8 @@ namespace BE.Services.Conversation
                             }
                             else
                             {
-                                var user = _context.Users.Find(content.UserId);
+                                //var user = _context.Users.Find(content.UserId);
+                                var user = (await _userService.GetByIdAsync(new GetByIdRequest { Id = content.UserId })).Data;
                                 if (user != null)
                                 {
                                     // Cập nhật nội dung tin nhắn
@@ -445,7 +450,7 @@ namespace BE.Services.Conversation
             return response;
         }
 
-        public BaseResponse UpdateLatestMessage(Guid UserId, Guid TargetId)
+        public async Task<BaseResponse> UpdateLatestMessage(Guid UserId, Guid TargetId)
         {
             var response = new BaseResponse();
             try
@@ -465,7 +470,7 @@ namespace BE.Services.Conversation
                     throw new Exception("Tin nhắn không tồn tại");
                 }
 
-                var User = _userService.GetById(new GetByIdRequest { Id = UserId });
+                var User = await _userService.GetByIdAsync(new GetByIdRequest { Id = UserId });
 
 
                 update.LastReadMessageId = message.Id;
@@ -552,8 +557,6 @@ namespace BE.Services.Conversation
             }
             return _mapper.Map<MODELMessage>(message);
         }
-
-
         #endregion
     }
 }

@@ -3,6 +3,7 @@ using BE.Helpers;
 using BE.Services.Mail;
 using BE.Services.MediaFile;
 using BE.Services.OTP;
+using BE.Services.Redis;
 using BE.Services.SMS;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
@@ -16,6 +17,7 @@ using MODELS.OTP.Requests;
 using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.USER.Dtos;
 using MODELS.USER.Requests;
+using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 
@@ -32,8 +34,9 @@ namespace BE.Services.User
         private readonly ISMSService _smsService;
         private readonly IOTPService _otpService;
         private readonly IMEDIAFILEService _mediaFileService;
+        private readonly IREDISService _redisService;
 
-        public USERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IWebHostEnvironment webHostEnvironment, IConfiguration config, IMAILService mailService, ISMSService smsService, IOTPService otpService, IMEDIAFILEService mediaFileService)
+        public USERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IWebHostEnvironment webHostEnvironment, IConfiguration config, IMAILService mailService, ISMSService smsService, IOTPService otpService, IMEDIAFILEService mediaFileService, IREDISService redisService)
         {
             _context = context;
             _mapper = mapper;
@@ -44,6 +47,7 @@ namespace BE.Services.User
             _smsService = smsService;
             _otpService = otpService;
             _mediaFileService = mediaFileService;
+            _redisService = redisService;
         }
 
         #region Common Method - CRUD
@@ -147,20 +151,46 @@ namespace BE.Services.User
             var response = new BaseResponse<MODELUser>();
             try
             {
-                var result = new MODELUser();
-
-                var data = await _context.Users.FindAsync(request.Id);
-                if (data == null)
+                // Kiểm tra Redis trước
+                var value = await _redisService.GetAsync(RedisKeyHelper.UserProfile(request.Id.Value));
+                if (string.IsNullOrEmpty(value))
                 {
-                    return new BaseResponse<MODELUser> { Error = true, Message = "Không tìm thấy người dùng." };
+                    var data = await _context.Users.FindAsync(request.Id);
+                    if (data == null)
+                    {
+                        return new BaseResponse<MODELUser> { Error = true, Message = "Không tìm thấy người dùng." };
+                    }
+
+                    var result = _mapper.Map<MODELUser>(data);
+
+                    var profilePicture = await _context.MediaFiles
+                        .FirstOrDefaultAsync(m => m.OwnerId == result.Id && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture && !m.IsDeleted && m.IsActived);
+
+                    var coverPicture = await _context.MediaFiles
+                        .FirstOrDefaultAsync(m => m.OwnerId == result.Id && m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture && !m.IsDeleted && m.IsActived);
+
+                    // Gán ảnh vào kết quả
+                    result.ProfilePicture = profilePicture?.Url ?? CommonConst.DefaultUrlNoPicture;
+                    result.CoverPicture = coverPicture?.Url ?? CommonConst.DefaultUrlNoCoverPicture;
+
+                    // Xóa thông tin nhạy cảm
+                    result.Password = string.Empty;
+                    result.PasswordSalt = string.Empty;
+
+                    // Trả về 
+                    response.Data = result;
+
+                    // Lưu vào Redis
+                    await _redisService.SetAsync(
+                        RedisKeyHelper.UserProfile(request.Id.Value),
+                        JsonConvert.SerializeObject(result),
+                        TimeSpan.FromMinutes(CommonConst.ExpireRedisUserProfile)
+                    );
                 }
-
-                var profilePicture = await _context.MediaFiles
-                    .FirstOrDefaultAsync(m => m.OwnerId == result.Id && m.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture && !m.IsDeleted && m.IsActived);
-                var coverPicture = await _context.MediaFiles
-                    .FirstOrDefaultAsync(m => m.OwnerId == result.Id && m.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture && !m.IsDeleted && m.IsActived);
-
-                response.Data = result;
+                else
+                {
+                    response.Data = JsonConvert.DeserializeObject<MODELUser>(value);
+                }
             }
             catch (Exception ex)
             {
@@ -332,7 +362,7 @@ namespace BE.Services.User
         //    return response;
         //}
 
-        public BaseResponse<MODELUser> UpdateInfor(PostUpdateUserInforRequest request)
+        public async Task<BaseResponse<MODELUser>> UpdateInfor(PostUpdateUserInforRequest request)
         {
             var response = new BaseResponse<MODELUser>();
             try
@@ -363,6 +393,26 @@ namespace BE.Services.User
 
                     // Trả về dữ liệu
                     response.Data = _mapper.Map<MODELUser>(update);
+
+                    var redis = await _redisService.GetAsync(RedisKeyHelper.UserProfile(update.Id));
+                    if (!string.IsNullOrEmpty(redis))
+                    {
+                        var userProfile = JsonConvert.DeserializeObject<MODELUser>(redis);
+                        if (userProfile != null)
+                        {
+                            userProfile.HoLot = update.HoLot;
+                            userProfile.Ten = update.Ten;
+                            userProfile.DateOfBirth = update.DateOfBirth;
+                            userProfile.Gender = update.Gender;
+
+                            // Cập nhật lại thông tin trong Redis
+                            await _redisService.SetAsync(
+                                RedisKeyHelper.UserProfile(update.Id),
+                                JsonConvert.SerializeObject(userProfile),
+                                TimeSpan.FromMinutes(CommonConst.ExpireRedisUserProfile)
+                            );
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -378,7 +428,7 @@ namespace BE.Services.User
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public BaseResponse<MODELMediaFile> UpdatePicture(POSTMediaFileRequest request)
+        public async Task<BaseResponse<MODELMediaFile>> UpdatePicture(POSTMediaFileRequest request)
         {
             var response = new BaseResponse<MODELMediaFile>();
             try
@@ -412,6 +462,30 @@ namespace BE.Services.User
                     throw new Exception(result.Message);
                 }
                 response.Data = result.Data;
+
+                var redis = await _redisService.GetAsync(RedisKeyHelper.UserProfile(request.OwnerId.Value));
+                if (!string.IsNullOrEmpty(redis))
+                {
+                    var userProfile = JsonConvert.DeserializeObject<MODELUser>(redis);
+                    if (userProfile != null)
+                    {
+                        if (request.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture)
+                        {
+                            userProfile.ProfilePicture = result.Data.Url;
+                        }
+                        else if (request.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture)
+                        {
+                            userProfile.CoverPicture = result.Data.Url;
+                        }
+
+                        // Cập nhật lại thông tin trong Redis
+                        await _redisService.SetAsync(
+                            RedisKeyHelper.UserProfile(userProfile.Id),
+                            JsonConvert.SerializeObject(userProfile),
+                            TimeSpan.FromMinutes(CommonConst.ExpireRedisUserProfile)
+                        );
+                    }
+                }
             }
             catch (Exception ex)
             {

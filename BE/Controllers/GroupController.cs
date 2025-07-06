@@ -5,6 +5,7 @@ using MODELS.COMMON;
 using MODELS.GROUP.Requests;
 using MODELS.GROUPMEMBER.Requests;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace BE.Controllers
 {
@@ -45,13 +46,13 @@ namespace BE.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ApiResponse> GetById(GetByIdRequest request)
+        public async Task<ActionResult<ApiResponse>> GetById(GetByIdRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.GetById(request);
+                    var response = await _service.GetById(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);

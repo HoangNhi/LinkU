@@ -17,7 +17,7 @@ namespace BE.Services.MediaFile
         /// <param name="request"></param>
         /// <returns></returns>
         Task<BaseResponse<MODELMediaFile>> CreatePicture(POSTCreatePictureRequest request);
-        BaseResponse<MODELMediaFile> UpdatePictureUser(POSTMediaFileRequest request);
+        Task<BaseResponse<MODELMediaFile>> UpdatePictureUser(POSTMediaFileRequest request);
         BaseResponse<MODELMediaFile> GetById(GetByIdRequest request);
         BaseResponse<POSTMediaFileRequest> GetByPost(GetByIdRequest request);
         BaseResponse<MODELMediaFile> Insert(POSTMediaFileRequest request);

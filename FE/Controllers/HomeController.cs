@@ -29,17 +29,16 @@ namespace FE.Controllers
         public IActionResult Index()
         {
             // Lấy thông tin user
-            ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, new GetByIdRequest { Id = Guid.Parse(_consumeAPI.GetUserId()) }, HttpAction.Post);
-            if (response.Success)
-            {
-                var user = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                user.ProfilePicture = GetProfilePicture(user.ProfilePicture);
-                ViewBag.UserInfo = user;
-            }
-            else
-            {
-                return View("~/Views/Shared/Error.cshtml", new ErrorViewModel { Message = response.Message });
-            }
+            //ApiResponse response = _consumeAPI.ExcuteAPI(URL_API.USER_GET_BY_ID, new GetByIdRequest { Id = Guid.Parse(_consumeAPI.GetUserId()) }, HttpAction.Post);
+            //if (response.Success)
+            //{
+            //    var user = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
+            //    ViewBag.UserInfo = user;
+            //}
+            //else
+            //{
+            //    return View("~/Views/Shared/Error.cshtml", new ErrorViewModel { Message = response.Message });
+            //}
             return View();
         }
 
@@ -50,8 +49,6 @@ namespace FE.Controllers
             if (response.Success)
             {
                 var user = JsonConvert.DeserializeObject<MODELUser>(response.Data.ToString());
-                user.ProfilePicture = GetProfilePicture(user.ProfilePicture);
-
                 return PartialView("~/Views/Shared/ConfigProfile/_ProfilePicture.cshtml", user);
             }
             else

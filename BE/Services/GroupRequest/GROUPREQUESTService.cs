@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
 using BE.Helpers;
-using BE.Hubs;
 using BE.Services.Conversation;
 using BE.Services.Message;
 using ENTITIES.DbContent;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
 using MODELS.COMMON;
@@ -92,7 +90,7 @@ namespace BE.Services.GroupRequest
             return response;
         }
 
-        public BaseResponse<MODELGroupRequest> Update(POSTGroupInvitationRequest request)
+        public async Task<BaseResponse<MODELGroupRequest>> Update(POSTGroupInvitationRequest request)
         {
             var response = new BaseResponse<MODELGroupRequest>();
             try
@@ -135,7 +133,7 @@ namespace BE.Services.GroupRequest
 
                     string textMessage = JsonConvert.SerializeObject(content);
 
-                    var message = _messageService.Insert(new PostMessageRequest
+                    var message = await _messageService.Insert(new PostMessageRequest
                     {
                         Content = textMessage,
                         SenderId = update.ReceiverId,

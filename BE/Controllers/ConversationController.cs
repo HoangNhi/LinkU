@@ -7,6 +7,7 @@ using MODELS.COMMON;
 using MODELS.CONVERSATION.Requests;
 using MODELS.MESSAGESTATUS.Dtos;
 using MODELS.MESSAGESTATUS.Requests;
+using System.Threading.Tasks;
 
 namespace BE.Controllers
 {
@@ -22,13 +23,13 @@ namespace BE.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ApiResponse> GetListPaging(POSTConversationGetListPagingRequest request)
+        public async Task<ActionResult<ApiResponse>> GetListPaging(POSTConversationGetListPagingRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.GetListPaging(request);
+                    var response = await _service.GetListPaging(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);

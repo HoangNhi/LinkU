@@ -16,6 +16,7 @@ using MODELS.MESSAGEREACTION.Dtos;
 using MODELS.USER.Dtos;
 using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace BE.Services.Message
 {
@@ -144,7 +145,7 @@ namespace BE.Services.Message
             return response;
         }
         
-        public BaseResponse<MODELMessage> Insert(PostMessageRequest request)
+        public async Task<BaseResponse<MODELMessage>> Insert(PostMessageRequest request)
         {
             var response = new BaseResponse<MODELMessage>();
             try
@@ -157,7 +158,7 @@ namespace BE.Services.Message
                 var add = _mapper.Map<ENTITIES.DbContent.Message>(request);
                 add.Id = request.Id == Guid.Empty ? Guid.NewGuid() : request.Id;
 
-                var Sender = _userService.GetById(new GetByIdRequest { Id = request.SenderId }).Data;
+                var Sender = (await _userService.GetByIdAsync(new GetByIdRequest { Id = request.SenderId })).Data;
                 add.NguoiTao = Sender.Username;
                 add.NgayTao = DateTime.Now;
                 add.NguoiSua = Sender.Username;
@@ -292,7 +293,7 @@ namespace BE.Services.Message
                         IsSaveChange = false
                     };
 
-                    var insertResponse = Insert(message);
+                    var insertResponse = await Insert(message);
 
                     if (insertResponse.Error)
                     {
@@ -313,7 +314,7 @@ namespace BE.Services.Message
                     foreach (var file in uploadFileResult.Data)
                     {
                         // Tạo Message
-                        var message = Insert(new PostMessageRequest
+                        var message = await Insert(new PostMessageRequest
                         {
                             Id = Guid.NewGuid(),
                             SenderId = request.SenderId,
@@ -449,8 +450,8 @@ namespace BE.Services.Message
             {
                 if (conversationType == 0)
                 {
-                    var CurrentUser = _userService.GetById(new GetByIdRequest() { Id = UserId }).Data;
-                    var Target = _userService.GetById(new GetByIdRequest() { Id = TargetId }).Data;
+                    var CurrentUser = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = UserId })).Data;
+                    var Target = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = TargetId })).Data;
 
                     // Tập hợp các ID cần preload
                     var messageIds = result.Select(x => x.Id).ToList();

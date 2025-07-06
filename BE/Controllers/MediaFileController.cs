@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MEDIAFILE.Requests;
+using System.Threading.Tasks;
 
 namespace BE.Controllers
 {
@@ -131,13 +132,13 @@ namespace BE.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult<ApiResponse> UpdatePictureUserWithoutUploadPicture(POSTMediaFileRequest request)
+        public async Task<ActionResult<ApiResponse>> UpdatePictureUserWithoutUploadPicture(POSTMediaFileRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.UpdatePictureUser(request);
+                    var response = await _service.UpdatePictureUser(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);

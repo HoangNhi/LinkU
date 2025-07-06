@@ -7,9 +7,9 @@ namespace BE.Services.FriendRequest
     public interface IFRIENDREQUESTService
     {
         // Base
-        BaseResponse<GetListPagingResponse> GetListPaging(POSTFriendRequestGetListPagingRequest request);
+        Task<BaseResponse<GetListPagingResponse>> GetListPaging(POSTFriendRequestGetListPagingRequest request);
         BaseResponse<MODELFriendRequest> GetById(GetByIdRequest request);
-        BaseResponse<POSTFriendRequest> GetByPost(GetByIdRequest request);
+        Task<BaseResponse<POSTFriendRequest>> GetByPost(GetByIdRequest request);
         BaseResponse<MODELFriendRequest> Insert(POSTFriendRequest request);
         BaseResponse<MODELFriendRequest> Update(POSTFriendRequest request);
         BaseResponse<string> Delete(GetByIdRequest request);

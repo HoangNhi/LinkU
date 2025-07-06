@@ -12,7 +12,7 @@ namespace BE.Services.GroupMember
         BaseResponse<MODELGroupMember> Insert(POSTGroupMemberRequest request);
         BaseResponse<MODELGroupMember> Update(POSTGroupMemberRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
-        BaseResponse<MODELResponseAddMemberToGroup> AddMemberToGroup(POSTAddMemberToGroupRequest request);
+        Task<BaseResponse<MODELResponseAddMemberToGroup>> AddMemberToGroup(POSTAddMemberToGroupRequest request);
         BaseResponse<List<MODELGroupMember>> GetListByGroupId(GetByIdRequest request);
     }
 }

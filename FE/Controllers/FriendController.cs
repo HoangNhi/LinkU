@@ -35,10 +35,6 @@ namespace FE.Controllers
                     {
                         var result = JsonConvert.DeserializeObject<GetListPagingResponse>(response.Data.ToString());
                         var resultData = JsonConvert.DeserializeObject<List<MODELFriendRequest>>(result.Data.ToString());
-                        foreach (var item in resultData)
-                        {
-                            item.User.ProfilePicture = GetProfilePicture(item.User.ProfilePicture);
-                        }
                         return PartialView($"~/Views/Home/Contact/FriendRequest/{(!request.IsSend ? "_ReceiveRequestPartial" : "_SentRequestPartial")}.cshtml", resultData);
                     }
                     else

@@ -9,6 +9,7 @@ using MODELS.FRIENDREQUEST.Dtos;
 using MODELS.FRIENDREQUEST.Requests;
 using MODELS.FRIENDSHIP.Requests;
 using MODELS.USER.Dtos;
+using System.Threading.Tasks;
 
 namespace BE.Services.FriendRequest
 {
@@ -29,7 +30,7 @@ namespace BE.Services.FriendRequest
             _userService = userService;
         }
 
-        public BaseResponse<GetListPagingResponse> GetListPaging(POSTFriendRequestGetListPagingRequest request)
+        public async Task<BaseResponse<GetListPagingResponse>> GetListPaging(POSTFriendRequestGetListPagingRequest request)
         {
             var response = new BaseResponse<GetListPagingResponse>();
             try
@@ -54,16 +55,15 @@ namespace BE.Services.FriendRequest
                 // Lấy dữ liệu
                 var result = _context.ExcuteStoredProcedure<MODELFriendRequest>("sp_FRIENDREQUEST_GetListPaging", parameters).ToList();
                 // Lấy thông tin user
-                result.ForEach(x =>
+                foreach (var x in result)
                 {
-                    var user = _userService.GetById(new GetByIdRequest { Id = request.IsSend ? x.ReceiverId : x.SenderId });
+                    var user = await _userService.GetByIdAsync(new GetByIdRequest { Id = request.IsSend ? x.ReceiverId : x.SenderId });
                     if (user.Error)
                     {
                         throw new Exception(user.Message);
                     }
-
                     x.User = user.Data;
-                });
+                }
 
                 GetListPagingResponse responseData = new GetListPagingResponse();
                 responseData.PageIndex = request.PageIndex;
@@ -101,7 +101,7 @@ namespace BE.Services.FriendRequest
             }
             return response;
         }
-        public BaseResponse<POSTFriendRequest> GetByPost(GetByIdRequest request)
+        public async Task<BaseResponse<POSTFriendRequest>> GetByPost(GetByIdRequest request)
         {
             var response = new BaseResponse<POSTFriendRequest>();
             try
@@ -125,7 +125,7 @@ namespace BE.Services.FriendRequest
                 var UserId = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "name").Value;
                 if (result.SenderId == Guid.Parse(UserId))
                 {
-                    var user = _userService.GetById(new GetByIdRequest { Id = result.ReceiverId });
+                    var user = await _userService.GetByIdAsync(new GetByIdRequest { Id = result.ReceiverId });
                     if (user.Error)
                     {
                         throw new Exception(user.Message);
@@ -134,7 +134,7 @@ namespace BE.Services.FriendRequest
                 }
                 else
                 {
-                    var user = _userService.GetById(new GetByIdRequest { Id = result.SenderId });
+                    var user = await _userService.GetByIdAsync(new GetByIdRequest { Id = result.SenderId });
                     if (user.Error)
                     {
                         throw new Exception(user.Message);

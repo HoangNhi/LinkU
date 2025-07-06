@@ -8,7 +8,7 @@ namespace BE.Services.Conversation
 {
     public interface ICONVERSATIONService
     {
-        BaseResponse<GetListPagingResponse> GetListPaging(POSTConversationGetListPagingRequest request);
+        Task<BaseResponse<GetListPagingResponse>> GetListPaging(POSTConversationGetListPagingRequest request);
         BaseResponse<GetListPagingResponse> SearchUserByEmailOrPhone(POSTSearchInConversationRequest request);
         BaseResponse<MODELConversation> Insert(POSTConversationRequest request);
         BaseResponse<MODELConversation> Update(POSTConversationRequest request);
@@ -19,15 +19,15 @@ namespace BE.Services.Conversation
         /// Tạo conversation qua websocket SendPrivateMessage
         /// Hàm sẽ tạo conversation với cả 2 người dùng
         //// </summary>
-        BaseResponse<Guid[]> InsertPrivateConversation(WSPrivateMessageInsertConversation request);
-        BaseResponse<bool> CheckConversationExist(Guid userId, Guid targetId);
-        BaseResponse<Dictionary<Guid, List<Guid>>> GetDictionaryConversationUserToUser();
+        //BaseResponse<Guid[]> InsertPrivateConversation(WSPrivateMessageInsertConversation request);
+        //BaseResponse<bool> CheckConversationExist(Guid userId, Guid targetId);
+        //BaseResponse<Dictionary<Guid, List<Guid>>> GetDictionaryConversationUserToUser();
         /// <summary>
         /// Delete conversation trong trường hợp roolback
         /// </summary> 
-        BaseResponse<bool> RoolbackDelete(GetByIdRequest request);
+        //BaseResponse<bool> RoolbackDelete(GetByIdRequest request);
 
-        BaseResponse UpdateLatestMessage(Guid UserId, Guid TargetId);
+        Task<BaseResponse> UpdateLatestMessage(Guid UserId, Guid TargetId);
 
         BaseResponse<MODELGroupAvartar> GetGroupAvartar(GetByIdRequest request);
 

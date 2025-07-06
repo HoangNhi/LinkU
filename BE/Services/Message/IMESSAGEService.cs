@@ -9,7 +9,7 @@ namespace BE.Services.Message
         Task<BaseResponse<GetListPagingResponse>> GetListPaging(PostMessageGetListPagingRequest request);
         BaseResponse<MODELMessage> GetById(GetByIdRequest request);
         BaseResponse<PostMessageRequest> GetByPost(GetByIdRequest request);
-        BaseResponse<MODELMessage> Insert(PostMessageRequest request);
+        Task<BaseResponse<MODELMessage>> Insert(PostMessageRequest request);
         BaseResponse<MODELMessage> Update(PostMessageRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
         Task<BaseResponse<List<MODELSendMessageWithFileResponse>>> SendMessageWithFile(POSTSendMessageWithFileRequest request);

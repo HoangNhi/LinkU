@@ -8,6 +8,7 @@ using MODELS.MEDIAFILE.Requests;
 using MODELS.OTP.Requests;
 using MODELS.REFRESHTOKEN.Requests;
 using MODELS.USER.Requests;
+using System.Threading.Tasks;
 
 namespace BE.Controllers
 {
@@ -48,13 +49,13 @@ namespace BE.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ApiResponse> GetById(GetByIdRequest request)
+        public async Task<ActionResult<ApiResponse>> GetById(GetByIdRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.GetById(request);
+                    var response = await _service.GetByIdAsync(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -123,13 +124,13 @@ namespace BE.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ApiResponse> UpdateInfor(PostUpdateUserInforRequest request)
+        public async Task<ActionResult<ApiResponse>> UpdateInfor(PostUpdateUserInforRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.UpdateInfor(request);
+                    var response = await _service.UpdateInfor(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);
@@ -148,13 +149,13 @@ namespace BE.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ApiResponse> UpdatePicture(POSTMediaFileRequest request)
+        public async Task<ActionResult<ApiResponse>> UpdatePicture(POSTMediaFileRequest request)
         {
             try
             {
                 if (request != null && ModelState.IsValid)
                 {
-                    var response = _service.UpdatePicture(request);
+                    var response = await _service.UpdatePicture(request);
                     if (response.Error)
                     {
                         throw new Exception(response.Message);

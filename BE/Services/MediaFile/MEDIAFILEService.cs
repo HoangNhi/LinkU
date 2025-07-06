@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using BE.Helpers;
+using BE.Services.Redis;
 using ENTITIES.DbContent;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +10,10 @@ using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
+using MODELS.USER.Dtos;
+using Newtonsoft.Json;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace BE.Services.MediaFile
 {
@@ -18,8 +23,9 @@ namespace BE.Services.MediaFile
         private readonly LINKUContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IREDISService _redisService;
 
-        public MEDIAFILEService(BlobServiceClient blobServiceClient, IConfiguration config, LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor)
+        public MEDIAFILEService(BlobServiceClient blobServiceClient, IConfiguration config, LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IREDISService redisService)
         {
             var containerName = config["AzureBlobStorage:ContainerName"];
 
@@ -28,6 +34,7 @@ namespace BE.Services.MediaFile
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
+            _redisService = redisService;
         }
 
         public BaseResponse<MODELMediaFile> GetById(GetByIdRequest request)
@@ -221,6 +228,34 @@ namespace BE.Services.MediaFile
                 if (request.IsSaveChange)
                 {
                     _context.SaveChanges();
+
+                    if ((request.FileType == MediaFileType.ProfilePicture || request.FileType == MediaFileType.CoverPicture) 
+                        && add.OwnerId != null && add.OwnerId != Guid.Empty)
+                    {
+                        var redis = await _redisService.GetAsync(RedisKeyHelper.UserProfile(add.OwnerId.Value));
+                        if (!string.IsNullOrEmpty(redis))
+                        {
+                            var userProfile = JsonConvert.DeserializeObject<MODELUser>(redis);
+                            if (userProfile != null)
+                            {
+                                if (request.FileType == MODELS.COMMON.MediaFileType.ProfilePicture)
+                                {
+                                    userProfile.ProfilePicture = add.Url;
+                                }
+                                else if (request.FileType == MODELS.COMMON.MediaFileType.CoverPicture)
+                                {
+                                    userProfile.CoverPicture = add.Url;
+                                }
+
+                                // Cập nhật lại thông tin trong Redis
+                                await _redisService.SetAsync(
+                                    RedisKeyHelper.UserProfile(userProfile.Id),
+                                    JsonConvert.SerializeObject(userProfile),
+                                    TimeSpan.FromMinutes(CommonConst.ExpireRedisUserProfile)
+                                );
+                            }
+                        }
+                    }
                 }
 
                 // Trả về dữ liệu đã thêm
@@ -234,7 +269,7 @@ namespace BE.Services.MediaFile
             return response;
         }
 
-        public BaseResponse<MODELMediaFile> UpdatePictureUser(POSTMediaFileRequest request)
+        public async Task<BaseResponse<MODELMediaFile>> UpdatePictureUser(POSTMediaFileRequest request)
         {
             var response = new BaseResponse<MODELMediaFile>();
             try
@@ -268,6 +303,30 @@ namespace BE.Services.MediaFile
                     // Cập nhật dữ liệu
                     _context.MediaFiles.Update(update);
                     _context.SaveChanges();
+
+                    var redis = await _redisService.GetAsync(RedisKeyHelper.UserProfile(update.OwnerId.Value));
+                    if (!string.IsNullOrEmpty(redis))
+                    {
+                        var userProfile = JsonConvert.DeserializeObject<MODELUser>(redis);
+                        if (userProfile != null)
+                        {
+                            if (update.FileType == (int)MODELS.COMMON.MediaFileType.ProfilePicture)
+                            {
+                                userProfile.ProfilePicture = update.Url;
+                            }
+                            else if (update.FileType == (int)MODELS.COMMON.MediaFileType.CoverPicture)
+                            {
+                                userProfile.CoverPicture = update.Url;
+                            }
+
+                            // Cập nhật lại thông tin trong Redis
+                            await _redisService.SetAsync(
+                                RedisKeyHelper.UserProfile(userProfile.Id),
+                                JsonConvert.SerializeObject(userProfile),
+                                TimeSpan.FromMinutes(CommonConst.ExpireRedisUserProfile)
+                            );
+                        }
+                    }
 
                     // Trả về dữ liệu đã cập nhật
                     response.Data = _mapper.Map<MODELMediaFile>(update);

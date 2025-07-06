@@ -16,6 +16,7 @@ using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
 using MODELS.USER.Dtos;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace BE.Services.Group
 {
@@ -94,7 +95,7 @@ namespace BE.Services.Group
             return response;
         }
 
-        public BaseResponse<MODELGroup> GetById(GetByIdRequest request)
+        public async Task<BaseResponse<MODELGroup>> GetById(GetByIdRequest request)
         {
             var response = new BaseResponse<MODELGroup>();
             try
@@ -123,7 +124,7 @@ namespace BE.Services.Group
                 // Chuyển đổi danh sách thành viên nhóm sang DTO
                 foreach (var member in group.GroupMembers)
                 {
-                    var user = _userService.GetById(new GetByIdRequest { Id = member.UserId });
+                    var user = await _userService.GetByIdAsync(new GetByIdRequest { Id = member.UserId });
                     if (user.Error)
                     {
                         throw new Exception(user.Message);
@@ -329,7 +330,7 @@ namespace BE.Services.Group
                     throw new Exception("Lỗi trong lúc tạo nhóm");
                 }
 
-                var message = _messageService.Insert(new PostMessageRequest
+                var message = await _messageService.Insert(new PostMessageRequest
                 {
                     Content = JsonConvert.SerializeObject(messagecontent),
                     SenderId = Guid.Parse(UserId),

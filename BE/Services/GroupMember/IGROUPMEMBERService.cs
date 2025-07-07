@@ -13,6 +13,6 @@ namespace BE.Services.GroupMember
         BaseResponse<MODELGroupMember> Update(POSTGroupMemberRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
         Task<BaseResponse<MODELResponseAddMemberToGroup>> AddMemberToGroup(POSTAddMemberToGroupRequest request);
-        BaseResponse<List<MODELGroupMember>> GetListByGroupId(GetByIdRequest request);
+        Task<BaseResponse<List<MODELGroupMember>>> GetListByGroupId(GetByIdRequest request);
     }
 }

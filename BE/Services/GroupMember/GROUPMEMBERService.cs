@@ -3,6 +3,7 @@ using BE.Helpers;
 using BE.Services.Conversation;
 using BE.Services.Group;
 using BE.Services.Message;
+using BE.Services.Redis;
 using BE.Services.User;
 using ENTITIES.DbContent;
 using MODELS.BASE;
@@ -24,8 +25,9 @@ namespace BE.Services.GroupMember
         private readonly IMESSAGEService _messageService;
         private readonly ICONVERSATIONService _conversationService;
         private readonly IUSERService _userService;
+        private readonly IREDISService _redisService;
 
-        public GROUPMEMBERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IGROUPService groupService, IMESSAGEService messageService, ICONVERSATIONService conversationService, IUSERService userService)
+        public GROUPMEMBERService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IGROUPService groupService, IMESSAGEService messageService, ICONVERSATIONService conversationService, IUSERService userService, IREDISService redisService)
         {
             _context = context;
             _mapper = mapper;
@@ -34,6 +36,7 @@ namespace BE.Services.GroupMember
             _messageService = messageService;
             _conversationService = conversationService;
             _userService = userService;
+            _redisService = redisService;
         }
 
         public BaseResponse<GetListPagingResponse> GetListPaging(GetListPagingRequest request)
@@ -204,6 +207,7 @@ namespace BE.Services.GroupMember
             {
                 var result = new MODELResponseAddMemberToGroup();
                 var UserId = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+                var AddedGroupMember = new List<MODELGroupMember>();
                 MODELMessageContent content = new MODELMessageContent();
                 content.UserId = Guid.Parse(UserId);
 
@@ -236,7 +240,7 @@ namespace BE.Services.GroupMember
                         throw new Exception($"Người dùng đã tồn tại trong nhóm này");
                     }
 
-                    var user = _context.Users.Find(item);
+                    var user = (await _userService.GetByIdAsync(new GetByIdRequest { Id = item })).Data;
                     if (user != null)
                     {
                         // Kiểm tra xem người dùng có phải là bạn bè không
@@ -303,7 +307,6 @@ namespace BE.Services.GroupMember
 
                             _context.GroupMembers.Add(add);
 
-
                             // Tạo Conversation
                             var conversation = _conversationService.Insert(new MODELS.MESSAGESTATUS.Requests.POSTConversationRequest
                             {
@@ -314,6 +317,7 @@ namespace BE.Services.GroupMember
                                 IsSaveChange = false
                             });
 
+                            AddedGroupMember.Add(_mapper.Map<MODELGroupMember>(add));
                             result.NewMemberIds.Add(item);
                         }
                     }
@@ -344,6 +348,18 @@ namespace BE.Services.GroupMember
                 }
 
                 _context.SaveChanges();
+                if(AddedGroupMember.Count > 0)
+                {
+                    var value = await _redisService.GetAsync<List<MODELGroupMember>>(RedisKeyHelper.GroupMemberByGroupId(request.GroupId));
+                    if (value != null)
+                    {
+                        await _redisService.SetAsync(
+                            RedisKeyHelper.GroupMemberByGroupId(request.GroupId),
+                            JsonConvert.SerializeObject(value.Concat(AddedGroupMember).ToList()),
+                            TimeSpan.FromMinutes(CommonConst.ExpireRedisGroupMember)
+                        );
+                    }
+                }
 
                 response.Data = result;
             }
@@ -355,34 +371,36 @@ namespace BE.Services.GroupMember
             return response;
         }
 
-        public BaseResponse<List<MODELGroupMember>> GetListByGroupId(GetByIdRequest request)
+        public async Task<BaseResponse<List<MODELGroupMember>>> GetListByGroupId(GetByIdRequest request)
         {
             var response = new BaseResponse<List<MODELGroupMember>>();
             try
             {
-                var groupMembers = _context.GroupMembers
+                // Kiểm tra redis có dữ liệu không
+                var value = await _redisService.GetAsync<List<MODELGroupMember>>(RedisKeyHelper.GroupMemberByGroupId(request.Id.Value));
+                if (value == null)
+                {
+                    var groupMembers = _context.GroupMembers
                     .Where(gm => gm.GroupId == request.Id && !gm.IsDeleted)
                     .ToList();
 
-                if (groupMembers.Count == 0)
-                {
-                    throw new Exception("Không có thành viên nào trong nhóm này");
-                }
-                response.Data = _mapper.Map<List<MODELGroupMember>>(groupMembers);
+                    if (groupMembers.Count == 0)
+                    {
+                        throw new Exception("Không có thành viên nào trong nhóm này");
+                    }
+                    response.Data = _mapper.Map<List<MODELGroupMember>>(groupMembers);
 
-                //foreach (var member in response.Data)
-                //{
-                //    // Lấy thông tin người dùng từ bảng Users
-                //    var user = _context.Users.Find(member.UserId);
-                //    if (user != null)
-                //    {
-                //        member.User = ;
-                //    }
-                //    else
-                //    {
-                //        throw new Exception($"Người dùng với ID {member.UserId} không tồn tại");
-                //    }
-                //}
+                    // Lưu vào redis
+                    _redisService.SetAsync(
+                        RedisKeyHelper.GroupMemberByGroupId(request.Id.Value),
+                        JsonConvert.SerializeObject(response.Data),
+                        TimeSpan.FromMinutes(CommonConst.ExpireRedisGroupMember)
+                    );
+                }
+                else
+                {
+                    response.Data = value;
+                }
             }
             catch (Exception ex)
             {

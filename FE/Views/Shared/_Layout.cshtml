@@ -132,6 +132,7 @@
 
         // Send Message In Group
         function sendGroupMessage(groupId) {
+            startTimer();
             if ($('#Message_Content').text() !== '' && ArrayFile.length == 0) {
                 var refid = ResponseMessageContainer.querySelector(`div[data-message-id]`)
                 // Chuẩn bị data
@@ -176,7 +177,7 @@
                     }
                 })
                 .catch(err => {
-                    ShowThongBaoThatBai("Lỗi hệ thống: " + result.message)
+                    ShowThongBaoThatBai("Lỗi hệ thống: " + err)
                 });
         }
 

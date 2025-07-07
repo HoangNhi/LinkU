@@ -106,18 +106,35 @@ namespace BE.Services.Message
             var response = new BaseResponse<MODELMessage>();
             try
             {
-                var data = await _context.Messages
+                // Kiểm tra dữ liệu trong Redis trước
+                var value = await _redisService.GetAsync<MODELMessage>(RedisKeyHelper.MessageById(request.Id.Value));
+                if(value == null)
+                {
+                    var data = await _context.Messages
                     .FirstOrDefaultAsync(x => x.Id == request.Id && !x.IsDeleted);
 
-                if (data == null)
-                    throw new Exception("Không tìm thấy dữ liệu");
+                    if (data == null)
+                        throw new Exception("Không tìm thấy dữ liệu");
 
-                response.Data = _mapper.Map<MODELMessage>(data);
+                    response.Data = _mapper.Map<MODELMessage>(data);
+                    
+                    // Lưu vào Redis
+                    _redisService.SetAsync(
+                        RedisKeyHelper.MessageById(request.Id.Value),
+                        JsonConvert.SerializeObject(response.Data),
+                        TimeSpan.FromMinutes(CommonConst.ExpireRedisMessage)
+                    );
+                }
+                else
+                {
+                    response.Data = value;
+                }
             }
             catch (Exception ex)
             {
                 response.Error = true;
                 response.Message = ex.Message;
+                Console.WriteLine($"Error in GetByIdAsync: {ex.Message}");
             }
             return response;
         }
@@ -153,19 +170,22 @@ namespace BE.Services.Message
             var response = new BaseResponse<MODELMessage>();
             try
             {
-                if (request.Content == "")
-                {
-                    throw new Exception("Nội dung không được để trống");
-                }
+                // 1. Validate nhanh
+                if (string.IsNullOrWhiteSpace(request.Content))
+                    throw new Exception("Tin nhắn không được để trống");
 
+                // 2. Truy xuất username trực tiếp nếu đã biết hoặc preload ở ngoài
+                var sender = (await _userService.GetByIdAsync(new GetByIdRequest { Id = request.SenderId })).Data;
+
+                if (sender == null)
+                    throw new Exception("Người gửi không tồn tại");
+                var now = DateTime.Now;
                 var add = _mapper.Map<ENTITIES.DbContent.Message>(request);
                 add.Id = request.Id == Guid.Empty ? Guid.NewGuid() : request.Id;
-
-                var Sender = (await _userService.GetByIdAsync(new GetByIdRequest { Id = request.SenderId })).Data;
-                add.NguoiTao = Sender.Username;
-                add.NgayTao = DateTime.Now;
-                add.NguoiSua = Sender.Username;
-                add.NgaySua = DateTime.Now;
+                add.NguoiTao = sender.Username;
+                add.NgayTao = now;
+                add.NguoiSua = sender.Username;
+                add.NgaySua = now;
 
                 // Lưu dữ liệu
                 _context.Messages.Add(add);
@@ -175,7 +195,7 @@ namespace BE.Services.Message
                 }
 
                 response.Data = _mapper.Map<MODELMessage>(add);
-                response.Data.Sender = _mapper.Map<MODELUser>(Sender);
+                response.Data.Sender = sender;
             }
             catch (Exception ex)
             {
@@ -451,7 +471,6 @@ namespace BE.Services.Message
             {
                 if (conversationType == 0)
                 {
-                    var sw = Stopwatch.StartNew();
                     MODELUser CurrentUser = new MODELUser(), Target = new MODELUser();
                     // Send PrivateMessage sẽ không preload CurrentUser và Target
                     if (Case != CaseHandleMessage.SendPrivateMessage)
@@ -459,8 +478,6 @@ namespace BE.Services.Message
                         CurrentUser = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = UserId })).Data;
                         Target = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = TargetId })).Data;
                     }
-                    Console.WriteLine($"preload CurrentUser và Target: {sw.ElapsedMilliseconds} ms");
-                    sw.Restart();
 
                     // Tập hợp các ID cần preload
                     var messageIds = result.Select(x => x.Id).ToList();
@@ -468,8 +485,6 @@ namespace BE.Services.Message
                                        .Select(x => x.RefId.Value)
                                        .Distinct()
                                        .ToList();
-                    Console.WriteLine($"Tập hợp các ID cần preload: {sw.ElapsedMilliseconds} ms");
-                    sw.Restart();
 
                     // Preload MediaFiles cho MessageId và RefId
                     var mediaFiles = new List<ENTITIES.DbContent.MediaFile>().ToLookup(x => x.MessageId);
@@ -481,14 +496,19 @@ namespace BE.Services.Message
                             .ToList()
                             .ToLookup(x => x.MessageId);
                     }
-                    Console.WriteLine($"Preload MediaFiles cho MessageId và RefId: {sw.ElapsedMilliseconds} ms");
-                    sw.Restart();
 
                     // Preload RefMessages
-                    var refMessages = GetByIds(refIds)
-                                        .ToDictionary(x => x.Id, x => x);
-                    Console.WriteLine($"Preload RefMessages: {sw.ElapsedMilliseconds} ms");
-                    sw.Restart();
+                    var refMessages = new List<MODELMessage>();
+                    foreach (var id in refIds)
+                    {
+                        var message = await GetByIdAsync(new GetByIdRequest { Id = id });
+                        if (message.Data != null)
+                        {
+                            refMessages.Add(message.Data);
+                        }
+                    }
+                    var refMessageDict = refMessages
+                        .ToDictionary(x => x.Id, x => x);
 
                     // Preload Reactions
                     var allReactions = new Dictionary<Guid, List<ENTITIES.DbContent.MessageReaction>>();
@@ -501,13 +521,11 @@ namespace BE.Services.Message
                             .GroupBy(x => x.MessageId)
                             .ToDictionary(g => g.Key, g => g.ToList());
                     }
-                    Console.WriteLine($"Preload Reactions: {sw.ElapsedMilliseconds} ms");
-                    sw.Restart();
 
                     // Lấy tất cả ReactionTypeId & UserId duy nhất để preload batch
                     var allReactionTypeIds = allReactions.SelectMany(x => x.Value.Select(r => r.ReactionTypeId)).Distinct().ToList();
                     var allUserIds = allReactions.SelectMany(x => x.Value.Select(r => r.UserId)).Distinct()
-                                      .Concat(refMessages.Values.Select(x => x.SenderId))
+                                      .Concat(refMessageDict.Values.Select(x => x.SenderId))
                                       .Distinct()
                                       .ToList();
 
@@ -523,8 +541,6 @@ namespace BE.Services.Message
                     {
                         usersDict = new List<MODELUser> { CurrentUser, Target }.ToDictionary(x => x.Id);
                     }
-                    Console.WriteLine($"Preload ReactionTypes và Users: {sw.ElapsedMilliseconds} ms");
-                    sw.Restart();
 
                     // Lặp và gán dữ liệu đã preload
                     foreach (var item in result)
@@ -545,7 +561,7 @@ namespace BE.Services.Message
                             };
 
                         // RefMessage
-                        if (item.RefId.HasValue && refMessages.TryGetValue(item.RefId.Value, out var refMsg))
+                        if (item.RefId.HasValue && refMessageDict.TryGetValue(item.RefId.Value, out var refMsg))
                         {
                             item.RefMessage = refMsg;
                             item.RefMessage.Sender = usersDict.TryGetValue(refMsg.SenderId, out var sender) ? sender : null;
@@ -594,13 +610,10 @@ namespace BE.Services.Message
                             };
                         }
                     }
-
-                    Console.WriteLine($"Lặp và gán dữ liệu đã preload: {sw.ElapsedMilliseconds} ms");
-                    sw.Restart();
                 }
                 else if (conversationType == 1)
                 {
-                    var currentUser = _context.Users.Find(UserId);
+                    var currentUser = (await _userService.GetByIdAsync(new GetByIdRequest { Id = UserId })).Data;
 
                     // Tập hợp các ID cần preload
                     var senderIds = result.Select(x => x.SenderId).Distinct().ToList();
@@ -617,14 +630,34 @@ namespace BE.Services.Message
                         .Distinct()
                         .ToList();
 
+                    var refSenderIds = new List<Guid>();
+
+                    foreach (var id in refIds)
+                    {
+                        var resultMessage = await GetByIdAsync(new GetByIdRequest { Id = id });
+                        var senderId = resultMessage.Data?.SenderId ?? Guid.Empty;
+                        refSenderIds.Add(senderId);
+                    }
+
                     var userIdsToPreload = senderIds
                         .Concat(allTargetUserIds)
-                        .Concat(refIds.Select(id => GetById(new GetByIdRequest { Id = id }).Data?.SenderId ?? Guid.Empty))
-                        .Distinct()
+                        .Concat(refSenderIds)
                         .Where(id => id != Guid.Empty)
+                        .Distinct()
                         .ToList();
 
-                    var usersDict = userIdsToPreload.Select(x => _userService.GetById(new GetByIdRequest { Id = x }).Data).ToDictionary(x => x.Id);
+                    var users = new List<MODELUser>();
+                    foreach(var id in userIdsToPreload)
+                    {
+                        var user = await _userService.GetByIdAsync(new GetByIdRequest { Id = id });
+                        if (user.Data != null)
+                        {
+                            users.Add(user.Data);
+                        }
+                    }
+
+                    var usersDict = users
+                        .ToDictionary(x => x.Id);
 
                     // Preload MediaFiles
                     var mediaFiles = _context.MediaFiles
@@ -634,7 +667,17 @@ namespace BE.Services.Message
                         .ToLookup(x => x.MessageId);
 
                     // Preload RefMessages
-                    var refMessages = GetByIds(refIds).ToDictionary(x => x.Id, x => x);
+                    var refMessages = new List<MODELMessage>();
+                    foreach (var id in refIds)
+                    {
+                        var message = await GetByIdAsync(new GetByIdRequest { Id = id });
+                        if (message.Data != null)
+                        {
+                            refMessages.Add(message.Data);
+                        }
+                    }
+                    var refMessageDict = refMessages
+                        .ToDictionary(x => x.Id, x => x);
 
                     // Preload Reactions
                     var allReactions = _context.MessageReactions
@@ -714,7 +757,7 @@ namespace BE.Services.Message
                         }
 
                         // RefMessage
-                        if (item.RefId.HasValue && refMessages.TryGetValue(item.RefId.Value, out var refMsg))
+                        if (item.RefId.HasValue && refMessageDict.TryGetValue(item.RefId.Value, out var refMsg))
                         {
                             item.RefMessage = refMsg;
                             usersDict.TryGetValue(refMsg.SenderId, out var refSender);

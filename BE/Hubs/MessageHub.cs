@@ -13,6 +13,7 @@ using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
 using MODELS.MESSAGEREACTION.Requests;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net.WebSockets;
 
 namespace BE.Hubs
@@ -71,6 +72,7 @@ namespace BE.Hubs
                     throw new Exception("Nhóm hoặc nội dung tin nhắn không hợp lệ.");
                 }
 
+                var sw = Stopwatch.StartNew();
                 // Tạo tin nhắn
                 var resultMessage = await _messageService.Insert(request);
 
@@ -79,34 +81,27 @@ namespace BE.Hubs
                     throw new Exception(resultMessage.Message);
                 }
 
-                // Lấy thông tin người gửi
-                var sender = await _userService.GetByIdAsync(new GetByIdRequest { Id = request.SenderId });
-                resultMessage.Data.Sender = sender.Data;
-
                 // Gửi tin nhắn đến tất cả thành viên trong nhóm
-                var groupMembers = _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = request.TargetId });
+                var groupMembers = await _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = request.TargetId });
                 if (groupMembers.Error)
                 {
                     throw new Exception(groupMembers.Message);
                 }
 
-                // Xử lý dữ liệu
-
-
                 // Gửi tin nhắn đến tất cả thành viên trong nhóm
                 foreach (var member in groupMembers.Data)
                 {
-                    var Data = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { resultMessage.Data }, 1, member.UserId, member.GroupId, MODELS.COMMON.CaseHandleMessage.SendGroupMessage)).Data;
-
-                    var Response = new GetListPagingResponse
-                    {
-                        PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
-                        Data = Data,
-                        TotalRow = Data.Count
-                    };
-
                     if (_users.TryGetValue(member.UserId.ToString(), out string connectionId))
                     {
+                        var Data = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { resultMessage.Data }, 1, member.UserId, member.GroupId, MODELS.COMMON.CaseHandleMessage.SendGroupMessage)).Data;
+
+                        var Response = new GetListPagingResponse
+                        {
+                            PageIndex = 1, // Chỉ trả về 1 trang vì đây là tin nhắn mới gửi
+                            Data = Data,
+                            TotalRow = Data.Count
+                        };
+
                         await Clients.Client(connectionId).SendAsync("ReceiveMessage", new ApiResponse(Response));
                     }
                 }
@@ -119,7 +114,6 @@ namespace BE.Hubs
             return response;
         }
         #endregion
-
 
         // Gửi yêu cầu cập nhật giao diện cho cả người gửi và người nhận
         public async Task UpdateFriendRequest(string RequestId)
@@ -215,7 +209,7 @@ namespace BE.Hubs
                     throw new Exception("Nhóm và người dùng hiện tại không được để trống.");
                 }
 
-                var groupMember = _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = request.GroupId });
+                var groupMember = await _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = request.GroupId });
                 if (groupMember.Error)
                 {
                     throw new Exception(groupMember.Message);
@@ -267,7 +261,7 @@ namespace BE.Hubs
                 // Tin nhắn nhóm
                 else if (request.ConversationType == 1)
                 {
-                    var groupMember = _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = request.TargetId });
+                    var groupMember = await _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = request.TargetId });
                     if (groupMember.Error)
                     {
                         throw new Exception(groupMember.Message);
@@ -361,7 +355,7 @@ namespace BE.Hubs
                 // Tin nhắn nhóm
                 else if (requestData.ConversationType == 1)
                 {
-                    var groupMember = _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = requestData.TargetId });
+                    var groupMember = await _groupMemberService.GetListByGroupId(new GetByIdRequest { Id = requestData.TargetId });
                     if (groupMember.Error)
                     {
                         throw new Exception(groupMember.Message);

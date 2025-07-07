@@ -2,11 +2,13 @@
 using BE.Helpers;
 using BE.Services.Conversation;
 using BE.Services.Message;
+using BE.Services.Redis;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
 using MODELS.BASE;
 using MODELS.COMMON;
 using MODELS.GROUP.Dtos;
+using MODELS.GROUPMEMBER.Dtos;
 using MODELS.GROUPREQUEST.Dtos;
 using MODELS.GROUPREQUEST.Requests;
 using MODELS.MESSAGE.Dtos;
@@ -23,14 +25,16 @@ namespace BE.Services.GroupRequest
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly ICONVERSATIONService _conversationService;
         private readonly IMESSAGEService _messageService;
+        private readonly IREDISService _redisService;
 
-        public GROUPREQUESTService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, ICONVERSATIONService conversationService, IMESSAGEService messageService)
+        public GROUPREQUESTService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, ICONVERSATIONService conversationService, IMESSAGEService messageService, IREDISService redisService)
         {
             _context = context;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
             _conversationService = conversationService;
             _messageService = messageService;
+            _redisService = redisService;
         }
 
         public BaseResponse<GetListPagingResponse> GetListPaging(POSTGroupRequestGetListPagingRequest request)
@@ -96,6 +100,7 @@ namespace BE.Services.GroupRequest
             try
             {
                 var update = _context.GroupRequests.FirstOrDefault(g => g.Id == request.Id && !g.IsDeleted);
+                var AddedGroupMember = new List<MODELGroupMember>();
 
                 if (update == null)
                 {
@@ -161,11 +166,25 @@ namespace BE.Services.GroupRequest
                     {
                         throw new Exception(conversation.Message);
                     }
+
+                    AddedGroupMember.Add(_mapper.Map<MODELGroupMember>(add));
                 }
 
                 _context.SaveChanges();
 
                 response.Data = _mapper.Map<MODELGroupRequest>(update);
+                if (AddedGroupMember.Count > 0)
+                {
+                    var value = await _redisService.GetAsync<List<MODELGroupMember>>(RedisKeyHelper.GroupMemberByGroupId(update.GroupId));
+                    if (value != null)
+                    {
+                        await _redisService.SetAsync(
+                            RedisKeyHelper.GroupMemberByGroupId(update.GroupId),
+                            JsonConvert.SerializeObject(value.Concat(AddedGroupMember).ToList()),
+                            TimeSpan.FromMinutes(CommonConst.ExpireRedisGroupMember)
+                        );
+                    }
+                }
             }
             catch (Exception ex)
             {

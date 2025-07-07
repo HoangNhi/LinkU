@@ -3,6 +3,7 @@ using BE.Helpers;
 using BE.Services.Conversation;
 using BE.Services.MediaFile;
 using BE.Services.Message;
+using BE.Services.Redis;
 using BE.Services.User;
 using ENTITIES.DbContent;
 using Microsoft.Data.SqlClient;
@@ -29,8 +30,9 @@ namespace BE.Services.Group
         private readonly ICONVERSATIONService _conversationService;
         private readonly IMESSAGEService _messageService;
         private readonly IUSERService _userService;
+        private readonly IREDISService _redisService;
 
-        public GROUPService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IMEDIAFILEService mediaService, ICONVERSATIONService conversationService, IMESSAGEService messageService, IUSERService userService)
+        public GROUPService(LINKUContext context, IMapper mapper, IHttpContextAccessor contextAccessor, IMEDIAFILEService mediaService, ICONVERSATIONService conversationService, IMESSAGEService messageService, IUSERService userService, IREDISService redisService)
         {
             _context = context;
             _mapper = mapper;
@@ -39,6 +41,7 @@ namespace BE.Services.Group
             _conversationService = conversationService;
             _messageService = messageService;
             _userService = userService;
+            _redisService = redisService;
         }
 
         #region Common CRUD
@@ -285,7 +288,7 @@ namespace BE.Services.Group
                 _context.Groups.Add(group);
 
                 // Thêm members vào nhóm
-                _context.GroupMembers.AddRange(request.Members.Select(m => new ENTITIES.DbContent.GroupMember
+                var GroupMembers = request.Members.Select(m => new ENTITIES.DbContent.GroupMember
                 {
                     Id = Guid.NewGuid(),
                     GroupId = group.Id,
@@ -295,7 +298,8 @@ namespace BE.Services.Group
                     NguoiTao = _contextAccessor.HttpContext.User.Identity.Name,
                     NgaySua = DateTime.Now,
                     NguoiSua = _contextAccessor.HttpContext.User.Identity.Name
-                }));
+                });
+                _context.GroupMembers.AddRange(GroupMembers);
 
                 // Nếu có ảnh đại diện thì thêm vào nhóm
                 if (request.Avatar != null)
@@ -365,6 +369,20 @@ namespace BE.Services.Group
                 // Lưu dữ liệu
                 _context.SaveChanges();
                 response.Data = _mapper.Map<MODELGroup>(group);
+
+                // Lưu vào redis
+                await Task.WhenAll(
+                    _redisService.SetAsync(
+                        RedisKeyHelper.GroupMemberByGroupId(group.Id),
+                        JsonConvert.SerializeObject(GroupMembers),
+                        TimeSpan.FromMinutes(CommonConst.ExpireRedisGroupMember)
+                    ),
+                    _redisService.SetAsync(
+                        RedisKeyHelper.MessageById(group.Id),
+                        JsonConvert.SerializeObject(request.Members.Select(m => m.UserId).ToList()),
+                        TimeSpan.FromMinutes(CommonConst.ExpireRedisMessage)
+                    )
+                );
             }
             catch (Exception ex)
             {

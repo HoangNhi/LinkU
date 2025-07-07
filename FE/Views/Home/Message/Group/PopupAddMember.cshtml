@@ -393,7 +393,7 @@
                         ShowThongBaoThanhCong("Thêm thành viên vào nhóm thành công")
                         SendRequestWSRerenderTab(response.data.newMemberIds, "Conversation")
                         // Update lại tin nhắn mới nhất
-                        updateConversationLatestMessage(TargetId)
+                        updateConversationLatestMessage('@ViewBag.GroupId')
                         // Refresh lại trang
                         GetMessage(true)
                     } else if (response.data.invitedUserIds.length > 0) {

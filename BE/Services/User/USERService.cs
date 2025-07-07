@@ -18,6 +18,7 @@ using MODELS.REFRESHTOKEN.Dtos;
 using MODELS.USER.Dtos;
 using MODELS.USER.Requests;
 using Newtonsoft.Json;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 
@@ -181,7 +182,7 @@ namespace BE.Services.User
                     response.Data = result;
 
                     // Lưu vào Redis
-                    await _redisService.SetAsync(
+                    _redisService.SetAsync(
                         RedisKeyHelper.UserProfile(request.Id.Value),
                         JsonConvert.SerializeObject(result),
                         TimeSpan.FromMinutes(CommonConst.ExpireRedisUserProfile)

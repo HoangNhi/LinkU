@@ -135,7 +135,8 @@ namespace BE.Configure
                 {
                     EndPoints = { { uri.Host, uri.Port } },
                     Password = userInfoParts[1],
-                    Ssl = true,
+                    //Ssl = true,
+                    Ssl = false
                 };
                 configurationOptions.CertificateValidation += (sender, cert, chain, errors) => true;
                 return ConnectionMultiplexer.Connect(configurationOptions);

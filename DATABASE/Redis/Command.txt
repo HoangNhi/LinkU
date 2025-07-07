@@ -1,0 +1,1 @@
+docker run --name redis -p 6379:6379 -v F:\Workspace\Personal\LinkU\DATABASE\Redis\redis.conf:/usr/local/etc/redis/redis.conf -d redis redis-server /usr/local/etc/redis/redis.conf

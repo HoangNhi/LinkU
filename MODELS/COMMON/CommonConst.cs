@@ -16,6 +16,9 @@
         /// Thời hạn lưu trữ thông tin người dùng trong Redis là 30 phút
         /// </summary>
         public static int ExpireRedisUserProfile = 30;
+        /// <summary>
+        /// Thời hạn lưu trữ thông tin đã xử lý của MediaFile trong Redis là 30 phút
+        public static int ExpireRedisMediaFile = 30;
 
         /// <summary>
         /// Các định dạng file được phép upload

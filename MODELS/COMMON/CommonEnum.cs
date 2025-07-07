@@ -43,4 +43,10 @@
         Landscape = 2, // Hình chữ nhật ngang
         Portrait = 3 // Hình chữ nhật dọc
     }
+
+    public enum CaseHandleMessage
+    {
+        MessageGetListPaging = 0,
+        SendPrivateMessage = 1,
+    }
 }

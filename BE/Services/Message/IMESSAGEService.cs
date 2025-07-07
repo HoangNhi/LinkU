@@ -13,9 +13,9 @@ namespace BE.Services.Message
         BaseResponse<MODELMessage> Update(PostMessageRequest request);
         BaseResponse<string> DeleteList(DeleteListRequest request);
         Task<BaseResponse<List<MODELSendMessageWithFileResponse>>> SendMessageWithFile(POSTSendMessageWithFileRequest request);
-        BaseResponse<List<MODELMessage>> HanleDataGetListPaging(List<MODELMessage> result, int conversationType, Guid UserId, Guid TargetId);
+        //BaseResponse<List<MODELMessage>> HanleDataGetListPaging(List<MODELMessage> result, int conversationType, Guid UserId, Guid TargetId);
         Task<BaseResponse<List<MODELMessage>>> HanleDataGetListPagingAsync(List<MODELMessage> result, int conversationType, Guid UserId, Guid TargetId);
-        BaseResponse<MODELMessage> WSInsertPrivateMessage(PostMessageRequest request);
+        Task<BaseResponse<MODELMessage>> WSInsertPrivateMessage(PostMessageRequest request);
         #region Xử lý request từ Websocket
         BaseResponse<bool> RoolbackDelete(GetByIdRequest request);
         #endregion

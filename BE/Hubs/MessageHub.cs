@@ -13,7 +13,6 @@ using MODELS.MESSAGE.Dtos;
 using MODELS.MESSAGE.Requests;
 using MODELS.MESSAGEREACTION.Requests;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Net.WebSockets;
 
 namespace BE.Hubs
@@ -42,16 +41,12 @@ namespace BE.Hubs
         {
             try
             {
-                var sw = Stopwatch.StartNew();
                 // Create Message
-                var newMessage = _messageService.WSInsertPrivateMessage(request);
+                var newMessage = await _messageService.WSInsertPrivateMessage(request);
                 if (newMessage.Error)
                 {
                     throw new Exception(newMessage.Message);
                 }
-                
-                sw.Stop();
-                Console.WriteLine($"WSInsertPrivateMessage took {sw.ElapsedMilliseconds} ms");
 
                 // SignalR message
                 await SendSignalRMessage(newMessage.Data);

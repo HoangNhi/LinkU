@@ -48,5 +48,8 @@
     {
         MessageGetListPaging = 0,
         SendPrivateMessage = 1,
+        SendMessageWithFile = 2,
+        SendGroupMessage = 3,
+        UpdateMessageReaction = 4,
     }
 }

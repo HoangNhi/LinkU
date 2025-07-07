@@ -96,7 +96,7 @@ namespace BE.Hubs
                 // Gửi tin nhắn đến tất cả thành viên trong nhóm
                 foreach (var member in groupMembers.Data)
                 {
-                    var Data = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { resultMessage.Data }, 1, member.UserId, member.GroupId)).Data;
+                    var Data = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { resultMessage.Data }, 1, member.UserId, member.GroupId, MODELS.COMMON.CaseHandleMessage.SendGroupMessage)).Data;
 
                     var Response = new GetListPagingResponse
                     {
@@ -319,8 +319,8 @@ namespace BE.Hubs
                 if (requestData.ConversationType == 0)
                 {
                     // Xử lý dữ liệu
-                    List<MODELMessage> myData = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { message.Data }, 0, requestData.SenderId, requestData.TargetId)).Data;
-                    List<MODELMessage> otherData = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { message.Data }, 0, requestData.TargetId, requestData.SenderId)).Data;
+                    List<MODELMessage> myData = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { message.Data }, 0, requestData.SenderId, requestData.TargetId, MODELS.COMMON.CaseHandleMessage.UpdateMessageReaction)).Data;
+                    List<MODELMessage> otherData = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { message.Data }, 0, requestData.TargetId, requestData.SenderId, MODELS.COMMON.CaseHandleMessage.UpdateMessageReaction)).Data;
 
                     if (_users.TryGetValue(requestData.TargetId.ToString(), out string receiverConnectionId))
                     {
@@ -372,7 +372,7 @@ namespace BE.Hubs
                         if (_users.TryGetValue(member.UserId.ToString(), out string receiverConnectionId))
                         {
                             // Xử lý dữ liệu
-                            var Data = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { message.Data }, 1, member.UserId, member.GroupId)).Data;
+                            var Data = (await _messageService.HanleDataGetListPagingAsync(new List<MODELMessage> { message.Data }, 1, member.UserId, member.GroupId, MODELS.COMMON.CaseHandleMessage.UpdateMessageReaction)).Data;
 
                             // Gửi yêu cầu cập nhật đến người nhận
                             await Clients.Client(receiverConnectionId).SendAsync("ReceiveRequestUpdateMessageReaction",
@@ -429,7 +429,7 @@ namespace BE.Hubs
             async Task SendToClient(Guid userId, Guid targetId, Func<GetListPagingResponse, Task> sendFunc)
             {
                 var handleMessage = await _messageService.HanleDataGetListPagingAsync(
-                    new List<MODELMessage> { response }, 0, userId, targetId);
+                    new List<MODELMessage> { response }, 0, userId, targetId, MODELS.COMMON.CaseHandleMessage.SendPrivateMessage);
 
                 var data = handleMessage.Data;
 

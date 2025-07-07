@@ -66,7 +66,7 @@ namespace BE.Services.Message
                 };
 
                 var result = _context.ExcuteStoredProcedure<MODELMessage>("sp_MESSAGE_GetListPaging", parameters).ToList();
-                result = (await HanleDataGetListPagingAsync(result, request.ConversationType, request.UserId, request.TargetId)).Data;
+                result = (await HanleDataGetListPagingAsync(result, request.ConversationType, request.UserId, request.TargetId, CaseHandleMessage.MessageGetListPaging)).Data;
 
                 GetListPagingResponse resposeData = new GetListPagingResponse();
                 resposeData.PageIndex = request.PageIndex;
@@ -410,8 +410,8 @@ namespace BE.Services.Message
                 // Reverse Message
                 ListMessage.Reverse();
                 // Xử lý dữ liệu để trả về
-                var MyResponse =(await HanleDataGetListPagingAsync(ListMessage, request.ConversationType, request.SenderId, request.TargetId)).Data;
-                var TargetResponse =(await HanleDataGetListPagingAsync(ListMessage, request.ConversationType, request.TargetId, request.SenderId)).Data;
+                var MyResponse =(await HanleDataGetListPagingAsync(ListMessage, request.ConversationType, request.SenderId, request.TargetId, CaseHandleMessage.SendMessageWithFile)).Data;
+                var TargetResponse =(await HanleDataGetListPagingAsync(ListMessage, request.ConversationType, request.TargetId, request.SenderId, CaseHandleMessage.SendMessageWithFile)).Data;
 
                 response.Data = new List<MODELSendMessageWithFileResponse> {
                     new MODELSendMessageWithFileResponse
@@ -444,15 +444,23 @@ namespace BE.Services.Message
             return response;
         }
 
-        public async Task<BaseResponse<List<MODELMessage>>> HanleDataGetListPagingAsync(List<MODELMessage> result, int conversationType, Guid UserId, Guid TargetId)
+        public async Task<BaseResponse<List<MODELMessage>>> HanleDataGetListPagingAsync(List<MODELMessage> result, int conversationType, Guid UserId, Guid TargetId, CaseHandleMessage Case)
         {
             var response = new BaseResponse<List<MODELMessage>>();
             try
             {
                 if (conversationType == 0)
                 {
-                    var CurrentUser = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = UserId })).Data;
-                    var Target = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = TargetId })).Data;
+                    var sw = Stopwatch.StartNew();
+                    MODELUser CurrentUser = new MODELUser(), Target = new MODELUser();
+                    // Send PrivateMessage sẽ không preload CurrentUser và Target
+                    if (Case != CaseHandleMessage.SendPrivateMessage)
+                    {
+                        CurrentUser = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = UserId })).Data;
+                        Target = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = TargetId })).Data;
+                    }
+                    Console.WriteLine($"preload CurrentUser và Target: {sw.ElapsedMilliseconds} ms");
+                    sw.Restart();
 
                     // Tập hợp các ID cần preload
                     var messageIds = result.Select(x => x.Id).ToList();
@@ -460,25 +468,41 @@ namespace BE.Services.Message
                                        .Select(x => x.RefId.Value)
                                        .Distinct()
                                        .ToList();
+                    Console.WriteLine($"Tập hợp các ID cần preload: {sw.ElapsedMilliseconds} ms");
+                    sw.Restart();
 
                     // Preload MediaFiles cho MessageId và RefId
-                    var mediaFiles = _context.MediaFiles
-                        .Where(x => (messageIds.Contains(x.MessageId.Value) || refIds.Contains(x.MessageId.Value)) && !x.IsDeleted)
-                        .AsNoTracking()
-                        .ToList()
-                        .ToLookup(x => x.MessageId);
+                    var mediaFiles = new List<ENTITIES.DbContent.MediaFile>().ToLookup(x => x.MessageId);
+                    if(Case != CaseHandleMessage.SendPrivateMessage)
+                    {
+                        mediaFiles = _context.MediaFiles
+                            .Where(x => (messageIds.Contains(x.MessageId.Value) || refIds.Contains(x.MessageId.Value)) && !x.IsDeleted)
+                            .AsNoTracking()
+                            .ToList()
+                            .ToLookup(x => x.MessageId);
+                    }
+                    Console.WriteLine($"Preload MediaFiles cho MessageId và RefId: {sw.ElapsedMilliseconds} ms");
+                    sw.Restart();
 
                     // Preload RefMessages
                     var refMessages = GetByIds(refIds)
                                         .ToDictionary(x => x.Id, x => x);
+                    Console.WriteLine($"Preload RefMessages: {sw.ElapsedMilliseconds} ms");
+                    sw.Restart();
 
                     // Preload Reactions
-                    var allReactions = _context.MessageReactions
-                        .Where(x => messageIds.Contains(x.MessageId) && !x.IsDeleted)
-                        .AsNoTracking()
-                        .ToList()
-                        .GroupBy(x => x.MessageId)
-                        .ToDictionary(g => g.Key, g => g.ToList());
+                    var allReactions = new Dictionary<Guid, List<ENTITIES.DbContent.MessageReaction>>();
+                    if(Case != CaseHandleMessage.SendPrivateMessage)
+                    {
+                        allReactions = _context.MessageReactions
+                            .Where(x => messageIds.Contains(x.MessageId) && !x.IsDeleted)
+                            .AsNoTracking()
+                            .ToList()
+                            .GroupBy(x => x.MessageId)
+                            .ToDictionary(g => g.Key, g => g.ToList());
+                    }
+                    Console.WriteLine($"Preload Reactions: {sw.ElapsedMilliseconds} ms");
+                    sw.Restart();
 
                     // Lấy tất cả ReactionTypeId & UserId duy nhất để preload batch
                     var allReactionTypeIds = allReactions.SelectMany(x => x.Value.Select(r => r.ReactionTypeId)).Distinct().ToList();
@@ -490,7 +514,17 @@ namespace BE.Services.Message
                     // Preload ReactionTypes và Users
                     var reactionTypesDictTask = await _reactionTypeService.GetByIds(allReactionTypeIds);
                     var reactionTypesDict = reactionTypesDictTask.ToDictionary(x => x.Id, x => x);
-                    var usersDict = new List<MODELUser> { CurrentUser, Target }.ToDictionary(x => x.Id);
+                    var usersDict = new Dictionary<Guid, MODELUser>();
+                    if (Case == CaseHandleMessage.SendPrivateMessage)
+                    {
+                        usersDict = new List<MODELUser> { result[0].Sender }.ToDictionary(x => x.Id);
+                    }
+                    else
+                    {
+                        usersDict = new List<MODELUser> { CurrentUser, Target }.ToDictionary(x => x.Id);
+                    }
+                    Console.WriteLine($"Preload ReactionTypes và Users: {sw.ElapsedMilliseconds} ms");
+                    sw.Restart();
 
                     // Lặp và gán dữ liệu đã preload
                     foreach (var item in result)
@@ -561,8 +595,8 @@ namespace BE.Services.Message
                         }
                     }
 
-                    //Console.WriteLine($"Lặp và gán dữ liệu đã preload: {sw.ElapsedMilliseconds} ms");
-                    //sw.Restart();
+                    Console.WriteLine($"Lặp và gán dữ liệu đã preload: {sw.ElapsedMilliseconds} ms");
+                    sw.Restart();
                 }
                 else if (conversationType == 1)
                 {
@@ -738,7 +772,6 @@ namespace BE.Services.Message
             {
                 response.Error = true;
                 response.Message = ex.Message;
-                Console.WriteLine($"Error: {ex.Message}");
             }
             return response;
         }

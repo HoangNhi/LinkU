@@ -16,6 +16,7 @@ using MODELS.MESSAGE.Requests;
 using MODELS.MESSAGEREACTION.Dtos;
 using MODELS.USER.Dtos;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1.X509;
 using StackExchange.Redis;
 using System.Diagnostics;
 
@@ -170,11 +171,7 @@ namespace BE.Services.Message
             var response = new BaseResponse<MODELMessage>();
             try
             {
-                // 1. Validate nhanh
-                if (string.IsNullOrWhiteSpace(request.Content))
-                    throw new Exception("Tin nhắn không được để trống");
-
-                // 2. Truy xuất username trực tiếp nếu đã biết hoặc preload ở ngoài
+                // 1. Truy xuất username trực tiếp nếu đã biết hoặc preload ở ngoài
                 var sender = (await _userService.GetByIdAsync(new GetByIdRequest { Id = request.SenderId })).Data;
 
                 if (sender == null)
@@ -471,13 +468,8 @@ namespace BE.Services.Message
             {
                 if (conversationType == 0)
                 {
-                    MODELUser CurrentUser = new MODELUser(), Target = new MODELUser();
-                    // Send PrivateMessage sẽ không preload CurrentUser và Target
-                    if (Case != CaseHandleMessage.SendPrivateMessage)
-                    {
-                        CurrentUser = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = UserId })).Data;
-                        Target = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = TargetId })).Data;
-                    }
+                    var CurrentUser = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = UserId })).Data;
+                    var Target = (await _userService.GetByIdAsync(new GetByIdRequest() { Id = TargetId })).Data;
 
                     // Tập hợp các ID cần preload
                     var messageIds = result.Select(x => x.Id).ToList();
@@ -487,15 +479,11 @@ namespace BE.Services.Message
                                        .ToList();
 
                     // Preload MediaFiles cho MessageId và RefId
-                    var mediaFiles = new List<ENTITIES.DbContent.MediaFile>().ToLookup(x => x.MessageId);
-                    if(Case != CaseHandleMessage.SendPrivateMessage)
-                    {
-                        mediaFiles = _context.MediaFiles
+                    var mediaFiles = _context.MediaFiles
                             .Where(x => (messageIds.Contains(x.MessageId.Value) || refIds.Contains(x.MessageId.Value)) && !x.IsDeleted)
                             .AsNoTracking()
                             .ToList()
                             .ToLookup(x => x.MessageId);
-                    }
 
                     // Preload RefMessages
                     var refMessages = new List<MODELMessage>();
@@ -532,15 +520,7 @@ namespace BE.Services.Message
                     // Preload ReactionTypes và Users
                     var reactionTypesDictTask = await _reactionTypeService.GetByIds(allReactionTypeIds);
                     var reactionTypesDict = reactionTypesDictTask.ToDictionary(x => x.Id, x => x);
-                    var usersDict = new Dictionary<Guid, MODELUser>();
-                    if (Case == CaseHandleMessage.SendPrivateMessage)
-                    {
-                        usersDict = new List<MODELUser> { result[0].Sender }.ToDictionary(x => x.Id);
-                    }
-                    else
-                    {
-                        usersDict = new List<MODELUser> { CurrentUser, Target }.ToDictionary(x => x.Id);
-                    }
+                    var usersDict = new List<MODELUser> { CurrentUser, Target }.ToDictionary(x => x.Id);
 
                     // Lặp và gán dữ liệu đã preload
                     foreach (var item in result)

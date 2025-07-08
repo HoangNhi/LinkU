@@ -437,31 +437,20 @@ namespace BE.Hubs
                 await sendFunc.Invoke(pagingResponse);
             }
 
-            var tasks = new List<Task>();
-
             // Gửi cho người nhận nếu họ đang online
             if (_users.TryGetValue(response.TargetId.ToString(), out string receiverConnectionId))
             {
-                tasks.Add(Task.Run(async () =>
+                await SendToClient(response.TargetId, response.SenderId, async (res) =>
                 {
-                    await SendToClient(response.TargetId, response.SenderId, async (res) =>
-                    {
-                        Clients.Client(receiverConnectionId)
-                            .SendAsync("ReceiveMessage", new ApiResponse(res));
-                    });
-                }));
+                    Clients.Client(receiverConnectionId)
+                        .SendAsync("ReceiveMessage", new ApiResponse(res));
+                });
             }
 
-            // Gửi cho người gửi (caller)
-            tasks.Add(Task.Run(async () =>
+            await SendToClient(response.SenderId, response.TargetId, async (res) =>
             {
-                await SendToClient(response.SenderId, response.TargetId, async (res) =>
-                {
-                    Clients.Caller.SendAsync("ReceiveMessage", new ApiResponse(res));
-                });
-            }));
-
-            await Task.WhenAll(tasks);
+                Clients.Caller.SendAsync("ReceiveMessage", new ApiResponse(res));
+            });
         }
 
         async Task SendSignalRRerenderTab(Guid UserId, string tabname)

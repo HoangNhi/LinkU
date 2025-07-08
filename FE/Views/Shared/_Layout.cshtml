@@ -584,7 +584,6 @@
 
                     // Thêm class highlight
                     const message = targetElement.querySelector('div.MyMessage, div.OtherMessage, p.MyMessage, p.OtherMessage');
-                    console.log(message)
                     if (message !== null) {
                         message.classList.add('IsScrollTo');
 
@@ -619,7 +618,15 @@
                                 Đang trả lời ${message.getAttribute("data-name")}
                             </span>
                             <span class="text-truncate" style="font-size: 12px; font-weight: 400; margin: 5px 0; line-height: 16px">
-                                ${message.querySelectorAll("p").length === 0 ? (message.querySelector("video.FilePreview") === null ? (message.querySelector("img.FilePreview") === null ? "Tệp tin" : "Hình ảnh") : "Video") : message.querySelectorAll("p")[message.querySelectorAll("p").length - 1].innerText}
+                                ${
+                                    message.querySelector("video.FilePreview") !== null
+                                        ? "Video"
+                                        : message.querySelector("img.FilePreview") !== null
+                                            ? "Hình ảnh"
+                                            : message.querySelectorAll("p.MyMessage, p.OtherMessage").length > 0
+                                                ? message.querySelectorAll("p.MyMessage, p.OtherMessage")[message.querySelectorAll("p.MyMessage, p.OtherMessage").length - 1].innerText
+                                                : "Tệp tin"
+                                }
                             </span>
                         </div>
                         <button type="button" onclick="HideResponseMessageContainer()"

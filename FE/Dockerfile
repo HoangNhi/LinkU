@@ -26,4 +26,6 @@ RUN dotnet publish "./FE.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseA
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "FE.dll"]
+ENV ASPNETCORE_ENVIRONMENT=Release
+CMD ASPNETCORE_URLS=http://*:$PORT dotnet FE.dll
+#ENTRYPOINT ["dotnet", "FE.dll"]

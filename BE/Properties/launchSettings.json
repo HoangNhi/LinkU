@@ -37,6 +37,17 @@
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7181"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
+      "environmentVariables": {
+        "ASPNETCORE_HTTP_PORTS": "8080",
+        "ASPNETCORE_ENVIRONMENT": "Release"
+      },
+      "publishAllPorts": true,
+      "useSSL": true
     }
   },
   "iisSettings": {

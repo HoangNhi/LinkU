@@ -10,22 +10,13 @@ services:
     depends_on:
       - backend
     environment:
-      - ASPNETCORE_ENVIRONMENT=CongNgheMangNangCao
+      - ASPNETCORE_ENVIRONMENT=Release
   backend:
     build:
       context: .
       dockerfile: BE/Dockerfile
     image: hoangnhii211203/linku-backend:latest
     ports:
-      - "8081:8080"
-    depends_on:
-    - db
+      - "7181:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=CongNgheMangNangCao
-  db:
-    build:
-        context: .
-        dockerfile: DATABASE/Dockerfile
-    image: hoangnhii211203/linku-db:latest
-    ports:
-      - "1433:1433"
+      - ASPNETCORE_ENVIRONMENT=Release

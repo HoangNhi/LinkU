@@ -366,3 +366,4 @@ FodyWeavers.xsd
 /FE/wwwroot/scss
 /FE/package-lock.json
 /FE/package.json
+/BE/appsettings.release.json

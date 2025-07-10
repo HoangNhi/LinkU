@@ -372,12 +372,16 @@
 
 
     function UpdateProfile() {
-        var data = $("#frmUpdateProfile").serialize();
+        var data = $("#frmUpdateProfile").serializeArray();
+        var dateString = data.find(x => x.name === 'DateOfBirth').value
+        const [day, month, year] = dateString.split('-');
+        data.find(x => x.name === 'DateOfBirth').value = `${year}-${month}-${day}`
+
         showLoading(true)
         $.ajax({
             url: "@Url.Action("UpdatePersonalInfo", "Home")",
             type: "POST",
-            data: data,
+            data: $.param(data),
             success: function (response) {
                 showLoading(false)
                 if (response.isSuccess) {

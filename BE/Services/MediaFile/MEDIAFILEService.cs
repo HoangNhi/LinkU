@@ -12,8 +12,8 @@ using MODELS.MEDIAFILE.Dtos;
 using MODELS.MEDIAFILE.Requests;
 using MODELS.USER.Dtos;
 using Newtonsoft.Json;
-using System.Drawing;
-using System.Threading.Tasks;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace BE.Services.MediaFile
 {
@@ -229,7 +229,7 @@ namespace BE.Services.MediaFile
                 {
                     _context.SaveChanges();
 
-                    if ((request.FileType == MediaFileType.ProfilePicture || request.FileType == MediaFileType.CoverPicture) 
+                    if ((request.FileType == MediaFileType.ProfilePicture || request.FileType == MediaFileType.CoverPicture)
                         && add.OwnerId != null && add.OwnerId != Guid.Empty)
                     {
                         var redis = await _redisService.GetAsync(RedisKeyHelper.UserProfile(add.OwnerId.Value));
@@ -396,7 +396,7 @@ namespace BE.Services.MediaFile
                         {
                             try
                             {
-                                using (var image = Image.FromStream(stream))
+                                using (var image = Image.Load<Rgba32>(stream))
                                 {
                                     width = image.Width;
                                     height = image.Height;

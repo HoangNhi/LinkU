@@ -164,7 +164,8 @@
             dateFormat: "dd-mm-yy",
             duration: "fast",
             changeMonth: true,
-            changeYear: true
+            changeYear: true,
+            yearRange: "-100:+0"
         });
 
         $("#DateOfBirth").focus(function (e) {
@@ -185,12 +186,15 @@
     });
 
     function DangKy() {
-        var data = $("#frmRegister").serialize();
+        var data = $("#frmRegister").serializeArray();
+        var dateString = data.find(x => x.name === 'DateOfBirth').value
+        const [day, month, year] = dateString.split('-');
+        data.find(x => x.name === 'DateOfBirth').value = `${year}-${month}-${day}`
         showLoading(true)
         $.ajax({
             url: "@Url.Action("Register", "Account")",
             type: "POST",
-            data: data,
+            data: $.param(data),
             success: function (response) {
                 showLoading(false)
                 if (response.isSuccess) {
